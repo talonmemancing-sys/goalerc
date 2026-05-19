@@ -38,4 +38,10 @@ window.GOAL_CONFIG = {
 
   // Etherscan
   etherscanBase: "https://etherscan.io",
+
+  // Primary RPC — Alchemy free tier.
+  // ⚠ Key is intentionally public. Domain allowlist on the Alchemy dashboard
+  // is what stops other sites from using this key (set "Allowed Origins" to
+  // https://goalerc20.xyz). Without allowlist, anyone can drain the quota.
+  primaryRpc: "https://eth-mainnet.g.alchemy.com/v2/tnsgI20kI1tKC82GQ9wiM",
 };

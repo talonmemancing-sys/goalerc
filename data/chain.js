@@ -23,7 +23,13 @@
   //   - blockpi.network/public CORS preflight blocked
   //   - drpc.org free tier     batches >3 calls return 500
   const userOverride = (() => { try { return localStorage.getItem("goal_rpc"); } catch { return null; } })();
-  const RPCS = (userOverride ? [userOverride] : []).concat([
+  const RPCS = [];
+  // Priority 1: user's localStorage override (for personal Alchemy/Infura keys)
+  if (userOverride) RPCS.push(userOverride);
+  // Priority 2: site's primary Alchemy endpoint from config (the reliable one)
+  if (cfg.primaryRpc) RPCS.push(cfg.primaryRpc);
+  // Priority 3+: public fallbacks if the primary is throttled or down
+  RPCS.push(
     "https://cloudflare-eth.com",
     "https://1rpc.io/eth",
     "https://endpoints.omniatech.io/v1/eth/mainnet/public",
@@ -31,7 +37,7 @@
     "https://rpc.ankr.com/eth",
     "https://ethereum-rpc.publicnode.com",
     "https://eth-mainnet.public.blastapi.io",
-  ]);
+  );
 
   const ERC20_ABI = [
     "function totalSupply() view returns (uint256)",
