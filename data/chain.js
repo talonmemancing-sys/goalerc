@@ -12,19 +12,21 @@
   const VIRTUAL = window.VIRTUAL_PITCH || 20000;
   const PACK_PRICE = window.PACK_PRICE || 6.9;
 
-  // Public mainnet RPCs that send permissive CORS for browsers.
+  // Public mainnet RPCs with permissive CORS + sane free-tier limits.
   // User can override via localStorage.setItem("goal_rpc", "https://...").
-  // Tried in order; first one that responds wins.
+  // Tried in parallel via Promise.any — fastest reachable wins.
+  //
+  // Excluded:
+  //   - eth.merkle.io          CORS blocks browser origin
+  //   - blockpi public         CORS blocks browser origin
+  //   - drpc.org free          batches >3 calls return 500 (paid feature)
   const userOverride = (() => { try { return localStorage.getItem("goal_rpc"); } catch { return null; } })();
   const RPCS = (userOverride ? [userOverride] : []).concat([
     "https://cloudflare-eth.com",
-    "https://eth.merkle.io",
+    "https://eth.llamarpc.com",
+    "https://rpc.ankr.com/eth",
     "https://ethereum-rpc.publicnode.com",
     "https://eth-mainnet.public.blastapi.io",
-    "https://ethereum.blockpi.network/v1/rpc/public",
-    "https://eth.drpc.org",
-    "https://rpc.ankr.com/eth",
-    "https://eth.llamarpc.com",
   ]);
 
   const ERC20_ABI = [
@@ -50,6 +52,36 @@
   ];
   const PLAYER_ROLE_MAX = { CPT: 1500, BST: 500, RKE: 2500 };
   const PLAYER_ROLE_ORDER = ["CPT", "BST", "RKE"]; // playerIndex = countryId*3 + role
+
+  // Multicall3 — canonical deployment on every EVM chain, including mainnet.
+  // Single eth_call returns all N sub-call results, bypassing every RPC's
+  // JSON-RPC-batch limits (drpc free tier maxes 3 per batch, etc.).
+  const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
+  const MULTICALL3_ABI = [
+    "function aggregate3((address target, bool allowFailure, bytes callData)[] calls) external payable returns ((bool success, bytes returnData)[] returnData)",
+  ];
+  let _multicall3Iface = null;
+  function getMulticall3Iface() {
+    if (!_multicall3Iface) _multicall3Iface = new ethers.Interface(MULTICALL3_ABI);
+    return _multicall3Iface;
+  }
+
+  // Run an arbitrary list of {target, callData} read calls as one eth_call.
+  // Returns parallel array of { success, returnData } in input order.
+  async function multicall(p, calls) {
+    if (!calls.length) return [];
+    const mc = new ethers.Contract(MULTICALL3, MULTICALL3_ABI, p);
+    const args = calls.map((c) => [c.target, true, c.callData]);
+    // staticCall — never sends a tx, no gas, no nonce. Pure read.
+    const results = await mc.aggregate3.staticCall(args);
+    return results.map((r) => ({ success: r[0], returnData: r[1] }));
+  }
+
+  // Try a multicall across all known providers — needed because if the
+  // primary RPC throws (rate-limit, CORS, etc.) we want to swap immediately.
+  async function multicallAcross(calls) {
+    return await tryAcrossRpcs((p) => multicall(p, calls));
+  }
 
   // The COUNTRIES array uses FIFA three-letter codes (POR, CRO, NED, KSA…),
   // while many contracts use ISO 3166-1 alpha-3 (PRT, HRV, NLD, SAU…). We
@@ -187,29 +219,43 @@
         }
       }
 
-      const goal = new ethers.Contract(cfg.goal, ERC20_ABI, provider);
-      const factory = new ethers.Contract(cfg.countryFactory, COUNTRY_FACTORY_ABI, provider);
-      const playerFactory = new ethers.Contract(cfg.playerFactory, PLAYER_FACTORY_ABI, provider);
+      // Encoders/decoders for multicall sub-calls.
+      const ifaceErc20    = new ethers.Interface(ERC20_ABI);
+      const ifaceFactory  = new ethers.Interface(COUNTRY_FACTORY_ABI);
+      const ifaceCurve    = new ethers.Interface(COUNTRY_CURVE_ABI);
+      const ifacePackOp   = new ethers.Interface(COUNTRY_PACK_OPENER_ABI);
+      const ifacePFactory = new ethers.Interface(PLAYER_FACTORY_ABI);
+      const decode = (iface, fn, res) => {
+        if (!res?.success) return null;
+        try { return iface.decodeFunctionResult(fn, res.returnData); } catch { return null; }
+      };
 
-      const packOpener = new ethers.Contract(cfg.countryPackOpener, COUNTRY_PACK_OPENER_ABI, provider);
-
-      // Phases 1 + 2 are independent, fire them in parallel — saves one RTT.
-      //   1) GOAL.totalSupply + block number + pack-window timestamps (4 calls)
-      //   2) factory.tokens(i) + factory.curves(i) for all 48 countries (96 calls)
-      // ethers v6 batches all these into ~1 HTTP round trip total.
-      const [phase1, addrPairs] = await Promise.all([
-        Promise.all([
-          goal.totalSupply(),
-          provider.getBlockNumber(),
-          packOpener.openedAt().catch(() => 0n),
-          packOpener.windowClosesAt().catch(() => 0n),
-        ]),
-        Promise.all(window.COUNTRIES.map((_, i) =>
-          Promise.all([factory.tokens(i), factory.curves(i)])
-            .catch(() => [ethers.ZeroAddress, ethers.ZeroAddress])
-        )),
+      // ─── ROUND 1 (one eth_call): globals + 48 country (token, curve) addrs ───
+      const r1Calls = [
+        { target: cfg.goal,              callData: ifaceErc20.encodeFunctionData("totalSupply") },
+        { target: cfg.countryPackOpener, callData: ifacePackOp.encodeFunctionData("openedAt") },
+        { target: cfg.countryPackOpener, callData: ifacePackOp.encodeFunctionData("windowClosesAt") },
+      ];
+      for (let i = 0; i < window.COUNTRIES.length; i++) {
+        r1Calls.push({ target: cfg.countryFactory, callData: ifaceFactory.encodeFunctionData("tokens", [i]) });
+        r1Calls.push({ target: cfg.countryFactory, callData: ifaceFactory.encodeFunctionData("curves", [i]) });
+      }
+      const [r1, blockNumber] = await Promise.all([
+        multicallAcross(r1Calls),
+        tryAcrossRpcs((p) => p.getBlockNumber()),
       ]);
-      const [totalSupplyWei, blockNumber, openedAtBn, closesAtBn] = phase1;
+
+      let ri = 0;
+      const totalSupplyWei = decode(ifaceErc20,  "totalSupply",    r1[ri++])?.[0] ?? 0n;
+      const openedAtBn     = decode(ifacePackOp, "openedAt",       r1[ri++])?.[0] ?? 0n;
+      const closesAtBn     = decode(ifacePackOp, "windowClosesAt", r1[ri++])?.[0] ?? 0n;
+      const addrPairs = [];
+      for (let i = 0; i < window.COUNTRIES.length; i++) {
+        const tokenAddr = decode(ifaceFactory, "tokens", r1[ri++])?.[0] ?? ethers.ZeroAddress;
+        const curveAddr = decode(ifaceFactory, "curves", r1[ri++])?.[0] ?? ethers.ZeroAddress;
+        addrPairs.push([tokenAddr, curveAddr]);
+      }
+
       state.packWindow.openedAt = Number(openedAtBn);
       state.packWindow.closesAt = Number(closesAtBn);
       const totalSupply = Number(ethers.formatEther(totalSupplyWei));
@@ -218,39 +264,41 @@
       state.burned = Math.max(0, CAP - totalSupply);
       state.blockNumber = blockNumber;
 
-      // 3) For each country, read symbol/supply/phase2/reserve in parallel.
-      //    Symbol like "ARGC" → ISO3 = "ARG". Maps the contract's ordering to
-      //    our COUNTRIES array regardless of how the contract sequenced them.
-      const details = await Promise.all(
-        addrPairs.map(async ([tokenAddr, curveAddr], idx) => {
-          if (!tokenAddr || tokenAddr === ethers.ZeroAddress) return null;
-          const token = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
-          const curve = new ethers.Contract(curveAddr, COUNTRY_CURVE_ABI, provider);
-          try {
-            const [symbol, supplyWei, phase2, reserveWei] = await Promise.all([
-              token.symbol().catch(() => ""),
-              token.totalSupply(),
-              curve.phase2Active().catch(() => false),
-              curve.reservePITCH().catch(() => 0n),
-            ]);
-            const rawIso = (symbol || "").slice(0, 3).toUpperCase();
-            const iso = normalizeIso(rawIso);
-            return {
-              contractIdx: idx,
-              symbol: symbol || "",
-              rawIso,
-              iso,
-              tokenAddr,
-              curveAddr,
-              supply: Number(ethers.formatEther(supplyWei)),
-              phase2: Boolean(phase2),
-              reserve: Number(ethers.formatEther(reserveWei)),
-            };
-          } catch (e) {
-            return { contractIdx: idx, symbol: "", rawIso: "", iso: "", tokenAddr, curveAddr, supply: 0, phase2: false, reserve: 0 };
-          }
-        })
-      );
+      // ─── ROUND 2 (one eth_call): per-country symbol/supply/phase2/reserve ───
+      const r2Calls = [];
+      const r2Slots = []; // countryIdx for each block of 4 calls
+      for (let i = 0; i < addrPairs.length; i++) {
+        const [tokenAddr, curveAddr] = addrPairs[i];
+        if (!tokenAddr || tokenAddr === ethers.ZeroAddress) continue;
+        r2Slots.push(i);
+        r2Calls.push({ target: tokenAddr, callData: ifaceErc20.encodeFunctionData("symbol") });
+        r2Calls.push({ target: tokenAddr, callData: ifaceErc20.encodeFunctionData("totalSupply") });
+        r2Calls.push({ target: curveAddr, callData: ifaceCurve.encodeFunctionData("phase2Active") });
+        r2Calls.push({ target: curveAddr, callData: ifaceCurve.encodeFunctionData("reservePITCH") });
+      }
+      const r2 = r2Calls.length ? await multicallAcross(r2Calls) : [];
+
+      const details = new Array(addrPairs.length).fill(null);
+      for (let k = 0; k < r2Slots.length; k++) {
+        const i = r2Slots[k];
+        const o = k * 4;
+        const symbol     = decode(ifaceErc20, "symbol",       r2[o + 0])?.[0] ?? "";
+        const supplyWei  = decode(ifaceErc20, "totalSupply",  r2[o + 1])?.[0] ?? 0n;
+        const phase2     = decode(ifaceCurve, "phase2Active", r2[o + 2])?.[0] ?? false;
+        const reserveWei = decode(ifaceCurve, "reservePITCH", r2[o + 3])?.[0] ?? 0n;
+        const rawIso = (symbol || "").slice(0, 3).toUpperCase();
+        details[i] = {
+          contractIdx: i,
+          symbol: symbol || "",
+          rawIso,
+          iso: normalizeIso(rawIso),
+          tokenAddr: addrPairs[i][0],
+          curveAddr: addrPairs[i][1],
+          supply: Number(ethers.formatEther(supplyWei)),
+          phase2: Boolean(phase2),
+          reserve: Number(ethers.formatEther(reserveWei)),
+        };
+      }
 
       // POSITION-BASED MAPPING: trust that COUNTRIES[i] in the UI matches
       // factory.tokens(i) on chain. The user has already confirmed buys at
@@ -323,46 +371,55 @@
       state.lastUpdate = Date.now();
       notify();
 
-      // 4) Player factory — 144 tokens. Player index = contractCountryId * 3 + role
-      //    (role 0=CPT, 1=BST, 2=RKE per the contract spec). We iterate by the
-      //    contractIdx we discovered above so the iso-mapping stays correct.
-      const playerJobs = [];
+      // ─── ROUND 3 (one eth_call): 144 player (token, curve) addresses ───
       const playerJobKeys = [];
+      const r3Calls = [];
       window.COUNTRIES.forEach((c) => {
         const ci = isoToContractIdx[c.id];
         if (ci === undefined) return;
         PLAYER_ROLE_ORDER.forEach((role, ri) => {
           const onchainIdx = ci * 3 + ri;
           playerJobKeys.push({ key: `${c.id}-${role}`, role, onchainIdx });
-          playerJobs.push(
-            Promise.all([playerFactory.tokens(onchainIdx), playerFactory.curves(onchainIdx)])
-              .catch(() => [ethers.ZeroAddress, ethers.ZeroAddress])
-          );
+          r3Calls.push({ target: cfg.playerFactory, callData: ifacePFactory.encodeFunctionData("tokens", [onchainIdx]) });
+          r3Calls.push({ target: cfg.playerFactory, callData: ifacePFactory.encodeFunctionData("curves", [onchainIdx]) });
         });
       });
-      const playerAddrPairs = await Promise.all(playerJobs);
-      const playerDetails = await Promise.all(
-        playerAddrPairs.map(async ([tokenAddr, curveAddr]) => {
-          if (!tokenAddr || tokenAddr === ethers.ZeroAddress) return null;
-          const token = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
-          const curve = new ethers.Contract(curveAddr, COUNTRY_CURVE_ABI, provider);
-          try {
-            const [supplyWei, phase2, reserveWei] = await Promise.all([
-              token.totalSupply(),
-              curve.phase2Active().catch(() => false),
-              curve.reservePITCH().catch(() => 0n),
-            ]);
-            return {
-              tokenAddr, curveAddr,
-              supply: Number(ethers.formatEther(supplyWei)),
-              phase2: Boolean(phase2),
-              reserve: Number(ethers.formatEther(reserveWei)),
-            };
-          } catch {
-            return { tokenAddr, curveAddr, supply: 0, phase2: false, reserve: 0 };
-          }
-        })
-      );
+      const r3 = r3Calls.length ? await multicallAcross(r3Calls) : [];
+      const playerAddrPairs = [];
+      for (let k = 0; k < playerJobKeys.length; k++) {
+        const o = k * 2;
+        const tokenAddr = decode(ifacePFactory, "tokens", r3[o + 0])?.[0] ?? ethers.ZeroAddress;
+        const curveAddr = decode(ifacePFactory, "curves", r3[o + 1])?.[0] ?? ethers.ZeroAddress;
+        playerAddrPairs.push([tokenAddr, curveAddr]);
+      }
+
+      // ─── ROUND 4 (one eth_call): per-player supply/phase2/reserve ───
+      const r4Calls = [];
+      const r4Slots = [];
+      for (let k = 0; k < playerAddrPairs.length; k++) {
+        const [tokenAddr, curveAddr] = playerAddrPairs[k];
+        if (!tokenAddr || tokenAddr === ethers.ZeroAddress) continue;
+        r4Slots.push(k);
+        r4Calls.push({ target: tokenAddr, callData: ifaceErc20.encodeFunctionData("totalSupply") });
+        r4Calls.push({ target: curveAddr, callData: ifaceCurve.encodeFunctionData("phase2Active") });
+        r4Calls.push({ target: curveAddr, callData: ifaceCurve.encodeFunctionData("reservePITCH") });
+      }
+      const r4 = r4Calls.length ? await multicallAcross(r4Calls) : [];
+      const playerDetails = new Array(playerAddrPairs.length).fill(null);
+      for (let kk = 0; kk < r4Slots.length; kk++) {
+        const k = r4Slots[kk];
+        const o = kk * 3;
+        const supplyWei  = decode(ifaceErc20, "totalSupply",  r4[o + 0])?.[0] ?? 0n;
+        const phase2     = decode(ifaceCurve, "phase2Active", r4[o + 1])?.[0] ?? false;
+        const reserveWei = decode(ifaceCurve, "reservePITCH", r4[o + 2])?.[0] ?? 0n;
+        playerDetails[k] = {
+          tokenAddr: playerAddrPairs[k][0],
+          curveAddr: playerAddrPairs[k][1],
+          supply:  Number(ethers.formatEther(supplyWei)),
+          phase2:  Boolean(phase2),
+          reserve: Number(ethers.formatEther(reserveWei)),
+        };
+      }
       playerJobKeys.forEach(({ key, role, onchainIdx }, idx) => {
         const d = playerDetails[idx];
         const max = PLAYER_ROLE_MAX[role];
