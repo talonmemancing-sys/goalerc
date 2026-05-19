@@ -23,36 +23,49 @@ window._goalShortAddr = _shortAddr;
 const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, heading = "Recent activity", limit = 8 }) => {
   const [events, setEvents] = React.useState(null);
   const [error, setError] = React.useState(null);
+  const [retryNonce, setRetryNonce] = React.useState(0);
 
   React.useEffect(() => {
     let cancel = false;
     let interval = null;
+    let waitTimer = null;
 
     async function load() {
       if (!tokenAddr || !window.CHAIN || !window.CHAIN._provider) return;
       try {
-        const events = mintsOnly
-          ? await window.CHAIN.getRecentPackOpens(tokenAddr, limit)
-          : await window.CHAIN.getRecentTransfers(tokenAddr, limit);
-        if (!cancel) { setEvents(events); setError(null); }
+        // Race the RPC against a 15s timeout. Public RPCs can silently hang
+        // on eth_getLogs; without this we'd render "Reading…" forever.
+        const fetchPromise = mintsOnly
+          ? window.CHAIN.getRecentPackOpens(tokenAddr, limit)
+          : window.CHAIN.getRecentTransfers(tokenAddr, limit);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("RPC timed out after 15s")), 15_000)
+        );
+        const evs = await Promise.race([fetchPromise, timeoutPromise]);
+        if (!cancel) { setEvents(evs); setError(null); }
       } catch (e) {
         if (!cancel) setError(e?.message || "Failed to read logs");
       }
     }
 
-    // Initial load: wait for provider to be ready.
     const waitAndLoad = () => {
       if (window.CHAIN && window.CHAIN._provider) {
         load();
         interval = setInterval(load, 20_000);
       } else {
-        setTimeout(waitAndLoad, 500);
+        waitTimer = setTimeout(waitAndLoad, 500);
       }
     };
     waitAndLoad();
 
-    return () => { cancel = true; if (interval) clearInterval(interval); };
-  }, [tokenAddr, mintsOnly, limit]);
+    return () => {
+      cancel = true;
+      if (interval) clearInterval(interval);
+      if (waitTimer) clearTimeout(waitTimer);
+    };
+  }, [tokenAddr, mintsOnly, limit, retryNonce]);
+
+  const retry = () => { setEvents(null); setError(null); setRetryNonce((n) => n + 1); };
 
   if (!tokenAddr) {
     return (
@@ -64,10 +77,18 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
     );
   }
   if (error) {
+    // Trim noisy ethers error envelopes — keep just the message body.
+    const short = error.length > 140 ? error.slice(0, 140) + "…" : error;
     return (
       <div className="recent">
         <div className="recent-empty f-mono" style={{padding:24, textAlign:"center", color:"var(--fire)", fontSize:12}}>
-          RPC error: {error}
+          <div style={{marginBottom:10}}>RPC error</div>
+          <div style={{color:"var(--fg-3)", marginBottom:12, lineHeight:1.45}}>{short}</div>
+          <button onClick={retry}
+                  style={{background:"transparent", border:"1px solid var(--fire)", color:"var(--fire)",
+                          padding:"6px 14px", borderRadius:4, cursor:"pointer", fontSize:11}}>
+            Retry
+          </button>
         </div>
       </div>
     );

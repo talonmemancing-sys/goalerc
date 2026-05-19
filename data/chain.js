@@ -110,6 +110,39 @@
 
   let provider = null;
   let loading = false;
+  // Pool of additional providers tried for log calls when the primary one
+  // 503s / hangs / rejects.
+  const fallbackProviders = [];
+  function ensureFallbackProviders() {
+    if (fallbackProviders.length) return fallbackProviders;
+    for (const url of RPCS) {
+      if (provider && provider._getConnection?.()?.url === url) continue;
+      try {
+        fallbackProviders.push(new ethers.JsonRpcProvider(url, 1, { staticNetwork: true }));
+      } catch {}
+    }
+    return fallbackProviders;
+  }
+
+  // Try a read fn across providers until one succeeds. Used for log calls
+  // (getLogs) which fail intermittently on public RPCs.
+  async function tryAcrossRpcs(fn) {
+    const tryList = [provider, ...ensureFallbackProviders()].filter(Boolean);
+    let lastErr = null;
+    for (const p of tryList) {
+      try {
+        const result = await Promise.race([
+          fn(p),
+          new Promise((_, rej) => setTimeout(() => rej(new Error("RPC timeout 12s")), 12_000)),
+        ]);
+        return result;
+      } catch (e) {
+        lastErr = e;
+        // Continue to next RPC
+      }
+    }
+    throw lastErr || new Error("All RPCs failed");
+  }
 
   async function loadAll() {
     if (loading) return;
@@ -373,14 +406,14 @@
 
   async function getRecentPackOpens(tokenAddr, limit = 8, lookbackBlocks = 10_000) {
     if (!provider || !tokenAddr) return [];
-    const latest = await provider.getBlockNumber();
+    const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
     const fromBlock = Math.max(0, latest - lookbackBlocks);
-    const logs = await provider.send("eth_getLogs", [{
+    const logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
       address: tokenAddr,
       fromBlock: "0x" + fromBlock.toString(16),
       toBlock: "latest",
       topics: [TRANSFER_TOPIC0, ZERO_TOPIC],
-    }]);
+    }]));
     // Group by tx — multi-pack opens emit N Transfers in one tx.
     const byTx = new Map();
     for (const log of logs) {
@@ -402,14 +435,14 @@
   // Returns the raw logs (NOT grouped). Used by swap/trade feeds.
   async function getRecentTransfers(tokenAddr, limit = 8, lookbackBlocks = 10_000) {
     if (!provider || !tokenAddr) return [];
-    const latest = await provider.getBlockNumber();
+    const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
     const fromBlock = Math.max(0, latest - lookbackBlocks);
-    const logs = await provider.send("eth_getLogs", [{
+    const logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
       address: tokenAddr,
       fromBlock: "0x" + fromBlock.toString(16),
       toBlock: "latest",
       topics: [TRANSFER_TOPIC0],
-    }]);
+    }]));
     const events = logs.map((log) => ({
       txHash: log.transactionHash,
       from: "0x" + log.topics[1].slice(-40),
@@ -427,14 +460,14 @@
   // and the analytics computation below.
   async function _rawBurnLogs(lookbackBlocks) {
     if (!provider) return { logs: [], latest: 0, fromBlock: 0 };
-    const latest = await provider.getBlockNumber();
+    const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
     const fromBlock = Math.max(0, latest - lookbackBlocks);
-    const logs = await provider.send("eth_getLogs", [{
+    const logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
       address: cfg.goal,
       fromBlock: "0x" + fromBlock.toString(16),
       toBlock: "latest",
       topics: [TRANSFER_TOPIC0, null, ZERO_TOPIC],
-    }]);
+    }]));
     return { logs, latest, fromBlock };
   }
 
@@ -540,28 +573,28 @@
 
   async function getCurveTradeHistory(curveAddr, lookbackBlocks = 50_000, limit = 500) {
     if (!provider || !curveAddr) return [];
-    const latest = await provider.getBlockNumber();
+    const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
     const fromBlock = Math.max(0, latest - lookbackBlocks);
     const BOUGHT_TOPIC = ethers.id("Bought(address,uint256,uint256,uint256)");
     const SOLD_TOPIC   = ethers.id("Sold(address,uint256,uint256,uint256)");
     let logs = [];
     try {
-      logs = await provider.send("eth_getLogs", [{
+      logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
         address: curveAddr,
         fromBlock: "0x" + fromBlock.toString(16),
         toBlock: "latest",
         topics: [[BOUGHT_TOPIC, SOLD_TOPIC]],
-      }]);
+      }]));
     } catch (e) {
       // Some RPCs don't support topic-array OR. Fall back to two separate calls.
       try {
         const [a, b] = await Promise.all([
-          provider.send("eth_getLogs", [{ address: curveAddr,
+          tryAcrossRpcs((p) => p.send("eth_getLogs", [{ address: curveAddr,
             fromBlock: "0x" + fromBlock.toString(16), toBlock: "latest",
-            topics: [BOUGHT_TOPIC] }]),
-          provider.send("eth_getLogs", [{ address: curveAddr,
+            topics: [BOUGHT_TOPIC] }])),
+          tryAcrossRpcs((p) => p.send("eth_getLogs", [{ address: curveAddr,
             fromBlock: "0x" + fromBlock.toString(16), toBlock: "latest",
-            topics: [SOLD_TOPIC] }]),
+            topics: [SOLD_TOPIC] }])),
         ]);
         logs = [...a, ...b];
       } catch { return []; }
