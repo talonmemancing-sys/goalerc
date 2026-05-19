@@ -164,7 +164,7 @@
     // next one. Now total selection time = the fastest reachable RPC.
     const candidates = RPCS.map((url) => {
       try {
-        const p = new ethers.JsonRpcProvider(url, 1, { staticNetwork: true });
+        const p = new ethers.JsonRpcProvider(url, 1, { staticNetwork: true, batchMaxCount: 1 });
         return p.getBlockNumber().then(() => ({ p, url }));
       } catch (e) {
         return Promise.reject(e);
@@ -188,7 +188,7 @@
     for (const url of RPCS) {
       if (provider && provider._getConnection?.()?.url === url) continue;
       try {
-        fallbackProviders.push(new ethers.JsonRpcProvider(url, 1, { staticNetwork: true }));
+        fallbackProviders.push(new ethers.JsonRpcProvider(url, 1, { staticNetwork: true, batchMaxCount: 1 }));
       } catch {}
     }
     return fallbackProviders;
@@ -515,7 +515,7 @@
                   state.pool.sqrtPriceX96 = decoded[3].toString();
                 } catch {}
                 state.pool.active = true;
-                state.pool.initBlock = parseInt(log.blockNumber, 16);
+                state.pool.initBlock = Number(log.blockNumber);
               }
               state.pool.lastScannedBlock = head;
             }
@@ -575,7 +575,7 @@
     for (const log of logs) {
       const txHash = log.transactionHash;
       const buyer = "0x" + log.topics[2].slice(-40);
-      const block = parseInt(log.blockNumber, 16);
+      const block = Number(log.blockNumber);
       if (!byTx.has(txHash)) byTx.set(txHash, { txHash, buyer, block, count: 0 });
       byTx.get(txHash).count += 1;
     }
@@ -606,7 +606,7 @@
       from: "0x" + log.topics[1].slice(-40),
       to: "0x" + log.topics[2].slice(-40),
       value: BigInt(log.data || "0x0"),
-      block: parseInt(log.blockNumber, 16),
+      block: Number(log.blockNumber),
       isMint: log.topics[1] === ZERO_TOPIC,
       isBurn: log.topics[2] === ZERO_TOPIC,
     })).sort((a, b) => b.block - a.block).slice(0, limit);
@@ -620,14 +620,26 @@
   // to leave headroom and avoid off-by-one rejections at exactly 10k.
   const SAFE_LOOKBACK = 9000;
 
-  // Wrapped getLogs — validates block numbers, uses explicit numeric toBlock
-  // instead of "latest" (Alchemy is stricter about mixed range types), and
-  // logs the full failed param body for easier diagnosis.
+  // Wrapped getLogs — uses ethers' high-level provider.getLogs() which encodes
+  // params via the library (more compatible with Alchemy's strict validator
+  // than hand-rolled JSON-RPC). Normalizes the returned ethers Log objects to
+  // a raw-RPC-like shape so downstream code keeps the same field access
+  // (l.topics, l.data, l.transactionHash, l.blockNumber as number, l.logIndex).
   async function safeGetLogs(filter) {
     try {
-      return await tryAcrossRpcs((p) => p.send("eth_getLogs", [filter]));
+      const logs = await tryAcrossRpcs((p) => p.getLogs(filter));
+      // ethers v6 Log uses .index for log index; expose as .logIndex too.
+      return (logs || []).map((l) => ({
+        address: l.address,
+        topics: l.topics,
+        data: l.data,
+        transactionHash: l.transactionHash,
+        blockNumber: typeof l.blockNumber === "bigint" ? Number(l.blockNumber) : l.blockNumber,
+        blockHash: l.blockHash,
+        logIndex: l.index ?? l.logIndex,
+      }));
     } catch (e) {
-      console.error("[CHAIN] eth_getLogs failed", { filter, error: e?.message || e });
+      console.error("[CHAIN] getLogs failed", { filter, error: e?.message || e });
       throw e;
     }
   }
@@ -660,7 +672,7 @@
       txHash: log.transactionHash,
       from: "0x" + log.topics[1].slice(-40),
       value: Number(ethers.formatEther(BigInt(log.data || "0x0"))),
-      block: parseInt(log.blockNumber, 16),
+      block: Number(log.blockNumber),
     })).sort((a, b) => b.block - a.block).slice(0, limit);
     await Promise.all(events.map(async (e) => { e.timestamp = await getBlockTimestamp(e.block); }));
     return events;
@@ -788,8 +800,8 @@
       try {
         const parsed = iface.parseLog(log);
         if (!parsed) continue;
-        const block = parseInt(log.blockNumber, 16);
-        const logIndex = parseInt(log.logIndex, 16);
+        const block = Number(log.blockNumber);
+        const logIndex = Number(log.logIndex);
         if (parsed.name === "Bought") {
           const pitchIn   = parsed.args.pitchIn;
           const tokenOut  = parsed.args.tokenOut;
