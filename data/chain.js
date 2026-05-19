@@ -95,17 +95,24 @@
 
   async function pickProvider() {
     if (!window.ethers) return null;
-    for (const url of RPCS) {
+    // Race all RPCs in parallel — fastest responder wins. Previously this was
+    // sequential, so we'd wait for slow RPCs to time out before trying the
+    // next one. Now total selection time = the fastest reachable RPC.
+    const candidates = RPCS.map((url) => {
       try {
         const p = new ethers.JsonRpcProvider(url, 1, { staticNetwork: true });
-        const bn = await p.getBlockNumber();
-        if (typeof bn === "number") {
-          state.rpcUrl = url;
-          return p;
-        }
-      } catch (e) { /* try next */ }
+        return p.getBlockNumber().then(() => ({ p, url }));
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    });
+    try {
+      const winner = await Promise.any(candidates);
+      state.rpcUrl = winner.url;
+      return winner.p;
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   let provider = null;
@@ -263,6 +270,15 @@
         state.countryAddrs[c.id] = { tokenAddr: d.tokenAddr, curveAddr: d.curveAddr, contractIdx: d.contractIdx };
       });
 
+      // ── PROGRESSIVE NOTIFY #1 ──
+      // Country data is enough for: home grid, pack pages, country market.
+      // Player data + pool detection continue in the background — UI can already
+      // render and accept buy clicks for any country.
+      state.loading = false;
+      state.error = null;
+      state.lastUpdate = Date.now();
+      notify();
+
       // 4) Player factory — 144 tokens. Player index = contractCountryId * 3 + role
       //    (role 0=CPT, 1=BST, 2=RKE per the contract spec). We iterate by the
       //    contractIdx we discovered above so the iso-mapping stays correct.
@@ -369,8 +385,8 @@
         }
       }
 
-      state.loading = false;
-      state.error = null;
+      // ── PROGRESSIVE NOTIFY #2 ──
+      // Player data and pool detection fully loaded.
       state.lastUpdate = Date.now();
       notify();
     } catch (e) {
