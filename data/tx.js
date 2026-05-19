@@ -77,9 +77,18 @@
   }
 
   function isoToContractIdx(iso) {
+    // Primary: symbol-derived iso → on-chain index map.
     const i = window.CHAIN?.state?.isoToContractIdx?.[iso];
-    if (i === undefined) throw new Error(`Country ${iso} not yet loaded from chain`);
-    return i;
+    if (i !== undefined) return i;
+    // Fallback: per-country state may have contractIdx if loadAll completed
+    // but didn't populate isoToContractIdx (shouldn't normally happen, but
+    // keeps us resilient if the map gets cleared between loads).
+    const cs = window.CHAIN?.state?.countries?.[iso];
+    if (cs && cs.contractIdx !== undefined && cs.contractIdx !== null) return cs.contractIdx;
+    throw new Error(
+      `Country ${iso} not yet loaded from chain — wait a moment for the ` +
+      `on-chain data to finish loading, then retry.`
+    );
   }
 
   // ── BUY COUNTRY PACK ─────────────────────────────────────────────────

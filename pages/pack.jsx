@@ -171,6 +171,12 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
   const balanceKnown = (wallet.balanceFetchedAt || 0) > 0;
   const insufficientGoal = balanceKnown && wallet.goalBalance < total;
   const cantBuy = s.sealed || s.curveOpen;
+  // Block click until this country's chain data is loaded — otherwise the tx
+  // throws "Country ARG not yet loaded from chain" after the user already clicks.
+  const chainReady = s && !s.unavailable && (
+    (window.CHAIN?.state?.isoToContractIdx?.[c.id] !== undefined) ||
+    (window.CHAIN?.state?.countries?.[c.id]?.contractIdx !== undefined)
+  );
 
   const handleBuy = async () => {
     if (!window.WALLET?.state?.connected) {
@@ -288,6 +294,10 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                     ) : cantBuy ? (
                       <button className="btn pc-cta" disabled>
                         {s.curveOpen ? "Curve trading — use Markets page" : "Pack window sealed"}
+                      </button>
+                    ) : !chainReady ? (
+                      <button className="btn pc-cta" disabled>
+                        <span className="pc-spin"/> Reading {c.id} from chain…
                       </button>
                     ) : (
                       <>
