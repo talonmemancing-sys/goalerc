@@ -51,6 +51,28 @@
   const PLAYER_ROLE_MAX = { CPT: 1500, BST: 500, RKE: 2500 };
   const PLAYER_ROLE_ORDER = ["CPT", "BST", "RKE"]; // playerIndex = countryId*3 + role
 
+  // The COUNTRIES array uses FIFA three-letter codes (POR, CRO, NED, KSA…),
+  // while many contracts use ISO 3166-1 alpha-3 (PRT, HRV, NLD, SAU…). We
+  // accept either, with this normalization table running in both directions.
+  const ISO_ALIAS = {
+    // ISO3 → FIFA
+    PRT: "POR", HRV: "CRO", NLD: "NED", SAU: "KSA", ZAF: "RSA",
+    CHE: "SUI", DNK: "DEN", DEU: "GER", URY: "URU",
+    // FIFA → ISO3 (reverse, so we can match in either direction)
+    POR: "PRT", CRO: "HRV", NED: "NLD", KSA: "SAU", RSA: "ZAF",
+    SUI: "CHE", DEN: "DNK", GER: "DEU", URU: "URY",
+  };
+  function normalizeIso(raw) {
+    if (!raw) return "";
+    const up = raw.toUpperCase();
+    // Direct hit on COUNTRIES?
+    if (window.COUNTRIES?.find?.((c) => c.id === up)) return up;
+    // Try alias
+    const aliased = ISO_ALIAS[up];
+    if (aliased && window.COUNTRIES?.find?.((c) => c.id === aliased)) return aliased;
+    return up; // unmatched — keep raw so we can log a warning later
+  }
+
   const listeners = new Set();
   const state = {
     loading: true,
@@ -171,13 +193,23 @@
 
       const packOpener = new ethers.Contract(cfg.countryPackOpener, COUNTRY_PACK_OPENER_ABI, provider);
 
-      // 1) Burn / circulating from GOAL.totalSupply() + global pack window
-      const [totalSupplyWei, blockNumber, openedAtBn, closesAtBn] = await Promise.all([
-        goal.totalSupply(),
-        provider.getBlockNumber(),
-        packOpener.openedAt().catch(() => 0n),
-        packOpener.windowClosesAt().catch(() => 0n),
+      // Phases 1 + 2 are independent, fire them in parallel — saves one RTT.
+      //   1) GOAL.totalSupply + block number + pack-window timestamps (4 calls)
+      //   2) factory.tokens(i) + factory.curves(i) for all 48 countries (96 calls)
+      // ethers v6 batches all these into ~1 HTTP round trip total.
+      const [phase1, addrPairs] = await Promise.all([
+        Promise.all([
+          goal.totalSupply(),
+          provider.getBlockNumber(),
+          packOpener.openedAt().catch(() => 0n),
+          packOpener.windowClosesAt().catch(() => 0n),
+        ]),
+        Promise.all(window.COUNTRIES.map((_, i) =>
+          Promise.all([factory.tokens(i), factory.curves(i)])
+            .catch(() => [ethers.ZeroAddress, ethers.ZeroAddress])
+        )),
       ]);
+      const [totalSupplyWei, blockNumber, openedAtBn, closesAtBn] = phase1;
       state.packWindow.openedAt = Number(openedAtBn);
       state.packWindow.closesAt = Number(closesAtBn);
       const totalSupply = Number(ethers.formatEther(totalSupplyWei));
@@ -185,15 +217,6 @@
       state.circulating = totalSupply;
       state.burned = Math.max(0, CAP - totalSupply);
       state.blockNumber = blockNumber;
-
-      // 2) Resolve token + curve addresses for all 48 countries (ethers v6
-      //    batches Promise.all'd JSON-RPC calls automatically).
-      const addrPairs = await Promise.all(
-        window.COUNTRIES.map((_, i) =>
-          Promise.all([factory.tokens(i), factory.curves(i)])
-            .catch(() => [ethers.ZeroAddress, ethers.ZeroAddress])
-        )
-      );
 
       // 3) For each country, read symbol/supply/phase2/reserve in parallel.
       //    Symbol like "ARGC" → ISO3 = "ARG". Maps the contract's ordering to
@@ -210,10 +233,13 @@
               curve.phase2Active().catch(() => false),
               curve.reservePITCH().catch(() => 0n),
             ]);
+            const rawIso = (symbol || "").slice(0, 3).toUpperCase();
+            const iso = normalizeIso(rawIso);
             return {
               contractIdx: idx,
               symbol: symbol || "",
-              iso: (symbol || "").slice(0, 3).toUpperCase(),
+              rawIso,
+              iso,
               tokenAddr,
               curveAddr,
               supply: Number(ethers.formatEther(supplyWei)),
@@ -221,7 +247,7 @@
               reserve: Number(ethers.formatEther(reserveWei)),
             };
           } catch (e) {
-            return { contractIdx: idx, symbol: "", iso: "", tokenAddr, curveAddr, supply: 0, phase2: false, reserve: 0 };
+            return { contractIdx: idx, symbol: "", rawIso: "", iso: "", tokenAddr, curveAddr, supply: 0, phase2: false, reserve: 0 };
           }
         })
       );
@@ -235,6 +261,17 @@
       // Index details by the iso pulled from the on-chain symbol.
       const byIso = {};
       details.forEach((d) => { if (d && d.iso) byIso[d.iso] = d; });
+
+      // Surface any unmapped countries so we can fix the alias table if a
+      // new code shows up. Only log once per loadAll.
+      const knownIds = new Set(window.COUNTRIES.map((c) => c.id));
+      const unmapped = details.filter((d) => d && d.rawIso && !knownIds.has(d.iso));
+      if (unmapped.length) {
+        console.warn(
+          "[CHAIN] Unmapped country symbols (add to ISO_ALIAS in data/chain.js):",
+          unmapped.map((d) => `idx=${d.contractIdx} symbol=${d.symbol} rawIso=${d.rawIso}`)
+        );
+      }
 
       window.COUNTRIES.forEach((c) => {
         const d = byIso[c.id];
