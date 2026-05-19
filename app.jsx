@@ -18,7 +18,7 @@ window.useChain = useChain;
 const App = () => {
   const [route, setRoute] = useState({ name: "home" });
   const chain = useChain();
-  const burned = Math.floor(chain.burned || 0);
+  const burned = chain.burned || 0;   // real float — may be 0.345 etc, don't floor
   React.useEffect(() => { window.__matchSetRoute = setRoute; }, []);
 
   // Pack window countdown — from countryPackOpener.windowClosesAt()

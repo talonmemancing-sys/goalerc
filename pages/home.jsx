@@ -261,6 +261,30 @@ const SupplyGauge = ({ burned }) => {
   const total = 960_000;
   const remaining = total - burned;
   const pct = (burned / total) * 100;
+  // Adaptive decimals: small burns (< 1000) show 3 decimals so 0.345 is visible.
+  const burnDecimals = burned > 0 && burned < 1000 ? 3 : 0;
+  const remainDecimals = burned > 0 && burned < 1000 ? 3 : 0;
+
+  // Real 24h burn rate from chain analytics (auto-refreshing).
+  const [rate24h, setRate24h] = React.useState(null);
+  React.useEffect(() => {
+    let cancel = false;
+    async function load() {
+      if (!window.CHAIN?._provider) return;
+      try {
+        const a = await window.CHAIN.getBurnAnalytics(7200);
+        if (!cancel) setRate24h(a?.ratePer24h ?? 0);
+      } catch {}
+    }
+    const tick = () => {
+      if (window.CHAIN?._provider) { load(); }
+      else setTimeout(tick, 500);
+    };
+    tick();
+    const id = setInterval(load, 60_000);
+    return () => { cancel = true; clearInterval(id); };
+  }, []);
+
   return (
     <div className="supply-gauge">
       <div className="supply-gauge-glow"/>
@@ -274,7 +298,7 @@ const SupplyGauge = ({ burned }) => {
         <div className="supply-gauge-col">
           <div className="supply-gauge-label">Circulating</div>
           <div className="supply-gauge-big">
-            <AnimatedNumber value={remaining} duration={1400} />
+            <AnimatedNumber value={remaining} duration={1400} decimals={remainDecimals}/>
           </div>
           <div className="supply-gauge-unit">
             <span className="supply-gauge-unit-tag">GOAL</span>
@@ -286,11 +310,13 @@ const SupplyGauge = ({ burned }) => {
           <div className="supply-gauge-label">Burned forever</div>
           <div className="supply-gauge-burn">
             <span className="supply-gauge-burn-mark">▲</span>
-            <AnimatedNumber value={burned} duration={1400} />
+            <AnimatedNumber value={burned} duration={1400} decimals={burnDecimals}/>
           </div>
           <div className="supply-gauge-unit">
-            <span className="supply-gauge-unit-tag is-fire">▲ {(burned / 86400 * 0.4).toFixed(1)}/min</span>
-            <span className="supply-gauge-unit-sub">24h burn rate</span>
+            <span className="supply-gauge-unit-tag is-fire">
+              ▲ {rate24h === null ? "…" : rate24h.toLocaleString(undefined,{maximumFractionDigits: rate24h < 100 ? 3 : 0})}
+            </span>
+            <span className="supply-gauge-unit-sub">GOAL / 24h on-chain</span>
           </div>
         </div>
       </div>

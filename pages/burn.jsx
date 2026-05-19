@@ -74,7 +74,7 @@ const Burn = ({ setRoute, burned }) => {
         <div className="burn-hero-headline-v2">
           <div className="burn-hero-pre">Total destroyed forever</div>
           <div className="burn-hero-num-v2">
-            <AnimatedNumber value={burned} duration={1800}/>
+            <AnimatedNumber value={burned} duration={1800} decimals={burned > 0 && burned < 1000 ? 3 : 0}/>
             <span className="burn-hero-num-unit">GOAL</span>
           </div>
         </div>
@@ -93,7 +93,7 @@ const Burn = ({ setRoute, burned }) => {
           <div className="burn-hero-divider-v2"/>
           <div className="burn-hero-stat">
             <span className="burn-hero-stat-label">Circulating</span>
-            <span className="burn-hero-stat-v">{(960000 - burned).toLocaleString()}</span>
+            <span className="burn-hero-stat-v">{(960000 - burned).toLocaleString(undefined,{maximumFractionDigits: burned < 1000 ? 3 : 0})}</span>
           </div>
           <div className="burn-hero-divider-v2"/>
           <div className="burn-hero-stat">
