@@ -22,6 +22,7 @@
     onMainnet: false,
     ethBalance: 0,
     goalBalance: 0,
+    balanceFetchedAt: 0,  // unix ms; 0 = never fetched a real balance
     providerInfo: null,
     connecting: false,
     error: null,
@@ -180,27 +181,39 @@
 
   async function refreshBalances() {
     if (!state.connected || !state.address) return;
+    // ETH balance via wallet provider (always available when connected).
     try {
-      // ETH balance via the wallet provider (works on whatever chain it's on).
       const balHex = await activeProvider.request({
         method: "eth_getBalance",
         params: [state.address, "latest"],
       });
       state.ethBalance = Number(BigInt(balHex)) / 1e18;
-    } catch (e) {
-      state.ethBalance = 0;
-    }
-    // GOAL balance via the public mainnet RPC (CHAIN.provider) — only meaningful
-    // when the user is on mainnet; still readable regardless.
-    try {
-      if (window.CHAIN && window.CHAIN._provider) {
-        const goal = new ethers.Contract(cfg.goal, ERC20_ABI, window.CHAIN._provider);
+    } catch (e) { state.ethBalance = 0; }
+
+    // GOAL balance — prefer wallet's own provider when on mainnet (zero CORS,
+    // zero dependence on public-RPC availability). Fall back to CHAIN public
+    // RPC if wallet read fails.
+    let read = false;
+    if (state.onMainnet) {
+      try {
+        const browser = new ethers.BrowserProvider(activeProvider);
+        const goal = new ethers.Contract(cfg.goal, ERC20_ABI, browser);
         const bal = await goal.balanceOf(state.address);
         state.goalBalance = Number(ethers.formatEther(bal));
-      }
-    } catch (e) {
-      state.goalBalance = 0;
+        read = true;
+      } catch (e) { /* try CHAIN below */ }
     }
+    if (!read) {
+      try {
+        if (window.CHAIN && window.CHAIN._provider) {
+          const goal = new ethers.Contract(cfg.goal, ERC20_ABI, window.CHAIN._provider);
+          const bal = await goal.balanceOf(state.address);
+          state.goalBalance = Number(ethers.formatEther(bal));
+          read = true;
+        }
+      } catch (e) { /* keep previous balance rather than clobber to 0 */ }
+    }
+    if (read) state.balanceFetchedAt = Date.now();
     notify();
   }
 

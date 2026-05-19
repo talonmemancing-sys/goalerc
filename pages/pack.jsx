@@ -164,7 +164,12 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
   const tokensReceived = packCount * tokensPerPack;
   const burnAmount = +(packCount * PACK_BURN).toFixed(3);
 
-  const insufficientGoal = wallet.connected && wallet.goalBalance < total;
+  // Only treat balance as "definitely insufficient" if we've actually fetched
+  // one. Before that, assume the user has enough — let the on-chain tx be the
+  // source of truth. (Prevents the "Need X more GOAL" lock when the RPC read
+  // failed but the user actually has GOAL.)
+  const balanceKnown = (wallet.balanceFetchedAt || 0) > 0;
+  const insufficientGoal = balanceKnown && wallet.goalBalance < total;
   const cantBuy = s.sealed || s.curveOpen;
 
   const handleBuy = async () => {
@@ -284,14 +289,18 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                       <button className="btn pc-cta" disabled>
                         {s.curveOpen ? "Curve trading — use Markets page" : "Pack window sealed"}
                       </button>
-                    ) : insufficientGoal ? (
-                      <button className="btn pc-cta" disabled>
-                        Need {(total - wallet.goalBalance).toFixed(2)} more GOAL
-                      </button>
                     ) : (
-                      <button className="btn btn-primary pc-cta" onClick={handleBuy}>
-                        Confirm purchase · {total} GOAL
-                      </button>
+                      <>
+                        <button className="btn btn-primary pc-cta" onClick={handleBuy}>
+                          Confirm purchase · {total} GOAL
+                        </button>
+                        {insufficientGoal && (
+                          <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:8, textAlign:"center"}}>
+                            ⚠ Balance reads {wallet.goalBalance.toLocaleString(undefined,{maximumFractionDigits:4})} GOAL — {(total - wallet.goalBalance).toFixed(2)} short.
+                            If you actually have it, click anyway — chain is source of truth.
+                          </div>
+                        )}
+                      </>
                     )}
                     {state === "error" && errMsg && (
                       <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:8}}>
