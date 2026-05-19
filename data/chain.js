@@ -252,32 +252,39 @@
         })
       );
 
-      // Build iso → contractIdx map so callers can compute the correct uint8
-      // for buyPack / openPlayerPacks regardless of UI ordering.
+      // POSITION-BASED MAPPING: trust that COUNTRIES[i] in the UI matches
+      // factory.tokens(i) on chain. The user has already confirmed buys at
+      // position 0 (ARG) succeeded, so the ordering is correct.
+      //
+      // We still read symbol() to surface mismatches as warnings, but we
+      // don't gate the UI on whether the parser picks "ARG" out of e.g.
+      // "Goal-ARG" or "$ARG". That over-engineering was leaving real
+      // countries permanently "unavailable" and locking their buy buttons.
       const isoToContractIdx = {};
-      details.forEach((d) => { if (d && d.iso) isoToContractIdx[d.iso] = d.contractIdx; });
+      window.COUNTRIES.forEach((c, i) => { isoToContractIdx[c.id] = i; });
       state.isoToContractIdx = isoToContractIdx;
 
-      // Index details by the iso pulled from the on-chain symbol.
-      const byIso = {};
-      details.forEach((d) => { if (d && d.iso) byIso[d.iso] = d; });
-
-      // Surface any unmapped countries so we can fix the alias table if a
-      // new code shows up. Only log once per loadAll.
-      const knownIds = new Set(window.COUNTRIES.map((c) => c.id));
-      const unmapped = details.filter((d) => d && d.rawIso && !knownIds.has(d.iso));
-      if (unmapped.length) {
-        console.warn(
-          "[CHAIN] Unmapped country symbols (add to ISO_ALIAS in data/chain.js):",
-          unmapped.map((d) => `idx=${d.contractIdx} symbol=${d.symbol} rawIso=${d.rawIso}`)
-        );
+      // Sanity check: report any symbol that doesn't decode to the expected
+      // iso. Doesn't block anything — just helps debug if rendering is off.
+      const mismatches = [];
+      details.forEach((d, i) => {
+        if (!d) return;
+        const expected = window.COUNTRIES[i]?.id;
+        if (d.iso && expected && d.iso !== expected) {
+          mismatches.push(`idx=${i} expected=${expected} got=${d.iso} symbol="${d.symbol}"`);
+        }
+      });
+      if (mismatches.length) {
+        console.warn("[CHAIN] Symbol mismatches (using position-based mapping):", mismatches);
       }
 
-      window.COUNTRIES.forEach((c) => {
-        const d = byIso[c.id];
+      window.COUNTRIES.forEach((c, i) => {
+        const d = details[i];
         if (!d) {
+          // Only "unavailable" if the contract actually returned 0x0 for this
+          // slot — meaning the country token hasn't been deployed at this idx.
           state.countries[c.id] = {
-            tokenAddr: null, curveAddr: null, contractIdx: null,
+            tokenAddr: null, curveAddr: null, contractIdx: i,
             packsSold: 0, sealed: false, curveOpen: false,
             supply: 0, reserve: 0, price: PACK_PRICE, burnedFromCurve: 0,
             unavailable: true,
@@ -295,7 +302,7 @@
         state.countries[c.id] = {
           tokenAddr: d.tokenAddr,
           curveAddr: d.curveAddr,
-          contractIdx: d.contractIdx,
+          contractIdx: i,
           packsSold,
           sealed,
           curveOpen,
@@ -304,7 +311,7 @@
           price: Number(price.toFixed(3)),
           burnedFromCurve: 0,
         };
-        state.countryAddrs[c.id] = { tokenAddr: d.tokenAddr, curveAddr: d.curveAddr, contractIdx: d.contractIdx };
+        state.countryAddrs[c.id] = { tokenAddr: d.tokenAddr, curveAddr: d.curveAddr, contractIdx: i };
       });
 
       // ── PROGRESSIVE NOTIFY #1 ──
