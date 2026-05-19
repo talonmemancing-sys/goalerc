@@ -261,9 +261,15 @@ const SupplyGauge = ({ burned }) => {
   const total = 960_000;
   const remaining = total - burned;
   const pct = (burned / total) * 100;
-  // Adaptive decimals: small burns (< 1000) show 3 decimals so 0.345 is visible.
-  const burnDecimals = burned > 0 && burned < 1000 ? 3 : 0;
-  const remainDecimals = burned > 0 && burned < 1000 ? 3 : 0;
+  // Adaptive decimals tuned to keep both columns from overflowing the gauge:
+  //   - Circulating: always integer (the fractional part is meaningless at 100k+)
+  //   - Burned: only as many decimals as we need to show the magnitude
+  const burnDecimals =
+    burned >= 10000 ? 0 :
+    burned >= 100   ? 2 :
+    burned >= 1     ? 3 :
+    burned > 0      ? 4 : 0;
+  const remainDecimals = 0;
 
   // Real 24h burn rate from chain analytics (auto-refreshing).
   const [rate24h, setRate24h] = React.useState(null);

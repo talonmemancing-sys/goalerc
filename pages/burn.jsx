@@ -3,26 +3,43 @@ const Burn = ({ setRoute, burned }) => {
   const chain = (window.useChain ? window.useChain() : (window.CHAIN?.state || {}));
   // Real burn feed + analytics — GOAL Transfer logs where to == 0x0.
   const [feed, setFeed] = React.useState(null);
+  const [feedError, setFeedError] = React.useState(null);
   const [analytics, setAnalytics] = React.useState(null);
+  const [analyticsError, setAnalyticsError] = React.useState(null);
+  const [retryNonce, setRetryNonce] = React.useState(0);
 
   React.useEffect(() => {
     let cancel = false;
-    async function load() {
-      if (!window.CHAIN || !window.CHAIN._provider) return;
+    // Load each independently — if one fails the other still renders.
+    async function loadFeed() {
+      if (!window.CHAIN?._provider) return;
       try {
-        const [burns, an] = await Promise.all([
+        const burns = await Promise.race([
           window.CHAIN.getRecentBurns(18),
-          window.CHAIN.getBurnAnalytics(7200), // ≈24h on mainnet
+          new Promise((_, rej) => setTimeout(() => rej(new Error("RPC timed out after 20s")), 20_000)),
         ]);
-        if (cancel) return;
-        setFeed(burns);
-        setAnalytics(an);
-      } catch (e) { /* keep current */ }
+        if (!cancel) { setFeed(burns); setFeedError(null); }
+      } catch (e) {
+        if (!cancel) setFeedError(e?.message || "Failed to load burn feed");
+      }
+    }
+    async function loadAnalytics() {
+      if (!window.CHAIN?._provider) return;
+      try {
+        const an = await Promise.race([
+          window.CHAIN.getBurnAnalytics(7200), // ≈24h on mainnet
+          new Promise((_, rej) => setTimeout(() => rej(new Error("RPC timed out after 20s")), 20_000)),
+        ]);
+        if (!cancel) { setAnalytics(an); setAnalyticsError(null); }
+      } catch (e) {
+        if (!cancel) setAnalyticsError(e?.message || "Failed to load burn analytics");
+      }
     }
     const waitAndLoad = () => {
-      if (window.CHAIN && window.CHAIN._provider) {
-        load();
-        const id = setInterval(load, 30_000);
+      if (window.CHAIN?._provider) {
+        loadFeed();
+        loadAnalytics();
+        const id = setInterval(() => { loadFeed(); loadAnalytics(); }, 30_000);
         return () => clearInterval(id);
       } else {
         const t = setTimeout(waitAndLoad, 500);
@@ -31,7 +48,27 @@ const Burn = ({ setRoute, burned }) => {
     };
     const cleanup = waitAndLoad();
     return () => { cancel = true; if (cleanup) cleanup(); };
-  }, []);
+  }, [retryNonce]);
+
+  const retry = () => {
+    setFeed(null); setFeedError(null);
+    setAnalytics(null); setAnalyticsError(null);
+    setRetryNonce((n) => n + 1);
+  };
+  const setCustomRpc = () => {
+    const cur = (() => { try { return localStorage.getItem("goal_rpc") || ""; } catch { return ""; } })();
+    const url = window.prompt(
+      "Paste your mainnet RPC URL (Alchemy / Infura / QuickNode etc.).\n" +
+      "Public RPCs sometimes throttle or block this origin's CORS.\n" +
+      "Leave blank to clear.", cur
+    );
+    if (url === null) return;
+    try {
+      if (url.trim()) localStorage.setItem("goal_rpc", url.trim());
+      else localStorage.removeItem("goal_rpc");
+    } catch {}
+    location.reload();
+  };
 
   const pct = (burned / 960000) * 100;
 
@@ -158,12 +195,15 @@ const Burn = ({ setRoute, burned }) => {
             <span className="burn-live-pill"><span className="burn-live-pill-dot"/>LIVE</span>
           </div>
           <div className="burn-feed">
-            {feed === null && (
+            {feedError && (
+              <RpcErrorBlock label="burn feed" error={feedError} onRetry={retry} onCustomRpc={setCustomRpc}/>
+            )}
+            {!feedError && feed === null && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
                 Reading on-chain GOAL burns…
               </div>
             )}
-            {feed && feed.length === 0 && (
+            {!feedError && feed && feed.length === 0 && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
                 No GOAL burns in the recent window yet.
               </div>
@@ -197,12 +237,15 @@ const Burn = ({ setRoute, burned }) => {
             <div className="hairline"/>
           </div>
           <div className="burn-leaderboard">
-            {analytics === null && (
+            {analyticsError && (
+              <RpcErrorBlock label="burn analytics" error={analyticsError} onRetry={retry} onCustomRpc={setCustomRpc}/>
+            )}
+            {!analyticsError && analytics === null && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
                 Reading 24h burn analytics from chain…
               </div>
             )}
-            {analytics && topCurves.length === 0 && (
+            {!analyticsError && analytics && topCurves.length === 0 && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
                 No country-curve burns in the last {analytics.hours.toFixed(1)}h.
               </div>
@@ -246,6 +289,34 @@ const BurnRate = ({ label, value, unit, delta, up, muted }) => (
     <div className="burn-rate-unit">{muted ? delta : unit}</div>
   </div>
 );
+
+/* Shared error block — used by the burn feed + leaderboard when getLogs fails
+   on all public RPCs. Surfaces error + Retry + Set custom RPC. */
+const RpcErrorBlock = ({ label, error, onRetry, onCustomRpc }) => {
+  const short = (error || "").length > 180 ? error.slice(0, 180) + "…" : error;
+  return (
+    <div className="f-mono" style={{padding:24, textAlign:"center", fontSize:12}}>
+      <div style={{color:"var(--fire)", marginBottom:8}}>Couldn't load {label}</div>
+      <div style={{color:"var(--fg-3)", marginBottom:14, lineHeight:1.5}}>{short}</div>
+      <div style={{display:"inline-flex", gap:8}}>
+        <button onClick={onRetry}
+                style={{background:"transparent", border:"1px solid var(--fg-3)", color:"var(--fg-2)",
+                        padding:"6px 14px", borderRadius:4, cursor:"pointer", fontSize:11}}>
+          Retry
+        </button>
+        <button onClick={onCustomRpc}
+                style={{background:"transparent", border:"1px solid var(--accent)", color:"var(--accent)",
+                        padding:"6px 14px", borderRadius:4, cursor:"pointer", fontSize:11}}>
+          Set custom RPC
+        </button>
+      </div>
+      <div style={{color:"var(--fg-4)", marginTop:10, fontSize:10, lineHeight:1.45}}>
+        Public RPCs throttle eth_getLogs heavily.<br/>
+        Connecting a wallet enables fallback through its provider.
+      </div>
+    </div>
+  );
+};
 
 /* Supply over time chart */
 const SupplyOverTime = ({ burned }) => {

@@ -12,18 +12,22 @@
   const VIRTUAL = window.VIRTUAL_PITCH || 20000;
   const PACK_PRICE = window.PACK_PRICE || 6.9;
 
-  // Public mainnet RPCs with permissive CORS + sane free-tier limits.
-  // User can override via localStorage.setItem("goal_rpc", "https://...").
-  // Tried in parallel via Promise.any — fastest reachable wins.
+  // Public mainnet RPCs. User can override via:
+  //   localStorage.setItem("goal_rpc", "https://your-key.alchemy.com/...")
+  // Tried in parallel via Promise.any for pickProvider; tryAcrossRpcs falls
+  // through them sequentially for multicalls.
   //
-  // Excluded:
-  //   - eth.merkle.io          CORS blocks browser origin
-  //   - blockpi public         CORS blocks browser origin
-  //   - drpc.org free          batches >3 calls return 500 (paid feature)
+  // Excluded (confirmed broken from goalerc20.xyz production origin):
+  //   - eth.llamarpc.com       CORS preflight blocked
+  //   - eth.merkle.io          CORS preflight blocked
+  //   - blockpi.network/public CORS preflight blocked
+  //   - drpc.org free tier     batches >3 calls return 500
   const userOverride = (() => { try { return localStorage.getItem("goal_rpc"); } catch { return null; } })();
   const RPCS = (userOverride ? [userOverride] : []).concat([
     "https://cloudflare-eth.com",
-    "https://eth.llamarpc.com",
+    "https://1rpc.io/eth",
+    "https://endpoints.omniatech.io/v1/eth/mainnet/public",
+    "https://eth.public-rpc.com",
     "https://rpc.ankr.com/eth",
     "https://ethereum-rpc.publicnode.com",
     "https://eth-mainnet.public.blastapi.io",
@@ -171,8 +175,7 @@
 
   let provider = null;
   let loading = false;
-  // Pool of additional providers tried for log calls when the primary one
-  // 503s / hangs / rejects.
+  // Pool of additional public-RPC providers tried when the primary one fails.
   const fallbackProviders = [];
   function ensureFallbackProviders() {
     if (fallbackProviders.length) return fallbackProviders;
@@ -185,10 +188,31 @@
     return fallbackProviders;
   }
 
-  // Try a read fn across providers until one succeeds. Used for log calls
-  // (getLogs) which fail intermittently on public RPCs.
+  // When the user is connected via a wallet on mainnet, the wallet provider
+  // (MetaMask, OKX, etc.) is an excellent fallback: the network request goes
+  // through the extension, completely bypassing browser CORS. We rebuild it
+  // each call to capture the latest wallet state.
+  let _cachedWalletEthers = null;
+  let _cachedWalletEip1193 = null;
+  function getWalletProvider() {
+    const ws = window.WALLET?.state;
+    if (!ws?.connected || !ws.onMainnet) return null;
+    const eip1193 = window.WALLET._provider;
+    if (!eip1193) return null;
+    if (_cachedWalletEip1193 !== eip1193) {
+      try {
+        _cachedWalletEthers = new ethers.BrowserProvider(eip1193);
+        _cachedWalletEip1193 = eip1193;
+      } catch { return null; }
+    }
+    return _cachedWalletEthers;
+  }
+
   async function tryAcrossRpcs(fn) {
     const tryList = [provider, ...ensureFallbackProviders()].filter(Boolean);
+    // Wallet provider as last resort — its network access can't be CORS-blocked.
+    const walletProv = getWalletProvider();
+    if (walletProv) tryList.push(walletProv);
     let lastErr = null;
     for (const p of tryList) {
       try {
@@ -212,10 +236,17 @@
       if (!provider) {
         provider = await pickProvider();
         if (!provider) {
-          state.error = "No mainnet RPC reachable";
-          state.loading = false;
-          notify();
-          return;
+          // All public RPCs failed — try the user's wallet as a last resort.
+          const walletProv = getWalletProvider();
+          if (walletProv) {
+            provider = walletProv;
+            state.rpcUrl = "wallet-fallback";
+          } else {
+            state.error = "All public RPCs unreachable. Connect a wallet to use its RPC, or set localStorage.goal_rpc.";
+            state.loading = false;
+            notify();
+            return;
+          }
         }
       }
 
