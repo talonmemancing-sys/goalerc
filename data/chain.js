@@ -616,12 +616,18 @@
     if (!provider) return { logs: [], latest: 0, fromBlock: 0 };
     const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
     const fromBlock = Math.max(0, latest - lookbackBlocks);
-    const logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
+    // Alchemy's request validator complains about `null` in the middle of the
+    // topics array ("body.params check error"). Filter by topic0 only on the
+    // server, then keep only burns (topic2 == zero address) client-side.
+    const allLogs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
       address: cfg.goal,
       fromBlock: "0x" + fromBlock.toString(16),
       toBlock: "latest",
-      topics: [TRANSFER_TOPIC0, null, ZERO_TOPIC],
+      topics: [TRANSFER_TOPIC0],
     }]));
+    const logs = (allLogs || []).filter((l) =>
+      (l.topics?.[2] || "").toLowerCase() === ZERO_TOPIC
+    );
     return { logs, latest, fromBlock };
   }
 
