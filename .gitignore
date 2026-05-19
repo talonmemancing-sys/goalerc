@@ -1,0 +1,32 @@
+# Design artifacts — kept local
+screenshots/
+uploads/
+
+# Local audit scratch
+.audit-tmp/
+
+# Dependencies (none committed; CDN-loaded via index.html)
+node_modules/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Env / secrets (none in repo today, but guard against future)
+.env
+.env.*
+*.key
+*.pem
+*-secret.*
+
+# Build output (this is a static site, no build step)
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*

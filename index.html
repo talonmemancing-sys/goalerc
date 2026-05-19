@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GOAL — The 2026 World Cup, on-chain.</title>
+<link rel="icon" type="image/png" href="logo.png" />
+<meta name="description" content="A closed-loop bonding curve protocol for the 2026 FIFA World Cup. 48 nations, 144 players, 192 markets. One 960,000-supply deflationary asset on Ethereum. No team, no mint, no exit." />
+<meta property="og:title" content="GOAL — The 2026 World Cup, on-chain." />
+<meta property="og:description" content="48 nations. 144 players. 192 markets. One 960,000-supply deflationary asset. 5% burn per trade. The ball never stops." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Onest:wght@300;400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="styles/base.css" />
+<link rel="stylesheet" href="styles/app.css" />
+<link rel="stylesheet" href="styles/home.css" />
+<link rel="stylesheet" href="styles/pack.css" />
+<link rel="stylesheet" href="styles/market.css" />
+<link rel="stylesheet" href="styles/burn.css" />
+<link rel="stylesheet" href="styles/mechanics.css" />
+<link rel="stylesheet" href="styles/portfolio.css" />
+<link rel="stylesheet" href="styles/wallet.css" />
+<link rel="stylesheet" href="styles/ca-banner.css" />
+<link rel="stylesheet" href="styles/players.css" />
+<link rel="stylesheet" href="styles/roster.css" />
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+</head>
+<body class="grain">
+  <div id="root"></div>
+
+  <!-- Data -->
+  <script src="data/config.js"></script>
+  <script src="data/countries.js"></script>
+  <script src="data/players.js"></script>
+  <script src="data/chain.js"></script>
+  <script src="data/wallet.js"></script>
+  <script src="data/tx.js"></script>
+  <script src="data/prices.js"></script>
+
+  <!-- Components -->
+  <script type="text/babel" src="components/flag.jsx"></script>
+  <script type="text/babel" src="components/jersey.jsx"></script>
+  <script type="text/babel" src="components/animated-number.jsx"></script>
+  <script type="text/babel" src="components/ca-banner.jsx"></script>
+  <script type="text/babel" src="components/header.jsx"></script>
+  <script type="text/babel" src="components/on-chain.jsx"></script>
+
+  <!-- Pages -->
+  <script type="text/babel" src="pages/stubs.jsx"></script>
+  <script type="text/babel" src="pages/home.jsx"></script>
+  <script type="text/babel" src="pages/mechanics.jsx"></script>
+  <script type="text/babel" src="pages/pack.jsx"></script>
+  <script type="text/babel" src="pages/markets.jsx"></script>
+  <script type="text/babel" src="pages/players.jsx"></script>
+  <script type="text/babel" src="pages/portfolio.jsx"></script>
+  <script type="text/babel" src="pages/burn.jsx"></script>
+
+  <!-- Tweaks -->
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="tweaks.jsx"></script>
+
+  <!-- App -->
+  <script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

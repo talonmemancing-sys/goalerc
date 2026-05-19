@@ -1,0 +1,64 @@
+/* ===== Contract Address banner ===== */
+.ca-banner {
+  width: 100%;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(90deg, rgba(14, 140, 58, 0.10), rgba(46, 225, 100, 0.04) 40%, rgba(245, 200, 66, 0.08));
+}
+.ca-banner-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ca-banner-label {
+  color: var(--fg-2);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.ca-banner-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--line-2);
+}
+.ca-banner-addr {
+  font-size: 13px;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ca-banner-addr-short { display: none; }
+@media (max-width: 900px) {
+  .ca-banner-addr-full { display: none; }
+  .ca-banner-addr-short { display: inline; }
+}
+
+.ca-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  color: var(--fg-2);
+  font-family: var(--f-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+  text-decoration: none;
+  letter-spacing: -0.005em;
+}
+.ca-banner-btn:hover {
+  background: var(--bg-2);
+  border-color: var(--fg-4);
+  color: var(--fg);
+}
+.ca-banner-btn svg { opacity: 0.7; }

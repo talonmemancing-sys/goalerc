@@ -1,0 +1,888 @@
+// GOAL — Pack pages: overview, country detail, player reveal
+
+const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
+  const [filter, setFilter] = React.useState("OPEN");
+  const filters = ["ALL", "OPEN", "SEALED", "LIVE"];
+
+  const list = COUNTRIES.filter(c => {
+    const s = countryState(c);
+    if (filter === "ALL") return true;
+    if (filter === "OPEN") return !s.sealed && !s.curveOpen;
+    if (filter === "SEALED") return s.sealed && !s.curveOpen;
+    if (filter === "LIVE") return s.curveOpen;
+    return true;
+  });
+
+  return (
+    <main className="match-page pack">
+      <section className="pack-hero">
+        <div className="pack-hero-l">
+          <div className="eyebrow">Phase I · Pack Window</div>
+          <h1 className="f-display" style={{fontSize:"clamp(44px,6vw,92px)", lineHeight:0.98, letterSpacing:"-0.045em", margin:"12px 0 24px", fontWeight:600}}>
+            48 windows.
+            <br/>
+            <span style={{color:"var(--accent)", fontWeight:300}}>One closing clock.</span>
+          </h1>
+          <p style={{maxWidth:560, color:"var(--fg-2)", fontSize:17, lineHeight:1.55}}>
+            Pack windows distribute the initial supply of country and player tokens. Each
+            nation has 1,000 country packs at 10 GOAL each, plus 450 player packs paid
+            in country tokens. When a window seals, that nation's curves go live.
+          </p>
+        </div>
+        <div className="pack-hero-r">
+          <div className="pack-clock">
+            <div className="eyebrow">
+              {!countdown.available ? "Reading pack window…" :
+               countdown.closed ? "Pack window closed" :
+               "Global window closes"}
+            </div>
+            <div className="pack-clock-row">
+              <ClockUnit value={countdown.available ? countdown.days  : "—"} label="days"/>
+              <ClockUnit value={countdown.available ? countdown.hours : "—"} label="hours"/>
+              <ClockUnit value={countdown.available ? countdown.mins  : "—"} label="mins"/>
+              <ClockUnit value={countdown.available ? countdown.secs  : "—"} label="secs"/>
+            </div>
+          </div>
+          <div className="pack-progress">
+            <div className="pack-progress-head">
+              <span className="eyebrow">Packs sold</span>
+              <span className="f-mono" style={{fontSize:13}}>
+                <span style={{color:"var(--fg)"}}>{packsSold.toLocaleString()}</span>
+                <span style={{color:"var(--fg-3)"}}> / {totalPacks.toLocaleString()}</span>
+              </span>
+            </div>
+            <div className="bar"><div className="bar-fill" style={{width:`${packsSold/totalPacks*100}%`}}/></div>
+            <div className="pack-progress-foot">
+              <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>
+                {(packsSold/totalPacks*100).toFixed(1)}% complete
+              </span>
+              <span className="f-mono" style={{color:"var(--accent)", fontSize:11}}>
+                {COUNTRIES.filter(c=>countryState(c).sealed).length} nations sealed
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pack-filters">
+        <div style={{display:"flex", gap:6, flexWrap:"wrap"}}>
+          {filters.map(f => (
+            <button
+              key={f}
+              className={"filter-chip " + (filter===f ? "is-active" : "")}
+              onClick={()=>setFilter(f)}
+            >
+              {f}
+              <span className="filter-chip-count">
+                {f === "ALL" ? 48 :
+                 f === "OPEN" ? COUNTRIES.filter(c => !countryState(c).sealed && !countryState(c).curveOpen).length :
+                 f === "SEALED" ? COUNTRIES.filter(c => countryState(c).sealed && !countryState(c).curveOpen).length :
+                 COUNTRIES.filter(c => countryState(c).curveOpen).length}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div style={{marginLeft:"auto", display:"flex", gap:12, alignItems:"center"}}>
+          <span className="eyebrow">Sort</span>
+          <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>by confederation ↓</span>
+        </div>
+      </section>
+
+      <section className="pack-table">
+        <div className="pack-table-head f-mono">
+          <span style={{width:60}}></span>
+          <span style={{flex:"1 0 200px"}}>Nation</span>
+          <span style={{flex:"0 0 100px"}}>Conf</span>
+          <span style={{flex:"0 0 160px"}}>Status</span>
+          <span style={{flex:"1 0 220px"}}>Pack progress</span>
+          <span style={{flex:"0 0 110px"}}>Price</span>
+          <span style={{flex:"0 0 110px", textAlign:"right"}}></span>
+        </div>
+        {list.map(c => {
+          const s = countryState(c);
+          return (
+            <button key={c.id} className="pack-table-row" onClick={() => setRoute({name: s.curveOpen ? "market" : "packCountry", country: c.id})}>
+              <span style={{width:60}}><Flag country={c} w={48} h={32}/></span>
+              <span style={{flex:"1 0 200px"}}>
+                <div className="f-display" style={{fontSize:22, lineHeight:1}}>{c.name}</div>
+                <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", marginTop:4}}>[{c.id}]</div>
+              </span>
+              <span style={{flex:"0 0 100px"}} className="f-mono pack-table-conf">{c.conf}</span>
+              <span style={{flex:"0 0 160px"}}>
+                <span className={"country-card-status " + (s.curveOpen ? "status-live" : s.sealed ? "status-sealed" : "status-pack")}>
+                  {s.curveOpen ? "Curve Live" : s.sealed ? "Sealed" : "Pack Open"}
+                </span>
+              </span>
+              <span style={{flex:"1 0 220px"}}>
+                <div className="pack-table-progress">
+                  <div className="bar" style={{flex:1}}><div className={"bar-fill " + (s.curveOpen ? "accent" : "")} style={{width:`${(s.packsSold/PACKS_PER_COUNTRY)*100}%`}}/></div>
+                  <span className="f-mono" style={{fontSize:11, width:80, textAlign:"right"}}>{(s.packsSold/1000).toFixed(1)}k/18k</span>
+                </div>
+              </span>
+              <span style={{flex:"0 0 110px"}} className="f-mono">
+                {s.curveOpen ? `${s.price.toFixed(2)}` : "6.90"} <span style={{color:"var(--fg-3)"}}>G</span>
+              </span>
+              <span style={{flex:"0 0 110px", textAlign:"right"}}>
+                <span className="pack-table-arrow">
+                  {s.curveOpen ? "Trade →" : "Open →"}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </section>
+
+      <Footer setRoute={setRoute} />
+    </main>
+  );
+};
+
+const ClockUnit = ({ value, label }) => (
+  <div className="clock-unit">
+    <div className="clock-unit-value f-display numeric">{String(value).padStart(2,"0")}</div>
+    <div className="clock-unit-label f-mono">{label}</div>
+  </div>
+);
+
+/* =========== Pack Country — open country packs =========== */
+const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
+  const c = COUNTRIES.find(x => x.id === countryId) || COUNTRIES[0];
+  const chain = (window.useChain ? window.useChain() : { lastUpdate: 0 });
+  const wallet = (window.WALLET ? window.WALLET.state : { connected: false, goalBalance: 0 });
+  const [walletTick, setWalletTick] = React.useState(0);
+  React.useEffect(() => window.WALLET ? window.WALLET.subscribe(() => setWalletTick(t => t + 1)) : undefined, []);
+  const s = countryState(c);
+
+  const [packCount, setPackCount] = React.useState(1);
+  const [state, setState] = React.useState("idle"); // idle | approving | sending | mining | success | error
+  const [txHash, setTxHash] = React.useState(null);
+  const [errMsg, setErrMsg] = React.useState(null);
+
+  const tokensPerPack = 1;
+  const pricePerPack = PACK_PRICE; // 6.9 GOAL
+  const total = +(packCount * pricePerPack).toFixed(3);
+  const tokensReceived = packCount * tokensPerPack;
+  const burnAmount = +(packCount * PACK_BURN).toFixed(3);
+
+  const insufficientGoal = wallet.connected && wallet.goalBalance < total;
+  const cantBuy = s.sealed || s.curveOpen;
+
+  const handleBuy = async () => {
+    if (!window.WALLET?.state?.connected) {
+      alert("Connect your wallet first (top right).");
+      return;
+    }
+    setErrMsg(null);
+    setTxHash(null);
+    try {
+      await window.TX.buyCountryPack(c.id, packCount, (step, hash) => {
+        if (step === "approving") setState("approving");
+        else if (step === "sending") setState("sending");
+        else if (step === "mining") { setState("mining"); if (hash) setTxHash(hash); }
+        else if (step === "done") { setState("success"); if (hash) setTxHash(hash); }
+      });
+      // Refresh balances and chain reads
+      window.WALLET.refreshBalances();
+      window.CHAIN.refresh();
+    } catch (e) {
+      console.error(e);
+      setState("error");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || "Transaction failed");
+    }
+  };
+
+  return (
+    <main className="match-page pack-country">
+      <section className="pc-head">
+        <button className="pc-back" onClick={()=>setRoute({name:"pack"})}>
+          ← All Packs
+        </button>
+        <div className="pc-head-row">
+          <Flag country={c} w={120} h={80}/>
+          <div>
+            <div className="eyebrow">Nation · [{c.id}] · {c.conf}</div>
+            <h1 className="f-display" style={{fontSize:"clamp(48px,7vw,96px)", lineHeight:0.98, letterSpacing:"-0.025em", margin:"8px 0 12px"}}>
+              {c.name}
+            </h1>
+            <div style={{display:"flex", gap:12}}>
+              <span className={"country-card-status " + (s.sealed ? "status-sealed" : "status-pack")}>
+                {s.sealed ? "Sealed" : "Pack Open"}
+              </span>
+              <span className="pill"><span className="pill-dot"/>{s.packsSold.toLocaleString()} of 18,000 sold</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pc-grid">
+        <div className="pc-left">
+          <div className="section-eyebrow"><span className="bracket-num">A</span><span className="eyebrow">Country Pack</span><div className="hairline"/></div>
+
+          <div className="pc-card">
+            <div className="pc-card-art">
+              <Flag country={c} w={280} h={180}/>
+              <div className="pc-card-overlay">
+                <div className="eyebrow">Contains</div>
+                <div className="f-display" style={{fontSize:36, lineHeight:1}}>1 × {c.id}</div>
+                <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>country token / pack</div>
+              </div>
+            </div>
+
+            <div className="pc-card-body">
+              <div className="pc-spec">
+                <SpecRow label="Price" value="6.9 GOAL" mono accent="accent"/>
+                <SpecRow label="Burn (5%)" value="0.345 GOAL → burn()" mono accent="fire"/>
+                <SpecRow label="To curve reserve" value="6.555 GOAL" mono/>
+                <SpecRow label="Pack window cap" value="18,000 packs" mono/>
+                <SpecRow label="Asymptote (curve)" value="20,000" mono/>
+                <SpecRow label="V4 fee on swaps" value="5% → GOAL.burn()" mono accent="fire"/>
+              </div>
+
+              <div className="pc-buy">
+                <div className="eyebrow" style={{marginBottom:12}}>Quantity</div>
+                <div className="pc-qty">
+                  {[1, 5, 10, 25, 100].map(n => (
+                    <button
+                      key={n}
+                      className={"pc-qty-btn " + (packCount===n ? "is-active" : "")}
+                      onClick={()=>setPackCount(n)}
+                      disabled={state !== "idle"}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pc-total">
+                  <div>
+                    <div className="eyebrow">You pay</div>
+                    <div className="f-display numeric" style={{fontSize:48, lineHeight:1}}>{total.toLocaleString()}</div>
+                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>GOAL</div>
+                  </div>
+                  <div className="pc-total-arrow">→</div>
+                  <div style={{textAlign:"right"}}>
+                    <div className="eyebrow">You receive</div>
+                    <div className="f-display-it numeric" style={{fontSize:48, lineHeight:1, color:"var(--accent)"}}>{tokensReceived.toLocaleString()}</div>
+                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{c.id}</div>
+                  </div>
+                </div>
+
+                <div className="pc-burn-note">
+                  <span className="f-mono" style={{color:"var(--fire)"}}>▲</span>
+                  <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
+                    A 5% protocol fee is reserved on each curve swap. <span style={{color:"var(--fire)"}}>{(total*0.05).toFixed(2)} GOAL</span> will burn on first curve interaction.
+                  </span>
+                </div>
+
+                {(state === "idle" || state === "error") && (
+                  <>
+                    {!wallet.connected ? (
+                      <button className="btn btn-primary pc-cta" onClick={() => window.dispatchEvent(new CustomEvent("goal:openWalletModal"))} disabled>
+                        Connect wallet to buy
+                      </button>
+                    ) : cantBuy ? (
+                      <button className="btn pc-cta" disabled>
+                        {s.curveOpen ? "Curve trading — use Markets page" : "Pack window sealed"}
+                      </button>
+                    ) : insufficientGoal ? (
+                      <button className="btn pc-cta" disabled>
+                        Need {(total - wallet.goalBalance).toFixed(2)} more GOAL
+                      </button>
+                    ) : (
+                      <button className="btn btn-primary pc-cta" onClick={handleBuy}>
+                        Confirm purchase · {total} GOAL
+                      </button>
+                    )}
+                    {state === "error" && errMsg && (
+                      <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:8}}>
+                        {errMsg}
+                      </div>
+                    )}
+                  </>
+                )}
+                {state === "approving" && (
+                  <button className="btn pc-cta" disabled>
+                    <span className="pc-spin"/> Approve GOAL in wallet…
+                  </button>
+                )}
+                {state === "sending" && (
+                  <button className="btn pc-cta" disabled>
+                    <span className="pc-spin"/> Confirm in wallet…
+                  </button>
+                )}
+                {state === "mining" && (
+                  <button className="btn pc-cta" disabled>
+                    <span className="pc-spin"/> Mining on Ethereum…
+                  </button>
+                )}
+                {state === "success" && (
+                  <div className="pc-success">
+                    <div className="pc-success-row">
+                      <span className="f-mono" style={{color:"var(--bull)"}}>✓ confirmed</span>
+                      {txHash && (
+                        <a className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}
+                           href={`https://etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer noopener">
+                          {txHash.slice(0, 10)}…
+                        </a>
+                      )}
+                    </div>
+                    <div className="f-display" style={{fontSize:32, lineHeight:1, margin:"8px 0"}}>
+                      +{tokensReceived} <span className="f-display-it" style={{color:"var(--accent)"}}>{c.id}</span> received
+                    </div>
+                    <button className="btn btn-primary" onClick={()=>setRoute({name:"packPlayer", country:c.id})}>
+                      Open Player Packs →
+                    </button>
+                    <button className="btn" onClick={()=>{setState("idle"); setPackCount(1); setTxHash(null);}}>
+                      Buy more country packs
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pc-right">
+          <div className="section-eyebrow"><span className="bracket-num">B</span><span className="eyebrow">Recent</span><div className="hairline"/></div>
+          <RecentActivity countryId={c.id}/>
+        </div>
+      </section>
+
+      <Footer setRoute={setRoute}/>
+    </main>
+  );
+};
+
+const RecentActivity = ({ countryId }) => {
+  const addrs = (window.CHAIN?.state?.countryAddrs && window.CHAIN.state.countryAddrs[countryId]) || {};
+  return (
+    <TransferLogFeed
+      tokenAddr={addrs.tokenAddr}
+      mintsOnly={true}
+      heading="Recent pack opens"
+      limit={8}
+    />
+  );
+};
+
+/* =========== Pack Player — VRF slot machine reveal =========== */
+const PackPlayer = ({ setRoute, countryId }) => {
+  const c = COUNTRIES.find(x => x.id === countryId) || COUNTRIES[0];
+  const chain = (window.useChain ? window.useChain() : { players: {} });
+  const wallet = (window.WALLET ? window.WALLET.state : { connected: false });
+
+  // Real per-role pack mints derived from chain supply (10 tokens per pack).
+  const pools = {};
+  for (const role of ["CPT","BST","RKE"]) {
+    const ps = chain.players && chain.players[`${c.id}-${role}`];
+    const max = PLAYER_ROLES[role].packs;
+    const minted = ps ? Math.floor(ps.supply / 10) : 0;
+    pools[role] = Math.max(0, max - minted);
+  }
+
+  const [stage, setStage] = React.useState("idle");
+  const [result, setResult] = React.useState(null);
+  const [requestId, setRequestId] = React.useState(null);
+  const [packCount, setPackCount] = React.useState(1);
+  const reelRef = React.useRef(null);
+  const opened = []; // VRF reveal history will come from on-chain events once wired
+
+  const roles = ["RKE", "BST", "CPT", "RKE", "RKE", "CPT", "BST", "RKE", "CPT", "RKE", "BST", "RKE", "CPT", "RKE", "BST", "RKE", "CPT", "RKE", "RKE", "BST", "CPT", "RKE", "BST"];
+
+  const [reveals, setReveals] = React.useState([]);
+  const [vrfSeconds, setVrfSeconds] = React.useState(0);
+  const [errMsg, setErrMsg] = React.useState(null);
+  const [txHash, setTxHash] = React.useState(null);
+  const [openedAt, setOpenedAt] = React.useState(0); // unix seconds when open tx confirmed
+
+  // Persist pending VRF request so closing the tab doesn't lose it.
+  const storageKey = `goal_pending_pack_${c.id}_${window.WALLET?.state?.address || "anon"}`;
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!saved.requestId) return;
+      setRequestId(saved.requestId);
+      setTxHash(saved.txHash || null);
+      setOpenedAt(saved.openedAt || 0);
+      setStage("requesting");
+      // Resume polling
+      resumeWait(saved.requestId);
+    } catch {}
+  }, [c.id, window.WALLET?.state?.address]);
+
+  async function resumeWait(rid) {
+    try {
+      await window.TX.waitForVrfFulfillment(BigInt(rid), {
+        onTick: (sec) => setVrfSeconds(sec),
+      });
+      setStage("spinning");
+      const { reveals: revealEvents, txHash: claimHash } = await window.TX.claimPlayerPack(BigInt(rid));
+      setTxHash(claimHash);
+      setReveals(revealEvents);
+      const roleCounts = { CPT: 0, BST: 0, RKE: 0 };
+      revealEvents.forEach(r => { roleCounts[r.role] = (roleCounts[r.role] || 0) + r.packs; });
+      const dominant = Object.entries(roleCounts).sort((a,b)=>b[1]-a[1])[0]?.[0] || null;
+      setResult(dominant);
+      setStage("revealed");
+      try { localStorage.removeItem(storageKey); } catch {}
+      window.WALLET.refreshBalances();
+      window.CHAIN.refresh();
+    } catch (e) {
+      setStage("idle");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || "Failed to resume pack");
+    }
+  }
+
+  const handleOpen = async () => {
+    if (stage !== "idle") return;
+    if (!window.WALLET?.state?.connected) {
+      alert("Connect your wallet first (top right).");
+      return;
+    }
+    setErrMsg(null);
+    setReveals([]);
+    setTxHash(null);
+    setVrfSeconds(0);
+
+    try {
+      setStage("committing");
+      const { requestId: rid, txHash: openHash } = await window.TX.openPlayerPack(
+        c.id, packCount,
+        (step, hash) => {
+          if (step === "approving") setStage("committing");
+          else if (step === "sending") setStage("committing");
+          else if (step === "mining") { setStage("requesting"); if (hash) setTxHash(hash); }
+          else if (step === "requested") { setStage("requesting"); if (hash) setTxHash(hash); }
+        }
+      );
+      const ridStr = typeof rid === "bigint" ? rid.toString() : String(rid);
+      setRequestId(ridStr);
+      const ts = Math.floor(Date.now() / 1000);
+      setOpenedAt(ts);
+      setStage("requesting");
+      try {
+        localStorage.setItem(storageKey, JSON.stringify({
+          requestId: ridStr, txHash: openHash, openedAt: ts, packCount,
+        }));
+      } catch {}
+
+      await window.TX.waitForVrfFulfillment(rid, {
+        onTick: (sec) => setVrfSeconds(sec),
+      });
+      setStage("spinning");
+
+      const { reveals: revealEvents, txHash: claimHash } = await window.TX.claimPlayerPack(rid);
+      setTxHash(claimHash);
+      setReveals(revealEvents);
+      const roleCounts = { CPT: 0, BST: 0, RKE: 0 };
+      revealEvents.forEach(r => { roleCounts[r.role] = (roleCounts[r.role] || 0) + r.packs; });
+      const dominant = Object.entries(roleCounts).sort((a,b)=>b[1]-a[1])[0]?.[0] || null;
+      setResult(dominant);
+      setStage("revealed");
+      try { localStorage.removeItem(storageKey); } catch {}
+
+      window.WALLET.refreshBalances();
+      window.CHAIN.refresh();
+    } catch (e) {
+      console.error(e);
+      setStage("idle");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || "Transaction failed");
+    }
+  };
+
+  // Spec: recoverStuckRequest only callable after 24h. Show button only then.
+  const RECOVERY_AFTER_S = 24 * 3600;
+  const sinceOpened = openedAt ? Math.floor(Date.now() / 1000 - openedAt) : 0;
+  const canRecover = openedAt && sinceOpened >= RECOVERY_AFTER_S;
+
+  const handleRecover = async () => {
+    if (!requestId) return;
+    try {
+      await window.TX.recoverStuckPack(requestId);
+      setStage("idle");
+      setRequestId(null);
+      setOpenedAt(0);
+      try { localStorage.removeItem(storageKey); } catch {}
+      window.WALLET.refreshBalances();
+    } catch (e) {
+      setErrMsg(e?.shortMessage || e?.message);
+    }
+  };
+
+
+  return (
+    <main className="match-page pack-player">
+      <section className="pp-head-v2">
+        <button className="pc-back" onClick={()=>setRoute({name:"packCountry", country:c.id})}>
+          ← Back to {c.id}
+        </button>
+        <div className="pp-head-v2-row">
+          <Flag country={c} w={88} h={60}/>
+          <div className="pp-head-v2-meta">
+            <h1 className="f-display pp-head-v2-title">{c.name} players</h1>
+            <div className="f-mono pp-head-v2-sub">
+              3 player markets · Phase 1 · {pools.CPT + pools.BST + pools.RKE}/450 packs left
+            </div>
+          </div>
+          <div className="pp-balance">
+            <div className="eyebrow">Your {c.id}</div>
+            <div className="f-display numeric pp-balance-v">—</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pp-roster">
+        {["BST", "CPT", "RKE"].map(role => {
+          const r = PLAYER_ROLES[role];
+          const remaining = pools[role];
+          const minted = r.packs - remaining;
+          const supply = minted * 10;
+          const pname = window.playerName ? window.playerName(c.id, role) : `${c.id} ${role}`;
+          const handle = pname.toUpperCase().replace(/\s+/g, "").slice(0, 12);
+          const num = role === "CPT" ? 10 : role === "BST" ? 9 : 23;
+          return (
+            <div key={role} className={"roster-card tier-" + role}>
+              <div className="roster-card-glow"/>
+              <div className="roster-card-jersey-wrap">
+                <Jersey country={c} role={role} number={num}
+                        initials={window.playerInitials ? window.playerInitials(c.id, role) : null}
+                        w={140} h={160}/>
+              </div>
+              <div className={"roster-card-tier eyebrow tier-text-" + role}>{r.rarity.toUpperCase()}</div>
+              <div className="roster-card-name f-display">{pname}</div>
+              <div className="roster-card-handle f-mono">{window.playerHandle ? window.playerHandle(c.id, role) : handle}</div>
+              <div className="roster-card-stats">
+                <div className="roster-card-stat">
+                  <div className="eyebrow">Pack mints</div>
+                  <div className="f-mono numeric roster-card-stat-v">{minted}/{r.packs}</div>
+                </div>
+                <div className="roster-card-stat">
+                  <div className="eyebrow">Supply</div>
+                  <div className="f-mono numeric roster-card-stat-v">{supply}/{r.max}</div>
+                </div>
+                <div className="roster-card-stat">
+                  <div className="eyebrow">Curve price</div>
+                  <div className="f-mono numeric roster-card-stat-v">
+                    {(() => {
+                      const ps = chain.players && chain.players[`${c.id}-${role}`];
+                      return ps && ps.curveOpen ? ps.price.toFixed(3) + " G" : "—";
+                    })()}
+                  </div>
+                </div>
+                <div className="roster-card-stat">
+                  <div className="eyebrow">Supply</div>
+                  <div className="f-mono numeric roster-card-stat-v">
+                    {(() => {
+                      const ps = chain.players && chain.players[`${c.id}-${role}`];
+                      return ps ? Math.floor(ps.supply).toLocaleString() : "0";
+                    })()}
+                  </div>
+                </div>
+              </div>
+              <div className="roster-card-actions">
+                <button className="roster-card-btn" onClick={() => setRoute({name:"playerMarket", id: `${c.id}-${role}`})}>
+                  Chart
+                </button>
+                <button className="roster-card-btn is-locked" disabled>
+                  Locked
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      <section className="pp-open">
+        <div className="pp-open-head">
+          <div>
+            <div className="eyebrow">Open {c.name} player packs</div>
+            <div className="pp-open-desc">
+              Each pack burns 1 {c.id} token and mints a role via Chainlink VRF. {pools.CPT + pools.BST + pools.RKE}/450 packs remaining on-chain.
+            </div>
+          </div>
+          <div className="pp-open-bal">
+            <div className="eyebrow">Your {c.id}</div>
+            <div className="f-display numeric" style={{fontSize:32, lineHeight:1}}>
+              <CountryBalance iso={c.id}/>
+            </div>
+          </div>
+        </div>
+        <div className="pp-open-controls">
+          <div className="pp-open-qty">
+            {[1, 10, 50].map(n => (
+              <button key={n}
+                      className={"pp-open-qty-btn " + (packCount === n ? "is-active" : "")}
+                      onClick={()=>setPackCount(n)} disabled={stage !== "idle"}>
+                {n} pack{n > 1 ? "s" : ""}
+              </button>
+            ))}
+          </div>
+          {(() => {
+            const ws = window.WALLET?.state || {};
+            const phase2 = chain.countries?.[c.id]?.curveOpen;
+            const remaining = pools.CPT + pools.BST + pools.RKE;
+            const disabled = stage !== "idle" || !ws.connected || !phase2 || remaining < packCount;
+            let label = `Open ${packCount} pack${packCount > 1 ? "s" : ""}`;
+            if (stage === "committing") label = "Confirm in wallet…";
+            else if (stage === "requesting") label = `Waiting for VRF · ${vrfSeconds}s`;
+            else if (stage === "spinning") label = "Claiming…";
+            else if (stage === "revealed") label = "Open again";
+            else if (!ws.connected) label = "Connect wallet";
+            else if (!phase2) label = "Country curve not active yet";
+            else if (remaining < packCount) label = `Only ${remaining} packs left`;
+            return (
+              <button className="pp-open-cta" onClick={stage === "revealed" ? () => { setStage("idle"); setReveals([]); setResult(null); setRequestId(null); } : handleOpen} disabled={disabled && stage !== "revealed"}>
+                {stage !== "idle" && stage !== "revealed" && <span className="pc-spin"/>}
+                {label}
+              </button>
+            );
+          })()}
+        </div>
+        <div className="pp-open-flow f-mono">
+          Two-tx flow: open (burns {c.id}, requests VRF v2.5) → ~30–90s wait → claim (reveals players). Country tokens are permanently burned on open.
+          {stage === "requesting" && canRecover && (
+            <button onClick={handleRecover} style={{marginLeft:12, color:"var(--fire)", background:"transparent", border:"none", textDecoration:"underline", cursor:"pointer"}}>
+              Cancel &amp; refund (24h elapsed)
+            </button>
+          )}
+          {stage === "requesting" && !canRecover && openedAt > 0 && vrfSeconds > 300 && (
+            <span style={{marginLeft:12, color:"var(--fg-3)", fontSize:11}}>
+              Stuck? Recovery available in {Math.ceil((RECOVERY_AFTER_S - sinceOpened) / 3600)}h
+            </span>
+          )}
+        </div>
+        {errMsg && <div className="f-mono" style={{color:"var(--fire)", fontSize:12, marginTop:8}}>{errMsg}</div>}
+        {txHash && stage !== "idle" && (
+          <div className="f-mono" style={{fontSize:11, marginTop:6, color:"var(--fg-3)"}}>
+            tx: <a href={`https://etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{txHash.slice(0,12)}…</a>
+          </div>
+        )}
+        {reveals.length > 0 && (
+          <div className="pp-open-recent">
+            <span className="eyebrow">This open revealed</span>
+            <div className="pp-open-recent-list">
+              {reveals.map((rv, i) => {
+                const pname = window.playerName ? window.playerName(c.id, rv.role) : `${c.id} ${rv.role}`;
+                return (
+                  <span key={i} className={"pp-open-recent-chip badge-" + rv.role}>
+                    {rv.role} · {pname} · ×{rv.packs}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </section>
+
+      {stage !== "idle" && (
+        <div className="pp-reveal-overlay">
+          <div className={"pp-reveal-modal " + (result ? "tier-" + result : "")}>
+            <div className="pp-reveal-bar">
+              <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>VRF · v2.5 · request {requestId || "—"}</span>
+              <StatusLight stage={stage}/>
+            </div>
+            <div className="pp-slot">
+              <div className="pp-slot-window">
+                <div className="pp-slot-bracket pp-slot-bracket-top"/>
+                <div className="pp-slot-bracket pp-slot-bracket-bot"/>
+                <SlotReel stage={stage} roles={roles} target={result} country={c}/>
+              </div>
+            </div>
+            <StatusBlock stage={stage} result={result} country={c} requestId={requestId}/>
+            <div className="pp-actions">
+              {(stage === "committing" || stage === "requesting" || stage === "spinning") && (
+                <button className="btn pp-cta" disabled>
+                  <span className="pc-spin"/> {
+                    stage === "committing" ? "Confirm in wallet…" :
+                    stage === "requesting" ? `Chainlink VRF · ${vrfSeconds}s` :
+                    "Claiming reveal…"
+                  }
+                </button>
+              )}
+              {stage === "revealed" && (
+                <button className="btn btn-fire pp-cta" onClick={() => { setStage("idle"); setReveals([]); setResult(null); setRequestId(null); }}>
+                  ✓ {reveals.reduce((s,r)=>s+r.packs*10,0)} {c.id} player tokens minted · Close
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer setRoute={setRoute}/>
+    </main>
+  );
+};
+
+const PoolBar = ({ role, remaining, total, label, rarity, color, country }) => {
+  const pct = (remaining / total) * 100;
+  // deterministic jersey number for this nation × role
+  const num = role === "CPT" ? 10 : role === "BST" ? 9 : 23;
+  return (
+    <div className="pool-bar">
+      <div className="pool-bar-head">
+        <div className="pool-bar-meta">
+          {country && <Jersey country={country} role={role} number={num} w={48} h={54}/>}
+          <div>
+            <div className="f-display" style={{fontSize:22, lineHeight:1}}>{label}</div>
+            <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{rarity} · {total} packs / nation</div>
+          </div>
+        </div>
+        <div className="pool-bar-count">
+          <span className="f-display numeric" style={{fontSize:32, lineHeight:1}}>{remaining}</span>
+          <span className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>of {total}</span>
+        </div>
+      </div>
+      <div className="bar"><div className="bar-fill" style={{width:`${pct}%`, background:color}}/></div>
+    </div>
+  );
+};
+
+const StatusLight = ({ stage }) => {
+  const states = {
+    idle:       { color: "var(--fg-3)", label: "READY" },
+    committing: { color: "var(--accent)", label: "COMMIT", pulse: true },
+    requesting: { color: "var(--accent)", label: "VRF SENT", pulse: true },
+    spinning:   { color: "var(--accent)", label: "ENTROPY", pulse: true },
+    revealed:   { color: "var(--bull)", label: "RESOLVED" },
+    claimed:    { color: "var(--bull)", label: "MINTED" },
+  };
+  const s = states[stage];
+  return (
+    <div className="status-light">
+      <div className={"status-light-dot " + (s.pulse ? "is-pulse" : "")} style={{background:s.color}}/>
+      <span className="f-mono" style={{fontSize:10, color:s.color, letterSpacing:"0.08em"}}>{s.label}</span>
+    </div>
+  );
+};
+
+const StatusBlock = ({ stage, result, country, requestId }) => {
+  if (stage === "idle") {
+    return (
+      <div className="pp-status">
+        <div className="eyebrow">Awaiting</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>
+          Hit open to <span className="f-display-it" style={{color:"var(--accent)"}}>burn one</span> {country.id} token.
+        </div>
+        <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
+          Chainlink VRF will return one role. The pack mints 10 of the resolved player token.
+        </div>
+      </div>
+    );
+  }
+  if (stage === "committing") {
+    return (
+      <div className="pp-status">
+        <div className="eyebrow">01 / Commit</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>Burning 1 {country.id}…</div>
+        <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
+          Calling openPack(country) on the PlayerPackOpener…
+        </div>
+      </div>
+    );
+  }
+  if (stage === "requesting") {
+    return (
+      <div className="pp-status">
+        <div className="eyebrow">02 / VRF request</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>Awaiting <span className="f-display-it">{requestId}</span></div>
+        <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
+          numWords=1 · randomWord % (cpt+bst+rke) → role
+        </div>
+      </div>
+    );
+  }
+  if (stage === "spinning") {
+    return (
+      <div className="pp-status">
+        <div className="eyebrow">03 / Resolving</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>
+          <span className="dots"><span/><span/><span/></span>
+        </div>
+        <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
+          fulfillRandomWords() — decrementing quotas in callback.
+        </div>
+      </div>
+    );
+  }
+  if (stage === "revealed" || stage === "claimed") {
+    const r = PLAYER_ROLES[result];
+    const playerName = window.playerName ? window.playerName(country.id, result) : `${country.id} ${r.label}`;
+    return (
+      <div className={"pp-status pp-status-revealed pp-status-" + result}>
+        <div className="pp-status-burst"/>
+        <div className="eyebrow" style={{color:r.color}}>{r.rarity} · {result}</div>
+        <div className="f-display" style={{fontSize:32, lineHeight:1.05, color: r.color, marginTop:4}}>
+          {playerName}
+        </div>
+        <div className="f-mono" style={{fontSize:12, color:"var(--fg-2)", marginTop:6}}>
+          <span style={{color:"var(--fg)"}}>{country.name}</span> · {r.label} · #{result === "CPT" ? 10 : result === "BST" ? 9 : 23}
+        </div>
+        <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", marginTop:6}}>
+          +10 {country.id}.{result} player tokens · curve seeded on claim
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+/* === Slot reel === */
+const SlotReel = ({ stage, roles, target, country }) => {
+  const itemH = 84;
+  const reelRef = React.useRef(null);
+  React.useEffect(() => {
+    const el = reelRef.current;
+    if (!el) return;
+    if (stage === "idle") {
+      el.style.transition = "none";
+      el.style.transform = "translateY(0)";
+    }
+    if (stage === "spinning") {
+      el.style.transition = "none";
+      el.style.transform = "translateY(0)";
+      // start fast spin
+      requestAnimationFrame(() => {
+        el.style.transition = "transform 1.4s linear";
+        el.style.transform = `translateY(-${itemH * 12}px)`;
+      });
+    }
+    if (stage === "revealed") {
+      // land on target — find target index in roles repeating
+      const targetIdx = roles.findIndex(r => r === target);
+      const landing = targetIdx + roles.length * 2; // a few loops in
+      el.style.transition = "transform 1.6s cubic-bezier(0.16, 0.84, 0.27, 1.02)";
+      el.style.transform = `translateY(-${landing * itemH}px)`;
+    }
+  }, [stage, target]);
+
+  // build a long strip
+  const strip = [];
+  for (let i = 0; i < 4; i++) strip.push(...roles);
+
+  return (
+    <div className="pp-reel" ref={reelRef} style={{transform:"translateY(0)"}}>
+      {strip.map((r, i) => {
+        const role = PLAYER_ROLES[r];
+        const num = r === "CPT" ? 10 : r === "BST" ? 9 : 23;
+        return (
+                  <div className={"pp-reel-item is-" + r}>
+                    <Jersey country={country} role={r} number={num} w={56} h={62} className="pp-reel-item-jersey"/>
+                    <div className="pp-reel-item-info">
+                      <div className="pp-reel-item-tag f-mono">{r}</div>
+                      <div className="pp-reel-item-label f-display">{role.label}</div>
+                      <div className="pp-reel-item-rarity f-mono">{role.rarity}</div>
+                    </div>
+                  </div>
+        );
+      })}
+    </div>
+  );
+};
+
+window.Pack = Pack;
+window.PackCountry = PackCountry;
+window.PackPlayer = PackPlayer;

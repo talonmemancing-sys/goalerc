@@ -1,0 +1,393 @@
+/* MATCH — Mechanics page */
+
+.mech-hero {
+  padding: 64px 0 40px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 48px;
+}
+.mech-hero-top {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 40px;
+}
+.mech-h1 {
+  font-size: clamp(48px, 7vw, 104px);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  margin: 0 0 32px;
+  max-width: 1100px;
+}
+.mech-lede {
+  font-size: 19px;
+  line-height: 1.55;
+  max-width: 720px;
+  color: var(--fg-2);
+  margin: 0 0 56px;
+}
+.mech-toc {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.mech-toc-item {
+  background: var(--bg-1);
+  padding: 18px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  color: var(--fg-2);
+}
+.mech-toc-item:hover {
+  background: var(--bg-2);
+  color: var(--fg);
+}
+.mech-toc-num {
+  font-size: 11px;
+  color: var(--fg-3);
+  letter-spacing: 0.08em;
+}
+.mech-toc-label {
+  font-size: 14px;
+}
+
+/* ============ MechSection ============ */
+.mech-section {
+  border-top: 1px solid var(--line);
+  padding: 80px 0;
+}
+.mech-section.is-highlight {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, transparent 30%);
+  margin: 0 -24px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.mech-section-head {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 24px;
+  margin-bottom: 56px;
+  align-items: start;
+}
+.mech-section-num {
+  font-size: 120px;
+  line-height: 0.85;
+  color: var(--fg-4);
+}
+.mech-section-meta {
+  padding-top: 16px;
+}
+.mech-section-title {
+  font-size: clamp(36px, 4.5vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 8px 0 0;
+}
+.mech-section-body p,
+.mech-prose {
+  font-size: 17px;
+  line-height: 1.65;
+  margin: 0 0 18px;
+  max-width: 680px;
+  color: var(--fg-2);
+}
+.mech-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+}
+.mech-cols > div:first-child p {
+  max-width: none;
+}
+
+.mech-spec {
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-label {
+  color: var(--fg-3);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.spec-value { color: var(--fg); }
+.spec-value.is-fire { color: var(--fire); }
+.spec-value.is-accent { color: var(--accent); }
+
+.hook-spec {
+  margin-top: 32px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+}
+
+/* ============ Phase diagram ============ */
+.phase-diagram {
+  margin-top: 32px;
+  padding: 32px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+}
+.phase-diagram-track {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+.phase-diagram-segment {
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.phase-diagram-segment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.phase-diagram-segment-title {
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.phase-diagram-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.phase-diagram-bullets li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-2);
+  padding-left: 16px;
+  position: relative;
+}
+.phase-diagram-bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 8px;
+  width: 6px; height: 1px;
+  background: var(--fg-3);
+}
+.phase-diagram-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 80px;
+}
+.phase-diagram-divider-line {
+  width: 1px;
+  flex: 1;
+  background: linear-gradient(180deg, transparent, var(--accent), transparent);
+  min-height: 80px;
+}
+.phase-diagram-divider-label {
+  font-size: 11px;
+  color: var(--accent);
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+/* ============ Curve diagram ============ */
+.curve-diagram {
+  width: 100%;
+  height: auto;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.curve-axis {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  fill: var(--fg-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.curve-axis-fire {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  fill: var(--fire);
+  letter-spacing: 0.05em;
+}
+.curve-label {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  fill: var(--fg-2);
+}
+
+/* ============ Hook diagram ============ */
+.hook-diagram {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(7, auto);
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  padding: 24px;
+  align-items: stretch;
+  justify-items: stretch;
+}
+.hook-node {
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+.hook-node-hook {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  position: relative;
+  overflow: hidden;
+}
+.hook-node-hook::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0;
+  width: 40px; height: 40px;
+  background: radial-gradient(circle at top right, var(--accent-glow), transparent 70%);
+}
+.hook-node-burn {
+  border-color: var(--fire);
+  background: rgba(226,87,12,0.06);
+}
+.hook-burn-icon {
+  position: absolute;
+  top: 14px; right: 14px;
+  color: var(--fire);
+  font-size: 14px;
+}
+.hook-node-label { font-size: 12px; color: var(--fg); }
+.hook-node-sub { font-size: 10px; color: var(--fg-3); }
+.hook-arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 32px;
+  position: relative;
+}
+.hook-arrow::before {
+  content: "";
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  background: var(--line-2);
+  left: 50%;
+}
+.hook-arrow span {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  color: var(--fg-3);
+  background: var(--bg-1);
+  padding: 0 6px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============ Flywheel ============ */
+.flywheel {
+  display: grid;
+  grid-template-columns: repeat(9, auto);
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  margin-top: 24px;
+  overflow-x: auto;
+}
+.flywheel-step {
+  border: 1px solid var(--line);
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg);
+  min-width: 160px;
+  position: relative;
+}
+.flywheel-step-num {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+}
+.flywheel-step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin: 8px 0;
+}
+.flywheel-step-label {
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.flywheel-step-sub {
+  font-size: 11px;
+  color: var(--fg-3);
+}
+.flywheel-arrow {
+  color: var(--fg-4);
+  font-size: 14px;
+  font-family: var(--f-mono);
+}
+
+/* ============ VRF diagram ============ */
+.vrf-diagram {
+  display: flex;
+  align-items: stretch;
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  overflow-x: auto;
+}
+.vrf-step {
+  flex: 1;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 180px;
+}
+.vrf-step-num {
+  font-size: 11px;
+  color: var(--fg-3);
+  letter-spacing: 0.06em;
+}
+.vrf-step-label {
+  font-size: 14px;
+  color: var(--fg);
+}
+.vrf-divider {
+  width: 1px;
+  background: var(--line);
+}
+
+/* ============ Footer CTA ============ */
+.mech-footer-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding: 80px 0 32px;
+  border-top: 1px solid var(--line);
+}

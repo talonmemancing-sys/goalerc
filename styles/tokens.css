@@ -1,0 +1,72 @@
+/* GOAL — design tokens (football pitch palette) */
+:root {
+  /* Surface — "stadium at night": deep with green undertone */
+  --bg: #0A100B;
+  --bg-1: #0F1610;
+  --bg-2: #161E17;
+  --bg-3: #1F291F;
+  --line: #1B241C;
+  --line-2: #283326;
+
+  /* Foreground — chalk-white kit + dimmed neutrals */
+  --fg: #ECEFE8;
+  --fg-2: #A8B0A4;
+  --fg-3: #6E7669;
+  --fg-4: #444B42;
+
+  /* Accent — vivid pitch green (the brand) */
+  --accent: #2EE164;
+  --accent-2: #00C853;
+  --accent-glow: rgba(46, 225, 100, 0.22);
+  --accent-soft: rgba(46, 225, 100, 0.09);
+
+  /* Pitch — deeper field green for chrome */
+  --pitch-green: #0E8C3A;
+  --pitch-line: rgba(236, 239, 232, 0.7);
+
+  /* Trophy gold — premium accent (captain armband, BST) */
+  --gold: #F5C842;
+  --gold-glow: rgba(245, 200, 66, 0.22);
+
+  /* Fire — burn copper */
+  --fire: #E2570C;
+  --fire-2: #F58A2E;
+  --fire-glow: rgba(226, 87, 12, 0.22);
+
+  /* Curve — restrained green/red */
+  --bull: #6FA77B;
+  --bear: #C97056;
+
+  /* Card colors — yellow/red card system */
+  --yellow-card: #F5C842;
+  --red-card:    #E04C3D;
+
+  /* Rarity — visceral tier */
+  --rare-rookie: #CD7F32;  /* bronze */
+  --rare-captain: #C0C0C0; /* silver */
+  --rare-best:   #FFD700;  /* gold (rarest) */
+  --rare-best-glow: rgba(255, 215, 0, 0.45);
+  --rare-captain-glow: rgba(192, 192, 192, 0.35);
+  --rare-rookie-glow: rgba(205, 127, 50, 0.30);
+
+  /* Type — pure sans-serif protocol stack */
+  --f-display: "Geist", -apple-system, system-ui, sans-serif;
+  --f-sans:    "Geist", -apple-system, system-ui, sans-serif;
+  --f-mono:    "Geist Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Sizes */
+  --t-hero: clamp(48px, 7.4vw, 112px);
+  --t-display: clamp(40px, 6.5vw, 96px);
+  --t-h1: clamp(32px, 4vw, 56px);
+  --t-h2: 28px;
+  --t-h3: 20px;
+  --t-body: 15px;
+  --t-small: 13px;
+  --t-micro: 11px;
+
+  /* Misc */
+  --rad: 2px;
+  --rad-lg: 6px;
+  --maxw: 1440px;
+  --gutter: 24px;
+}

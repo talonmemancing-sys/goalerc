@@ -1,0 +1,476 @@
+/* GOAL — Players gallery + Player detail */
+
+/* ============ Players Hero ============ */
+.players-hero {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 64px;
+  padding: 56px 0 40px;
+  border-bottom: 1px solid var(--line);
+  align-items: end;
+}
+.players-hero-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.player-tier-stat {
+  background: var(--bg-1);
+  padding: 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.player-tier-stat::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.player-tier-stat.tier-BST::before { background: var(--rare-best);    box-shadow: 0 0 12px var(--rare-best); }
+.player-tier-stat.tier-CPT::before { background: var(--rare-captain); }
+.player-tier-stat.tier-RKE::before { background: var(--rare-rookie);  }
+.player-tier-stat-num {
+  font-family: var(--f-display);
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  color: var(--fg);
+}
+.player-tier-stat-label {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--fg-3);
+}
+.tier-BST .player-tier-stat-num { color: var(--rare-best); text-shadow: 0 0 16px rgba(255,215,0,0.3); }
+.tier-CPT .player-tier-stat-num { color: var(--rare-captain); }
+.tier-RKE .player-tier-stat-num { color: var(--rare-rookie); }
+
+/* ============ Players Filters ============ */
+.players-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+.players-filter-group {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.players-filter-group + .players-filter-group { margin-left: 8px; }
+.players-sort { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+.players-role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  color: var(--fg-2);
+  font-family: var(--f-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.players-role-chip:hover { color: var(--fg); border-color: var(--fg-4); }
+.players-role-chip.is-active {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+.players-role-chip.is-BST.is-active {
+  background: linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,235,100,0.05));
+  color: var(--rare-best);
+  border-color: var(--rare-best);
+  box-shadow: 0 0 10px rgba(255,215,0,0.2);
+}
+.players-role-chip.is-CPT.is-active {
+  background: rgba(192,192,192,0.15);
+  color: var(--rare-captain);
+  border-color: var(--rare-captain);
+}
+.players-role-chip.is-RKE.is-active {
+  background: rgba(205,127,50,0.12);
+  color: var(--rare-rookie);
+  border-color: var(--rare-rookie);
+}
+.players-role-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.players-role-count {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+/* ============ Players Grid ============ */
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin: 24px 0 64px;
+}
+@media (max-width: 1200px) { .players-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 800px)  { .players-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.player-card {
+  position: relative;
+  background: var(--bg-1);
+  border: none;
+  cursor: pointer;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  color: inherit;
+  font-family: inherit;
+  transition: background 0.15s;
+  overflow: hidden;
+}
+.player-card:hover { background: var(--bg-2); }
+.player-card-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.player-card:hover .player-card-bg { opacity: 1; }
+.player-card.tier-BST .player-card-bg {
+  background: radial-gradient(ellipse at 70% 0%, rgba(255,215,0,0.10), transparent 60%);
+}
+.player-card.tier-CPT .player-card-bg {
+  background: radial-gradient(ellipse at 70% 0%, rgba(192,192,192,0.07), transparent 60%);
+}
+.player-card.tier-RKE .player-card-bg {
+  background: radial-gradient(ellipse at 70% 0%, rgba(205,127,50,0.05), transparent 60%);
+}
+.player-card.tier-BST {
+  box-shadow: inset 0 1px 0 rgba(255,215,0,0.18);
+}
+
+.player-card > * { position: relative; z-index: 1; }
+
+.player-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.player-card-badge {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 3px 6px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+}
+.player-card-number {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--fg-4);
+  letter-spacing: -0.04em;
+}
+.player-card.tier-BST .player-card-number { color: var(--rare-best); text-shadow: 0 0 8px rgba(255,215,0,0.3); }
+
+.player-card-jersey {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.45));
+}
+.player-card.tier-BST .player-card-jersey {
+  filter: drop-shadow(0 4px 16px rgba(255,215,0,0.25)) drop-shadow(0 0 8px rgba(255,215,0,0.15));
+}
+
+.player-card-body { display: flex; flex-direction: column; gap: 2px; }
+.player-card-name {
+  font-size: 20px;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--fg);
+}
+.player-card.tier-BST .player-card-name { color: var(--rare-best); }
+.player-card-sub {
+  font-size: 11px;
+  color: var(--fg-3);
+}
+
+.player-card-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 4px;
+}
+.player-card-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.player-card-stat.is-right { align-items: flex-end; }
+.player-card-stat-v {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--fg);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+.player-card-stat-u {
+  font-size: 10px;
+  color: var(--fg-3);
+}
+.player-card-ch.is-up { color: var(--bull); }
+.player-card-ch.is-down { color: var(--bear); }
+
+.player-card-scarcity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.player-card-scarcity-row {
+  display: flex;
+  justify-content: space-between;
+}
+.player-card-scarcity-bar {
+  height: 3px;
+  background: var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.player-card-scarcity-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--fg);
+}
+.tier-fill-BST { background: linear-gradient(90deg, var(--rare-best), #FFE588); box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+.tier-fill-CPT { background: linear-gradient(90deg, var(--rare-captain), #E8E8E8); }
+.tier-fill-RKE { background: linear-gradient(90deg, var(--rare-rookie), #E0A475); }
+
+/* ============ Player Detail ============ */
+.pd-head {
+  padding: 48px 0 40px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.player-detail.tier-BST .pd-head {
+  background: radial-gradient(ellipse at 15% 50%, rgba(255,215,0,0.08), transparent 50%);
+}
+.player-detail.tier-CPT .pd-head {
+  background: radial-gradient(ellipse at 15% 50%, rgba(192,192,192,0.06), transparent 50%);
+}
+.player-detail.tier-RKE .pd-head {
+  background: radial-gradient(ellipse at 15% 50%, rgba(205,127,50,0.05), transparent 50%);
+}
+
+.pd-head-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 56px;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.pd-jersey-wrap {
+  position: relative;
+  width: 240px;
+  height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pd-jersey-glow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.tier-glow-BST {
+  background: radial-gradient(circle, rgba(255,215,0,0.35), transparent 65%);
+  animation: bstAura 3s ease-in-out infinite;
+}
+@keyframes bstAura {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(1.05); }
+}
+.tier-glow-CPT {
+  background: radial-gradient(circle, rgba(192,192,192,0.22), transparent 60%);
+}
+.tier-glow-RKE {
+  background: radial-gradient(circle, rgba(205,127,50,0.15), transparent 55%);
+}
+.pd-jersey-wrap svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
+}
+
+.pd-head-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pd-tier-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pd-rarity-pill {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+.tier-pill-BST { background: rgba(255,215,0,0.10); color: var(--rare-best);    border: 1px solid var(--rare-best); }
+.tier-pill-CPT { background: rgba(192,192,192,0.10); color: var(--rare-captain); border: 1px solid var(--rare-captain); }
+.tier-pill-RKE { background: rgba(205,127,50,0.10); color: var(--rare-rookie);  border: 1px solid var(--rare-rookie); }
+
+.pd-name {
+  font-size: clamp(42px, 5.5vw, 80px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  margin: 4px 0 0;
+  color: var(--fg);
+}
+.tier-name-BST { color: var(--rare-best); text-shadow: 0 0 30px rgba(255,215,0,0.4); }
+.tier-name-CPT { color: var(--rare-captain); }
+.tier-name-RKE { color: var(--rare-rookie); }
+
+.pd-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--fg-3);
+}
+.pd-sep { color: var(--fg-4); }
+
+.pd-stats {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 24px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.pd-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pd-stat-big {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  color: var(--fg);
+}
+.pd-stat-unit {
+  font-size: 10px;
+  color: var(--fg-3);
+}
+
+.pd-scarcity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pd-scarcity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.pd-scarcity-bar {
+  position: relative;
+  height: 6px;
+  background: var(--line);
+  border-radius: 1px;
+  overflow: visible;
+}
+.pd-scarcity-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+}
+.pd-scarcity-asymptote {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 1px;
+  background: var(--fire);
+  transform: translateX(-1px);
+}
+
+/* Holders */
+.pd-holders {
+  border-top: 1px solid var(--line);
+}
+.pd-holders-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.pd-holder-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.pd-holder-row:last-child { border-bottom: none; }
+.pd-holder-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--line);
+  position: relative;
+}
+.pd-holder-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent);
+}
+
+/* Cross-link to country */
+.pd-go-country {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--line-2);
+  color: var(--fg-2);
+  font-family: var(--f-sans);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.pd-go-country:hover {
+  border-color: var(--pitch-green);
+  color: var(--pitch-green);
+  background: rgba(14, 140, 58, 0.06);
+}
