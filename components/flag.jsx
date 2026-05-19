@@ -1,7 +1,57 @@
-// MATCH — Abstract flag SVG component
-// Renders a stylized 3-color block per country. No real flag designs.
+// GOAL — real country flag component (flagcdn.com SVGs, CC BY 4.0).
+// Replaces the abstract palette renderer that couldn't represent Union Jack,
+// stars+stripes, taegeuk, etc. correctly.
+
+// Map our ISO3 codes → flagcdn ISO2 codes (with gb-* sub-codes for ENG/SCO/WAL).
+const ISO3_TO_FLAGCDN = {
+  ARG: "ar", AUS: "au", AUT: "at", BEL: "be", BRA: "br",
+  CAN: "ca", CPV: "cv", COL: "co", CRO: "hr", CUW: "cw",
+  DEN: "dk", ECU: "ec", EGY: "eg", ENG: "gb-eng", FRA: "fr",
+  GER: "de", GHA: "gh", HAI: "ht", IRN: "ir", ITA: "it",
+  CIV: "ci", JPN: "jp", JOR: "jo", MEX: "mx", MAR: "ma",
+  NED: "nl", NZL: "nz", NOR: "no", PAN: "pa", PAR: "py",
+  POL: "pl", POR: "pt", QAT: "qa", KSA: "sa", SCO: "gb-sct",
+  SEN: "sn", RSA: "za", KOR: "kr", ESP: "es", SUI: "ch",
+  TUN: "tn", TUR: "tr", UKR: "ua", USA: "us", URU: "uy",
+  UZB: "uz", VEN: "ve", WAL: "gb-wls",
+};
+
+window.ISO3_TO_FLAGCDN = ISO3_TO_FLAGCDN;
 
 const Flag = ({ country, w = 60, h = 40, className = "", style = {} }) => {
+  const iso2 = ISO3_TO_FLAGCDN[country.id];
+  const url = iso2 ? `https://flagcdn.com/${iso2}.svg` : null;
+
+  // Fallback: abstract palette for any country not in the map.
+  if (!url) return <FlagAbstract country={country} w={w} h={h} className={className} style={style}/>;
+
+  return (
+    <img
+      src={url}
+      alt={country.name + " flag"}
+      width={w}
+      height={h}
+      loading="lazy"
+      decoding="async"
+      className={className}
+      style={{
+        display: "block",
+        objectFit: "cover",
+        border: "1px solid rgba(0,0,0,0.18)",
+        background: "rgba(255,255,255,0.04)",
+        ...style,
+      }}
+      onError={(e) => {
+        // If flagcdn rate-limits or 404s, swap to the abstract palette.
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  );
+};
+
+// Kept as a graceful fallback for countries the CDN doesn't have / when
+// the network blocks flagcdn. Uses the original 3-color stripe scheme.
+const FlagAbstract = ({ country, w = 60, h = 40, className = "", style = {} }) => {
   const [a, b, c] = country.colors;
   const s = country.stripe;
   return (
@@ -55,3 +105,4 @@ const Flag = ({ country, w = 60, h = 40, className = "", style = {} }) => {
 };
 
 window.Flag = Flag;
+window.FlagAbstract = FlagAbstract;
