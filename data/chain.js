@@ -494,15 +494,15 @@
             const head = blockNumber;
             const from = state.pool.lastScannedBlock != null
               ? state.pool.lastScannedBlock + 1
-              : Math.max(0, head - 10_000);
-            // Don't re-scan; only forward.
-            if (from <= head) {
-              const logs = await provider.send("eth_getLogs", [{
+              : Math.max(0, head - SAFE_LOOKBACK);
+            // Don't re-scan; only forward. Cap to Alchemy free-tier range.
+            if (from <= head && head - from <= SAFE_LOOKBACK) {
+              const logs = await safeGetLogs({
                 address: cfg.v4PoolManager,
                 fromBlock: "0x" + from.toString(16),
                 toBlock:   "0x" + head.toString(16),
                 topics:    [INIT_TOPIC0, state.pool.poolId],
-              }]);
+              });
               if (logs && logs.length > 0) {
                 const log = logs[0];
                 // 4 indexed topics (sig, id, currency0, currency1); data has
@@ -558,16 +558,18 @@
     } catch { return null; }
   }
 
-  async function getRecentPackOpens(tokenAddr, limit = 8, lookbackBlocks = 10_000) {
+  async function getRecentPackOpens(tokenAddr, limit = 8, lookbackBlocks = SAFE_LOOKBACK) {
     if (!provider || !tokenAddr) return [];
     const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
-    const fromBlock = Math.max(0, latest - lookbackBlocks);
-    const logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
+    if (typeof latest !== "number" || !Number.isFinite(latest) || latest <= 0) return [];
+    const range = Math.min(SAFE_LOOKBACK, Math.max(1, lookbackBlocks));
+    const fromBlock = Math.max(0, latest - range);
+    const logs = await safeGetLogs({
       address: tokenAddr,
       fromBlock: "0x" + fromBlock.toString(16),
-      toBlock: "latest",
+      toBlock:   "0x" + latest.toString(16),
       topics: [TRANSFER_TOPIC0, ZERO_TOPIC],
-    }]));
+    });
     // Group by tx — multi-pack opens emit N Transfers in one tx.
     const byTx = new Map();
     for (const log of logs) {
@@ -587,16 +589,18 @@
 
   // Fetch ERC20 Transfer logs in a token contract over the recent window.
   // Returns the raw logs (NOT grouped). Used by swap/trade feeds.
-  async function getRecentTransfers(tokenAddr, limit = 8, lookbackBlocks = 10_000) {
+  async function getRecentTransfers(tokenAddr, limit = 8, lookbackBlocks = SAFE_LOOKBACK) {
     if (!provider || !tokenAddr) return [];
     const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
-    const fromBlock = Math.max(0, latest - lookbackBlocks);
-    const logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
+    if (typeof latest !== "number" || !Number.isFinite(latest) || latest <= 0) return [];
+    const range = Math.min(SAFE_LOOKBACK, Math.max(1, lookbackBlocks));
+    const fromBlock = Math.max(0, latest - range);
+    const logs = await safeGetLogs({
       address: tokenAddr,
       fromBlock: "0x" + fromBlock.toString(16),
-      toBlock: "latest",
+      toBlock:   "0x" + latest.toString(16),
       topics: [TRANSFER_TOPIC0],
-    }]));
+    });
     const events = logs.map((log) => ({
       txHash: log.transactionHash,
       from: "0x" + log.topics[1].slice(-40),
@@ -612,19 +616,38 @@
 
   // GOAL token Burn events (Transfer to 0x0). Used by both the live feed
   // and the analytics computation below.
-  async function _rawBurnLogs(lookbackBlocks) {
+  // Alchemy free tier limits eth_getLogs to a 10,000-block range. We use 9000
+  // to leave headroom and avoid off-by-one rejections at exactly 10k.
+  const SAFE_LOOKBACK = 9000;
+
+  // Wrapped getLogs — validates block numbers, uses explicit numeric toBlock
+  // instead of "latest" (Alchemy is stricter about mixed range types), and
+  // logs the full failed param body for easier diagnosis.
+  async function safeGetLogs(filter) {
+    try {
+      return await tryAcrossRpcs((p) => p.send("eth_getLogs", [filter]));
+    } catch (e) {
+      console.error("[CHAIN] eth_getLogs failed", { filter, error: e?.message || e });
+      throw e;
+    }
+  }
+
+  async function _rawBurnLogs(lookbackBlocks = SAFE_LOOKBACK) {
     if (!provider) return { logs: [], latest: 0, fromBlock: 0 };
     const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
-    const fromBlock = Math.max(0, latest - lookbackBlocks);
-    // Alchemy's request validator complains about `null` in the middle of the
-    // topics array ("body.params check error"). Filter by topic0 only on the
-    // server, then keep only burns (topic2 == zero address) client-side.
-    const allLogs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
+    if (typeof latest !== "number" || !Number.isFinite(latest) || latest <= 0) {
+      throw new Error(`Invalid block number from RPC: ${latest}`);
+    }
+    const range = Math.min(SAFE_LOOKBACK, Math.max(1, lookbackBlocks));
+    const fromBlock = Math.max(0, latest - range);
+    // Filter by topic0 only on the server (Alchemy chokes on `null` middle
+    // topics); apply the "to == 0x0" burn check client-side.
+    const allLogs = await safeGetLogs({
       address: cfg.goal,
       fromBlock: "0x" + fromBlock.toString(16),
-      toBlock: "latest",
+      toBlock:   "0x" + latest.toString(16),
       topics: [TRANSFER_TOPIC0],
-    }]));
+    });
     const logs = (allLogs || []).filter((l) =>
       (l.topics?.[2] || "").toLowerCase() === ZERO_TOPIC
     );
@@ -731,30 +754,30 @@
     return _curveTradeIface;
   }
 
-  async function getCurveTradeHistory(curveAddr, lookbackBlocks = 50_000, limit = 500) {
+  async function getCurveTradeHistory(curveAddr, lookbackBlocks = SAFE_LOOKBACK, limit = 500) {
     if (!provider || !curveAddr) return [];
     const latest = await tryAcrossRpcs((p) => p.getBlockNumber());
-    const fromBlock = Math.max(0, latest - lookbackBlocks);
+    if (typeof latest !== "number" || !Number.isFinite(latest) || latest <= 0) return [];
+    const range = Math.min(SAFE_LOOKBACK, Math.max(1, lookbackBlocks));
+    const fromBlock = Math.max(0, latest - range);
+    const toBlockHex = "0x" + latest.toString(16);
+    const fromBlockHex = "0x" + fromBlock.toString(16);
     const BOUGHT_TOPIC = ethers.id("Bought(address,uint256,uint256,uint256)");
     const SOLD_TOPIC   = ethers.id("Sold(address,uint256,uint256,uint256)");
     let logs = [];
     try {
-      logs = await tryAcrossRpcs((p) => p.send("eth_getLogs", [{
+      logs = await safeGetLogs({
         address: curveAddr,
-        fromBlock: "0x" + fromBlock.toString(16),
-        toBlock: "latest",
+        fromBlock: fromBlockHex,
+        toBlock: toBlockHex,
         topics: [[BOUGHT_TOPIC, SOLD_TOPIC]],
-      }]));
+      });
     } catch (e) {
-      // Some RPCs don't support topic-array OR. Fall back to two separate calls.
+      // Some RPCs reject topic-array OR. Fall back to two separate calls.
       try {
         const [a, b] = await Promise.all([
-          tryAcrossRpcs((p) => p.send("eth_getLogs", [{ address: curveAddr,
-            fromBlock: "0x" + fromBlock.toString(16), toBlock: "latest",
-            topics: [BOUGHT_TOPIC] }])),
-          tryAcrossRpcs((p) => p.send("eth_getLogs", [{ address: curveAddr,
-            fromBlock: "0x" + fromBlock.toString(16), toBlock: "latest",
-            topics: [SOLD_TOPIC] }])),
+          safeGetLogs({ address: curveAddr, fromBlock: fromBlockHex, toBlock: toBlockHex, topics: [BOUGHT_TOPIC] }),
+          safeGetLogs({ address: curveAddr, fromBlock: fromBlockHex, toBlock: toBlockHex, topics: [SOLD_TOPIC]   }),
         ]);
         logs = [...a, ...b];
       } catch { return []; }
