@@ -227,25 +227,27 @@
 
 .supply-gauge-big {
   font-family: var(--f-display);
-  font-size: clamp(40px, 4vw, 56px);
+  font-size: clamp(30px, 3.2vw, 44px);
   line-height: 0.95;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   font-weight: 600;
   color: var(--fg);
   font-feature-settings: "tnum", "lnum", "ss01";
+  white-space: nowrap;
 }
 .supply-gauge-burn {
   font-family: var(--f-display);
   font-weight: 500;
-  font-size: clamp(40px, 4vw, 56px);
+  font-size: clamp(30px, 3.2vw, 44px);
   line-height: 0.95;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   color: var(--fire);
   font-feature-settings: "tnum", "lnum";
   text-shadow: 0 0 24px rgba(226, 87, 12, 0.35);
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
+  white-space: nowrap;
 }
 .supply-gauge-burn-mark {
   font-size: 0.5em;

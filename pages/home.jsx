@@ -260,15 +260,14 @@ const SupplyGauge = ({ burned }) => {
   const total = window.TOTAL_SUPPLY || 1_000_000_000;
   const remaining = total - burned;
   const pct = (burned / total) * 100;
-  // Adaptive decimals tuned to keep both columns from overflowing the gauge:
-  //   - Circulating: always integer (the fractional part is meaningless at 100k+)
-  //   - Burned: only as many decimals as we need to show the magnitude
-  const burnDecimals =
-    burned >= 10000 ? 0 :
-    burned >= 100   ? 2 :
-    burned >= 1     ? 3 :
-    burned > 0      ? 4 : 0;
-  const remainDecimals = 0;
+  // 大数字压缩成「亿 / 万」—— 否则流通量与销毁量两个大数会在仪表盘里撞在一起。
+  const compact = (n) => {
+    if (n >= 1e8) return { value: n / 1e8, decimals: 3, suffix: " 亿" };
+    if (n >= 1e4) return { value: n / 1e4, decimals: 1, suffix: " 万" };
+    return { value: n, decimals: 0, suffix: "" };
+  };
+  const circ = compact(remaining);
+  const brn = compact(burned);
 
   // Real 24h burn rate from chain analytics (auto-refreshing).
   const [rate24h, setRate24h] = React.useState(null);
@@ -303,7 +302,7 @@ const SupplyGauge = ({ burned }) => {
         <div className="supply-gauge-col">
           <div className="supply-gauge-label">流通量</div>
           <div className="supply-gauge-big">
-            <AnimatedNumber value={remaining} duration={1400} decimals={remainDecimals}/>
+            <AnimatedNumber value={circ.value} duration={1400} decimals={circ.decimals} suffix={circ.suffix}/>
           </div>
           <div className="supply-gauge-unit">
             <span className="supply-gauge-unit-tag">FOOTBALL</span>
@@ -315,11 +314,11 @@ const SupplyGauge = ({ burned }) => {
           <div className="supply-gauge-label">已永久销毁</div>
           <div className="supply-gauge-burn">
             <span className="supply-gauge-burn-mark">▲</span>
-            <AnimatedNumber value={burned} duration={1400} decimals={burnDecimals}/>
+            <AnimatedNumber value={brn.value} duration={1400} decimals={brn.decimals} suffix={brn.suffix}/>
           </div>
           <div className="supply-gauge-unit">
             <span className="supply-gauge-unit-tag is-fire">
-              ▲ {rate24h === null ? "…" : rate24h.toLocaleString(undefined,{maximumFractionDigits: rate24h < 100 ? 3 : 0})}
+              ▲ {rate24h === null ? "…" : (() => { const r = compact(rate24h); return r.value.toLocaleString(undefined,{maximumFractionDigits:r.decimals}) + r.suffix; })()}
             </span>
             <span className="supply-gauge-unit-sub">FOOTBALL / 24小时链上</span>
           </div>
