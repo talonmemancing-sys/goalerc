@@ -78,12 +78,46 @@
     };
   }
 
+  // 授权 —— 针对手机钱包做了容错：
+  //  · 用公共 RPC 轮询 allowance 来确认，而不是只靠 tx.wait()
+  //    （很多手机钱包内置 RPC 会卡死/超时，即使授权其实已经上链）
+  //  · 有非零残留授权先清零再授权（兼容 USDT 式代币）
   async function ensureAllowance(tokenAddr, spender, amount, signer, owner) {
     const token = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
-    const current = await token.allowance(owner, spender);
+    const readToken = window.CHAIN?._provider
+      ? new ethers.Contract(tokenAddr, ERC20_ABI, window.CHAIN._provider)
+      : token;
+    const readAllowance = async () => {
+      try { return await readToken.allowance(owner, spender); }
+      catch { try { return await token.allowance(owner, spender); } catch { return 0n; } }
+    };
+
+    const current = await readAllowance();
     if (current >= amount) return null;
+
+    // 轮询公共 RPC 直到 allowance 达标 —— 抗手机钱包 tx.wait() 卡死。
+    const confirm = async (target, tx) => {
+      const deadline = Date.now() + 150_000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 3000));
+        if ((await readAllowance()) >= target) return;
+      }
+      try { await tx.wait(); } catch {}
+      if ((await readAllowance()) < target) {
+        throw new Error("授权未在链上确认 —— 钱包可能没广播交易，请重试或换个钱包/浏览器");
+      }
+    };
+
+    // USDT 式代币不允许「非零 → 非零」授权：有残留就先清零。
+    if (current > 0n) {
+      try {
+        const tx0 = await token.approve(spender, 0n);
+        try { await tx0.wait(); } catch {}
+      } catch {}
+    }
+
     const tx = await token.approve(spender, amount);
-    await tx.wait();
+    await confirm(amount, tx);
     return tx.hash;
   }
 
