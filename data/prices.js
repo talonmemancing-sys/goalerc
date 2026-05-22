@@ -1,15 +1,15 @@
-// GOAL — external price feeds (DexScreener + GeckoTerminal).
+// FOOTBALL — external price feeds (DexScreener + GeckoTerminal), BSC mainnet.
 // DexScreener:    real-time price, 24h delta, volume, liquidity (any DEX-indexed pair)
 // GeckoTerminal: historical OHLCV bars for K-line charts
 // Both have permissive CORS, no API key needed.
 
 (function () {
-  const cfg = window.GOAL_CONFIG;
+  const cfg = window.FOOTBALL_CONFIG;
 
   const state = {
     loading: true,
     error: null,
-    goal: null,        // { priceUsd, priceNative, change24h, change1h, volume24h, liquidityUsd, pairAddress, pairUrl, dexId, lastUpdate }
+    goal: null,        // FOOTBALL price snapshot (key kept as `goal` for API compatibility): { priceUsd, priceNative, change24h, change1h, volume24h, liquidityUsd, pairAddress, pairUrl, dexId, lastUpdate }
     ohlcvCache: {},    // `${poolAddr}|${timeframe}` → { bars, fetchedAt }
   };
 
@@ -18,19 +18,28 @@
   function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 
   async function fetchDexScreener() {
+    // FOOTBALL token CA is filled in config after graduation; until then there
+    // is nothing to query.
+    if (!cfg.football) {
+      state.goal = null;
+      state.loading = false;
+      state.error = null;
+      notify();
+      return;
+    }
     try {
-      const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${cfg.goal}`);
+      const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${cfg.football}`);
       if (!r.ok) throw new Error("DexScreener HTTP " + r.status);
       const data = await r.json();
       if (!data?.pairs || data.pairs.length === 0) {
-        state.goal = null; // pool not yet indexed by DexScreener
+        state.goal = null; // pair not yet indexed by DexScreener
         state.loading = false;
         state.error = null;
         notify();
         return;
       }
-      // Pick the highest-liquidity pair on Ethereum.
-      const pairs = data.pairs.filter((p) => p.chainId === "ethereum");
+      // Pick the highest-liquidity pair on BSC.
+      const pairs = data.pairs.filter((p) => p.chainId === "bsc");
       const best = (pairs.length ? pairs : data.pairs)
         .slice()
         .sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
@@ -56,7 +65,8 @@
     }
   }
 
-  // GeckoTerminal OHLCV bars for a specific pool (the V4 GOAL/ETH pool).
+  // GeckoTerminal OHLCV bars for a specific pool (the PancakeSwap V2
+  // FOOTBALL/WBNB pair on BSC).
   // timeframe: "minute" | "hour" | "day"
   // aggregate: 1, 5, 15, 30 (minute) | 1, 4, 12 (hour) | 1 (day)
   async function getOHLCV(poolAddr, timeframe = "hour", aggregate = 1, limit = 100) {
@@ -65,7 +75,7 @@
     const cached = state.ohlcvCache[key];
     if (cached && Date.now() - cached.fetchedAt < 60_000) return cached.bars;
     try {
-      const url = `https://api.geckoterminal.com/api/v2/networks/eth/pools/${poolAddr}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}`;
+      const url = `https://api.geckoterminal.com/api/v2/networks/bsc/pools/${poolAddr}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}`;
       const r = await fetch(url, { headers: { accept: "application/json" } });
       if (!r.ok) return null;
       const data = await r.json();

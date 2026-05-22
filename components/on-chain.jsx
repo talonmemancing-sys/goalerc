@@ -1,13 +1,13 @@
-// GOAL — shared on-chain UI helpers (real Transfer log feed + curve preview).
+// FOOTBALL — shared on-chain UI helpers (real Transfer log feed + curve preview).
 
 // Formats "ago" using either a timestamp or a current block number diff.
 function _ago(timestamp) {
   if (!timestamp) return "";
   const diff = Math.max(0, Math.floor(Date.now() / 1000 - timestamp));
-  if (diff < 60)   return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
-  return `${Math.floor(diff/86400)}d ago`;
+  if (diff < 60)   return `${diff}秒前`;
+  if (diff < 3600) return `${Math.floor(diff/60)}分钟前`;
+  if (diff < 86400)return `${Math.floor(diff/3600)}小时前`;
+  return `${Math.floor(diff/86400)}天前`;
 }
 function _shortAddr(addr) {
   if (!addr) return "";
@@ -20,7 +20,7 @@ window._goalShortAddr = _shortAddr;
 // - When `mintsOnly` is true (default): treats logs as pack opens — groups by
 //   tx, shows "bought N pack(s)" rows.
 // - Else shows raw transfers as BUY (mint), SELL (burn-to-zero), or XFER.
-const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, heading = "Recent activity", limit = 8 }) => {
+const TransferLogFeed = ({ tokenAddr, symbol = "代币", mintsOnly = false, heading = "近期动态", limit = 8 }) => {
   const [events, setEvents] = React.useState(null);
   const [error, setError] = React.useState(null);
   const [retryNonce, setRetryNonce] = React.useState(0);
@@ -39,12 +39,12 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
           ? window.CHAIN.getRecentPackOpens(tokenAddr, limit)
           : window.CHAIN.getRecentTransfers(tokenAddr, limit);
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("RPC timed out after 15s")), 15_000)
+          setTimeout(() => reject(new Error("RPC 在 15 秒后超时")), 15_000)
         );
         const evs = await Promise.race([fetchPromise, timeoutPromise]);
         if (!cancel) { setEvents(evs); setError(null); }
       } catch (e) {
-        if (!cancel) setError(e?.message || "Failed to read logs");
+        if (!cancel) setError(e?.message || "读取日志失败");
       }
     }
 
@@ -71,7 +71,7 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
     return (
       <div className="recent">
         <div className="recent-empty f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
-          Token not yet deployed.
+          代币尚未部署。
         </div>
       </div>
     );
@@ -82,12 +82,12 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
     return (
       <div className="recent">
         <div className="recent-empty f-mono" style={{padding:24, textAlign:"center", color:"var(--fire)", fontSize:12}}>
-          <div style={{marginBottom:10}}>RPC error</div>
+          <div style={{marginBottom:10}}>RPC 错误</div>
           <div style={{color:"var(--fg-3)", marginBottom:12, lineHeight:1.45}}>{short}</div>
           <button onClick={retry}
                   style={{background:"transparent", border:"1px solid var(--fire)", color:"var(--fire)",
                           padding:"6px 14px", borderRadius:4, cursor:"pointer", fontSize:11}}>
-            Retry
+            重试
           </button>
         </div>
       </div>
@@ -97,7 +97,7 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
     return (
       <div className="recent">
         <div className="recent-empty f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
-          Reading on-chain {mintsOnly ? "pack opens" : "transfers"}…
+          正在读取链上{mintsOnly ? "开包记录" : "转账记录"}…
         </div>
       </div>
     );
@@ -106,7 +106,7 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
     return (
       <div className="recent">
         <div className="recent-empty f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
-          No on-chain {mintsOnly ? "pack opens" : "activity"} yet — be the first.
+          暂无链上{mintsOnly ? "开包记录" : "动态"} — 抢个头彩。
         </div>
       </div>
     );
@@ -118,7 +118,7 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
         {events.map((e) => (
           <a key={e.txHash}
              className="recent-row"
-             href={`https://etherscan.io/tx/${e.txHash}`}
+             href={`https://bscscan.com/tx/${e.txHash}`}
              target="_blank" rel="noreferrer noopener"
              style={{textDecoration:"none", color:"inherit"}}>
             <div className="recent-row-l">
@@ -126,7 +126,7 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
               <div>
                 <div className="f-mono" style={{fontSize:13, color:"var(--fg)"}}>{_shortAddr(e.buyer)}</div>
                 <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
-                  bought {e.count} pack{e.count > 1 ? "s" : ""}
+                  购买了 {e.count} 包
                 </div>
               </div>
             </div>
@@ -143,13 +143,13 @@ const TransferLogFeed = ({ tokenAddr, symbol = "tokens", mintsOnly = false, head
   return (
     <div className="md-events-list">
       {events.map((e) => {
-        const tag = e.isMint ? "BUY" : e.isBurn ? "BURN" : "XFER";
+        const tag = e.isMint ? "买入" : e.isBurn ? "销毁" : "转账";
         const color = e.isMint ? "var(--bull)" : e.isBurn ? "var(--fire)" : "var(--fg-2)";
         const amt = Number(ethers.formatEther(e.value));
         return (
           <a key={e.txHash + e.block}
              className="md-event"
-             href={`https://etherscan.io/tx/${e.txHash}`}
+             href={`https://bscscan.com/tx/${e.txHash}`}
              target="_blank" rel="noreferrer noopener"
              style={{textDecoration:"none", color:"inherit"}}>
             <span className="md-event-tag" style={{color}}>{tag}</span>
@@ -202,7 +202,7 @@ const CurvePreview = ({ price, supply, max, curveOpen }) => {
       {curveOpen && <path d={curvePath} fill="none" stroke="var(--accent)" strokeWidth="1.5"/>}
       {/* asymptote */}
       <line x1={xs(A)} y1={PAD} x2={xs(A)} y2={H-PAD} stroke="var(--fire)" strokeDasharray="3 3" opacity="0.6"/>
-      <text x={xs(A) - 4} y={PAD+10} textAnchor="end" fontSize="9" fill="var(--fire)" fontFamily="var(--f-mono)">ASYMPTOTE</text>
+      <text x={xs(A) - 4} y={PAD+10} textAnchor="end" fontSize="9" fill="var(--fire)" fontFamily="var(--f-mono)">渐近线</text>
       {/* current pt */}
       {curveOpen && (
         <>
@@ -213,10 +213,10 @@ const CurvePreview = ({ price, supply, max, curveOpen }) => {
       )}
       {!curveOpen && (
         <text x={W/2} y={H/2} textAnchor="middle" fontSize="14" fill="var(--fg-3)" fontFamily="var(--f-mono)">
-          Curve trading not yet active — pack window still open
+          曲线交易尚未激活 — 开包窗口仍开放中
         </text>
       )}
-      <text x={PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" letterSpacing="0.06em">SUPPLY →</text>
+      <text x={PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" letterSpacing="0.06em">供应量 →</text>
       <text x={W/2} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" textAnchor="middle">[{supply.toLocaleString()} / {A.toLocaleString()}]</text>
     </svg>
   );
@@ -237,7 +237,7 @@ const CurveKLine = ({ curveAddr, currentPrice, currentSupply, max, curveOpen, sy
         const tr = await window.CHAIN.getCurveTradeHistory(curveAddr, 50_000, 500);
         if (!cancel) { setEvents(tr); setError(null); }
       } catch (e) {
-        if (!cancel) setError(e?.message || "Failed to load trade history");
+        if (!cancel) setError(e?.message || "加载交易历史失败");
       }
     }
     const waitAndLoad = () => {
@@ -335,7 +335,7 @@ const CurveKLine = ({ curveAddr, currentPrice, currentSupply, max, curveOpen, sy
         <line x1={xsCurve(A)} y1={PAD} x2={xsCurve(A)} y2={H - PAD}
               stroke="var(--fire)" strokeDasharray="3 3" opacity="0.4"/>
         <text x={xsCurve(A) - 4} y={PAD + 10} textAnchor="end"
-              fontSize="9" fill="var(--fire)" fontFamily="var(--f-mono)">ASYMPTOTE</text>
+              fontSize="9" fill="var(--fire)" fontFamily="var(--f-mono)">渐近线</text>
 
         {/* Real trade points + connecting line (time-ordered) */}
         {curveOpen && tradePath && (
@@ -360,7 +360,7 @@ const CurveKLine = ({ curveAddr, currentPrice, currentSupply, max, curveOpen, sy
         {!curveOpen && (
           <text x={W / 2} y={H / 2} textAnchor="middle"
                 fontSize="14" fill="var(--fg-3)" fontFamily="var(--f-mono)">
-            Curve trading not yet active — pack window still open
+            曲线交易尚未激活 — 开包窗口仍开放中
           </text>
         )}
 
@@ -372,7 +372,7 @@ const CurveKLine = ({ curveAddr, currentPrice, currentSupply, max, curveOpen, sy
             </text>
             <text x={W - PAD} y={H - 12} textAnchor="end"
                   fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">
-              now
+              现在
             </text>
           </>
         )}
@@ -381,12 +381,12 @@ const CurveKLine = ({ curveAddr, currentPrice, currentSupply, max, curveOpen, sy
       {/* Status */}
       <div className="f-mono" style={{fontSize: 10, color: "var(--fg-4)", padding: "8px 12px", display: "flex", justifyContent: "space-between"}}>
         <span>
-          {events === null ? "Loading trade history…" :
-           error ? `Error: ${error}` :
-           events.length === 0 ? "No trades yet — curve just opened or no activity" :
-           `${events.length} trades · ${tradePoints.filter(p => p.kind === "buy").length} buys · ${tradePoints.filter(p => p.kind === "sell").length} sells`}
+          {events === null ? "加载交易历史中…" :
+           error ? `错误：${error}` :
+           events.length === 0 ? "暂无交易 — 曲线刚开启或无活动" :
+           `${events.length} 笔交易 · ${tradePoints.filter(p => p.kind === "buy").length} 买入 · ${tradePoints.filter(p => p.kind === "sell").length} 卖出`}
         </span>
-        <span>50k-block lookback (~7d)</span>
+        <span>回溯 5 万区块（约 7 天）</span>
       </div>
     </div>
   );

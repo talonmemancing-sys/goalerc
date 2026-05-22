@@ -1,11 +1,11 @@
-// GOAL — real EIP-1193 + EIP-6963 wallet connector (mainnet)
+// FOOTBALL — real EIP-1193 + EIP-6963 wallet connector (BSC mainnet)
 // Discovers injected wallets, opens them, tracks account/chain changes, reads
-// real ETH + GOAL balances. No simulators.
+// real BNB + FOOTBALL balances. No simulators.
 
 (function () {
-  const cfg = window.GOAL_CONFIG;
-  const MAINNET_CHAIN_ID = "0x1";
-  const MAINNET_DECIMAL = 1;
+  const cfg = window.FOOTBALL_CONFIG;
+  const MAINNET_CHAIN_ID = "0x38"; // BSC mainnet (chainId 56)
+  const MAINNET_DECIMAL = 56;
 
   const ERC20_ABI = [
     "function balanceOf(address) view returns (uint256)",
@@ -20,8 +20,8 @@
     address: null,
     chainId: null,
     onMainnet: false,
-    ethBalance: 0,
-    goalBalance: 0,
+    ethBalance: 0,    // native BNB balance (field name kept for API compatibility)
+    goalBalance: 0,   // FOOTBALL token balance (field name kept for API compatibility)
     balanceFetchedAt: 0,  // unix ms; 0 = never fetched a real balance
     providerInfo: null,
     connecting: false,
@@ -115,8 +115,8 @@
       activeProvider.on?.("chainChanged", onChainChanged);
       activeProvider.on?.("disconnect", onDisconnect);
 
-      try { localStorage.setItem("goal_wallet_rdns", resolved.info?.rdns || ""); } catch {}
-      if (brandId) { try { localStorage.setItem("goal_wallet_brand", brandId); } catch {} }
+      try { localStorage.setItem("football_wallet_rdns", resolved.info?.rdns || ""); } catch {}
+      if (brandId) { try { localStorage.setItem("football_wallet_brand", brandId); } catch {} }
 
       notify();
       refreshBalances();
@@ -148,7 +148,7 @@
     state.ethBalance = 0;
     state.goalBalance = 0;
     state.providerInfo = null;
-    try { localStorage.removeItem("goal_wallet_rdns"); localStorage.removeItem("goal_wallet_brand"); } catch {}
+    try { localStorage.removeItem("football_wallet_rdns"); localStorage.removeItem("football_wallet_brand"); } catch {}
     notify();
   }
 
@@ -174,6 +174,26 @@
         params: [{ chainId: MAINNET_CHAIN_ID }],
       });
     } catch (e) {
+      // 4902 = chain not added to the wallet yet. Add BSC, then retry switch.
+      if (e?.code === 4902 || /Unrecognized chain|wallet_addEthereumChain/i.test(e?.message || "")) {
+        try {
+          await activeProvider.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: MAINNET_CHAIN_ID, // 0x38
+              chainName: "BNB Smart Chain",
+              nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+              rpcUrls: ["https://bsc-dataseed.bnbchain.org"],
+              blockExplorerUrls: ["https://bscscan.com"],
+            }],
+          });
+          return;
+        } catch (addErr) {
+          state.error = addErr?.message || "Failed to add BNB Smart Chain";
+          notify();
+          return;
+        }
+      }
       state.error = e?.message || "Chain switch rejected";
       notify();
     }
@@ -181,7 +201,7 @@
 
   async function refreshBalances() {
     if (!state.connected || !state.address) return;
-    // ETH balance via wallet provider (always available when connected).
+    // BNB balance via wallet provider (always available when connected).
     try {
       const balHex = await activeProvider.request({
         method: "eth_getBalance",
@@ -190,24 +210,24 @@
       state.ethBalance = Number(BigInt(balHex)) / 1e18;
     } catch (e) { state.ethBalance = 0; }
 
-    // GOAL balance — prefer wallet's own provider when on mainnet (zero CORS,
-    // zero dependence on public-RPC availability). Fall back to CHAIN public
-    // RPC if wallet read fails.
+    // FOOTBALL balance — prefer wallet's own provider when on BSC mainnet
+    // (zero CORS, zero dependence on public-RPC availability). Fall back to
+    // CHAIN public RPC if wallet read fails.
     let read = false;
-    if (state.onMainnet) {
+    if (state.onMainnet && cfg.football) {
       try {
         const browser = new ethers.BrowserProvider(activeProvider);
-        const goal = new ethers.Contract(cfg.goal, ERC20_ABI, browser);
-        const bal = await goal.balanceOf(state.address);
+        const football = new ethers.Contract(cfg.football, ERC20_ABI, browser);
+        const bal = await football.balanceOf(state.address);
         state.goalBalance = Number(ethers.formatEther(bal));
         read = true;
       } catch (e) { /* try CHAIN below */ }
     }
-    if (!read) {
+    if (!read && cfg.football) {
       try {
         if (window.CHAIN && window.CHAIN._provider) {
-          const goal = new ethers.Contract(cfg.goal, ERC20_ABI, window.CHAIN._provider);
-          const bal = await goal.balanceOf(state.address);
+          const football = new ethers.Contract(cfg.football, ERC20_ABI, window.CHAIN._provider);
+          const bal = await football.balanceOf(state.address);
           state.goalBalance = Number(ethers.formatEther(bal));
           read = true;
         }
@@ -222,7 +242,7 @@
     if (!activeProvider || !state.connected) throw new Error("Wallet not connected");
     if (!state.onMainnet) {
       await switchToMainnet();
-      if (!state.onMainnet) throw new Error("Please switch to Ethereum mainnet");
+      if (!state.onMainnet) throw new Error("Please switch to BNB Smart Chain");
     }
     const txHash = await activeProvider.request({
       method: "eth_sendTransaction",
@@ -254,8 +274,8 @@
   // Try silent reconnect if we previously had a connection (no prompt).
   setTimeout(async () => {
     try {
-      const rdns = localStorage.getItem("goal_wallet_rdns");
-      const brand = localStorage.getItem("goal_wallet_brand");
+      const rdns = localStorage.getItem("football_wallet_rdns");
+      const brand = localStorage.getItem("football_wallet_brand");
       let provider = null, info = null;
       if (rdns) {
         const found = announced.find((p) => p.info.rdns === rdns);

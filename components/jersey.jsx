@@ -1,4 +1,4 @@
-// GOAL — Country jersey SVG component
+// FOOTBALL — Country jersey SVG component
 // Renders a stylized soccer jersey using the country's actual kit colors
 // (where known) or flag colors as fallback. Shows only the number on the
 // chest; the player name/initials are displayed by the parent card below.

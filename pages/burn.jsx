@@ -1,7 +1,7 @@
-// GOAL — Burn dashboard (scoreboard style)
+// FOOTBALL — Burn dashboard (scoreboard style)
 const Burn = ({ setRoute, burned }) => {
   const chain = (window.useChain ? window.useChain() : (window.CHAIN?.state || {}));
-  // Real burn feed + analytics — GOAL Transfer logs where to == 0x0.
+  // Real burn feed + analytics — FOOTBALL Transfer logs where to == 0x0.
   const [feed, setFeed] = React.useState(null);
   const [feedError, setFeedError] = React.useState(null);
   const [analytics, setAnalytics] = React.useState(null);
@@ -16,23 +16,23 @@ const Burn = ({ setRoute, burned }) => {
       try {
         const burns = await Promise.race([
           window.CHAIN.getRecentBurns(18),
-          new Promise((_, rej) => setTimeout(() => rej(new Error("RPC timed out after 20s")), 20_000)),
+          new Promise((_, rej) => setTimeout(() => rej(new Error("RPC 在 20 秒后超时")), 20_000)),
         ]);
         if (!cancel) { setFeed(burns); setFeedError(null); }
       } catch (e) {
-        if (!cancel) setFeedError(e?.message || "Failed to load burn feed");
+        if (!cancel) setFeedError(e?.message || "加载销毁动态失败");
       }
     }
     async function loadAnalytics() {
       if (!window.CHAIN?._provider) return;
       try {
         const an = await Promise.race([
-          window.CHAIN.getBurnAnalytics(7200), // ≈24h on mainnet
-          new Promise((_, rej) => setTimeout(() => rej(new Error("RPC timed out after 20s")), 20_000)),
+          window.CHAIN.getBurnAnalytics(7200), // ≈24h on BSC
+          new Promise((_, rej) => setTimeout(() => rej(new Error("RPC 在 20 秒后超时")), 20_000)),
         ]);
         if (!cancel) { setAnalytics(an); setAnalyticsError(null); }
       } catch (e) {
-        if (!cancel) setAnalyticsError(e?.message || "Failed to load burn analytics");
+        if (!cancel) setAnalyticsError(e?.message || "加载销毁分析失败");
       }
     }
     const waitAndLoad = () => {
@@ -58,9 +58,9 @@ const Burn = ({ setRoute, burned }) => {
   const setCustomRpc = () => {
     const cur = (() => { try { return localStorage.getItem("goal_rpc") || ""; } catch { return ""; } })();
     const url = window.prompt(
-      "Paste your mainnet RPC URL (Alchemy / Infura / QuickNode etc.).\n" +
-      "Public RPCs sometimes throttle or block this origin's CORS.\n" +
-      "Leave blank to clear.", cur
+      "粘贴你的 BSC RPC 地址（Alchemy / Infura / QuickNode 等）。\n" +
+      "公共 RPC 有时会限速或阻止本站点的 CORS。\n" +
+      "留空则清除。", cur
     );
     if (url === null) return;
     try {
@@ -99,20 +99,20 @@ const Burn = ({ setRoute, burned }) => {
         <div className="burn-hero-top">
           <div className="burn-hero-eyebrow">
             <span className="burn-live-dot"/>
-            <span>Live · Burn dashboard</span>
+            <span>实时 · 销毁看板</span>
           </div>
           <div className="burn-hero-block-id f-mono">
             {chain.blockNumber
-              ? <>block #{chain.blockNumber.toLocaleString()} · mainnet</>
-              : <>connecting to mainnet…</>}
+              ? <>区块 #{chain.blockNumber.toLocaleString()} · BSC</>
+              : <>正在连接 BSC…</>}
           </div>
         </div>
 
         <div className="burn-hero-headline-v2">
-          <div className="burn-hero-pre">Total destroyed forever</div>
+          <div className="burn-hero-pre">永久销毁总量</div>
           <div className="burn-hero-num-v2">
             <AnimatedNumber value={burned} duration={1800} decimals={burned > 0 && burned < 1000 ? 3 : 0}/>
-            <span className="burn-hero-num-unit">GOAL</span>
+            <span className="burn-hero-num-unit">FOOTBALL</span>
           </div>
         </div>
 
@@ -124,17 +124,17 @@ const Burn = ({ setRoute, burned }) => {
 
         <div className="burn-hero-foot-v2">
           <div className="burn-hero-stat">
-            <span className="burn-hero-stat-label">Burned · % of cap</span>
+            <span className="burn-hero-stat-label">已销毁 · 占上限比例</span>
             <span className="burn-hero-stat-v is-gold">{pct.toFixed(3)}%</span>
           </div>
           <div className="burn-hero-divider-v2"/>
           <div className="burn-hero-stat">
-            <span className="burn-hero-stat-label">Circulating</span>
+            <span className="burn-hero-stat-label">流通量</span>
             <span className="burn-hero-stat-v">{(960000 - burned).toLocaleString(undefined,{maximumFractionDigits: burned < 1000 ? 3 : 0})}</span>
           </div>
           <div className="burn-hero-divider-v2"/>
           <div className="burn-hero-stat">
-            <span className="burn-hero-stat-label">Floor cap</span>
+            <span className="burn-hero-stat-label">供应上限</span>
             <span className="burn-hero-stat-v is-muted">960,000</span>
           </div>
         </div>
@@ -143,29 +143,29 @@ const Burn = ({ setRoute, burned }) => {
       {/* RATES */}
       <section className="burn-rates">
         <div className="section-eyebrow">
-          <span className="eyebrow">Burn velocity</span>
+          <span className="eyebrow">销毁速度</span>
           <div className="hairline"/>
         </div>
         <div className="burn-rates-grid">
-          <BurnRate label="Burned · last 24h"
+          <BurnRate label="销毁 · 近 24 小时"
                     value={analytics ? analytics.ratePer24h.toLocaleString(undefined,{maximumFractionDigits:2}) : "…"}
-                    unit="GOAL / 24h"
-                    delta={analytics ? `${analytics.leaderboard.length} burn sources` : "reading on-chain"}
+                    unit="FOOTBALL / 24小时"
+                    delta={analytics ? `${analytics.leaderboard.length} 个销毁来源` : "读取链上中"}
                     muted={!analytics}/>
-          <BurnRate label="Burned · last hour"
+          <BurnRate label="销毁 · 近 1 小时"
                     value={analytics ? analytics.ratePerHour.toLocaleString(undefined,{maximumFractionDigits:3}) : "…"}
-                    unit="GOAL / 1h"
-                    delta={analytics ? `${analytics.hours.toFixed(1)}h sample window` : "reading on-chain"}
+                    unit="FOOTBALL / 1小时"
+                    delta={analytics ? `${analytics.hours.toFixed(1)} 小时采样窗口` : "读取链上中"}
                     muted={!analytics}/>
-          <BurnRate label="Total burned"
+          <BurnRate label="累计销毁"
                     value={burned.toLocaleString()}
-                    unit="GOAL · cumulative"
-                    delta="since launch"
+                    unit="FOOTBALL · 累计"
+                    delta="自上线以来"
                     muted/>
-          <BurnRate label="% of cap burned"
+          <BurnRate label="已销毁占上限比例"
                     value={pct.toFixed(3) + "%"}
-                    unit="of 960,000"
-                    delta="immutable cap"
+                    unit="共 960,000"
+                    delta="不可变上限"
                     muted/>
         </div>
       </section>
@@ -173,15 +173,15 @@ const Burn = ({ setRoute, burned }) => {
       {/* SUPPLY OVER TIME CHART (placeholder until indexer wired) */}
       <section className="burn-chart-wrap">
         <div className="section-eyebrow">
-          <span className="eyebrow">Supply over time</span>
+          <span className="eyebrow">供应量随时间变化</span>
           <div className="hairline"/>
         </div>
         <div className="burn-chart" style={{padding:"48px 24px", textAlign:"center", color:"var(--fg-3)"}}>
           <div className="f-mono" style={{fontSize:13, marginBottom:6}}>
-            Historical supply chart awaits an event indexer.
+            历史供应量图表等待事件索引器接入。
           </div>
           <div className="f-mono" style={{fontSize:11, color:"var(--fg-4)"}}>
-            Current circulating · {(960000 - burned).toLocaleString()} GOAL · burned forever · {burned.toLocaleString()}
+            当前流通 · {(960000 - burned).toLocaleString()} FOOTBALL · 永久销毁 · {burned.toLocaleString()}
           </div>
         </div>
       </section>
@@ -190,26 +190,26 @@ const Burn = ({ setRoute, burned }) => {
       <section className="burn-split">
         <div className="burn-split-l">
           <div className="section-eyebrow">
-            <span className="eyebrow">Live burn feed</span>
+            <span className="eyebrow">实时销毁动态</span>
             <div className="hairline"/>
-            <span className="burn-live-pill"><span className="burn-live-pill-dot"/>LIVE</span>
+            <span className="burn-live-pill"><span className="burn-live-pill-dot"/>实时</span>
           </div>
           <div className="burn-feed">
             {feedError && (
-              <RpcErrorBlock label="burn feed" error={feedError} onRetry={retry} onCustomRpc={setCustomRpc}/>
+              <RpcErrorBlock label="销毁动态" error={feedError} onRetry={retry} onCustomRpc={setCustomRpc}/>
             )}
             {!feedError && feed === null && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
-                Reading on-chain GOAL burns…
+                正在读取链上 FOOTBALL 销毁…
               </div>
             )}
             {!feedError && feed && feed.length === 0 && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
-                No GOAL burns in the recent window yet.
+                近期窗口内暂无 FOOTBALL 销毁。
               </div>
             )}
             {feed && feed.map((e, i) => (
-              <a key={e.txHash} href={`https://etherscan.io/tx/${e.txHash}`}
+              <a key={e.txHash} href={`https://bscscan.com/tx/${e.txHash}`}
                  target="_blank" rel="noreferrer noopener"
                  className={"burn-event " + (i === 0 ? "is-new" : "")}
                  style={{textDecoration:"none", color:"inherit"}}>
@@ -220,9 +220,9 @@ const Burn = ({ setRoute, burned }) => {
                     <span className="f-mono" style={{fontSize:11, color:"var(--fg-4)"}}>{e.txHash.slice(0,10)}…</span>
                   </div>
                   <div className="burn-event-row2">
-                    <span className="numeric burn-event-amt">{e.value.toLocaleString(undefined, {maximumFractionDigits: 4})} <span>GOAL</span></span>
+                    <span className="numeric burn-event-amt">{e.value.toLocaleString(undefined, {maximumFractionDigits: 4})} <span>FOOTBALL</span></span>
                     <span className="f-mono burn-event-src">
-                      from <span style={{color:"var(--accent)"}}>{window._goalShortAddr(e.from)}</span> → 0x0
+                      来自 <span style={{color:"var(--accent)"}}>{window._goalShortAddr(e.from)}</span> → 0x0
                     </span>
                   </div>
                 </div>
@@ -233,21 +233,21 @@ const Burn = ({ setRoute, burned }) => {
 
         <div className="burn-split-r">
           <div className="section-eyebrow">
-            <span className="eyebrow">Top burning curves</span>
+            <span className="eyebrow">销毁榜首曲线</span>
             <div className="hairline"/>
           </div>
           <div className="burn-leaderboard">
             {analyticsError && (
-              <RpcErrorBlock label="burn analytics" error={analyticsError} onRetry={retry} onCustomRpc={setCustomRpc}/>
+              <RpcErrorBlock label="销毁分析" error={analyticsError} onRetry={retry} onCustomRpc={setCustomRpc}/>
             )}
             {!analyticsError && analytics === null && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
-                Reading 24h burn analytics from chain…
+                正在从链上读取 24 小时销毁分析…
               </div>
             )}
             {!analyticsError && analytics && topCurves.length === 0 && (
               <div className="f-mono" style={{padding:24, textAlign:"center", color:"var(--fg-3)", fontSize:12}}>
-                No country-curve burns in the last {analytics.hours.toFixed(1)}h.
+                近 {analytics.hours.toFixed(1)} 小时内无国家曲线销毁。
               </div>
             )}
             {topCurves.map((c, i) => (
@@ -262,7 +262,7 @@ const Burn = ({ setRoute, burned }) => {
                 </div>
                 <div className="burn-lb-amt">
                   <div className="numeric burn-lb-amt-v">{c.burned.toLocaleString(undefined,{maximumFractionDigits:3})}</div>
-                  <div className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>GOAL · 24h</div>
+                  <div className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>FOOTBALL · 24小时</div>
                 </div>
               </div>
             ))}
@@ -296,23 +296,23 @@ const RpcErrorBlock = ({ label, error, onRetry, onCustomRpc }) => {
   const short = (error || "").length > 180 ? error.slice(0, 180) + "…" : error;
   return (
     <div className="f-mono" style={{padding:24, textAlign:"center", fontSize:12}}>
-      <div style={{color:"var(--fire)", marginBottom:8}}>Couldn't load {label}</div>
+      <div style={{color:"var(--fire)", marginBottom:8}}>无法加载{label}</div>
       <div style={{color:"var(--fg-3)", marginBottom:14, lineHeight:1.5}}>{short}</div>
       <div style={{display:"inline-flex", gap:8}}>
         <button onClick={onRetry}
                 style={{background:"transparent", border:"1px solid var(--fg-3)", color:"var(--fg-2)",
                         padding:"6px 14px", borderRadius:4, cursor:"pointer", fontSize:11}}>
-          Retry
+          重试
         </button>
         <button onClick={onCustomRpc}
                 style={{background:"transparent", border:"1px solid var(--accent)", color:"var(--accent)",
                         padding:"6px 14px", borderRadius:4, cursor:"pointer", fontSize:11}}>
-          Set custom RPC
+          设置自定义 RPC
         </button>
       </div>
       <div style={{color:"var(--fg-4)", marginTop:10, fontSize:10, lineHeight:1.45}}>
-        Public RPCs throttle eth_getLogs heavily.<br/>
-        Connecting a wallet enables fallback through its provider.
+        公共 RPC 对 eth_getLogs 限速严重。<br/>
+        连接钱包后可通过其 provider 进行回退。
       </div>
     </div>
   );
@@ -358,17 +358,17 @@ const SupplyOverTime = ({ burned }) => {
           </g>
         ))}
         <line x1={PAD} y1={ys(960000)} x2={W-PAD} y2={ys(960000)} stroke="var(--fg-4)" strokeDasharray="3 3" opacity="0.6"/>
-        <text x={W-PAD} y={ys(960000)-6} textAnchor="end" fontSize="10" fill="var(--fg-3)" fontFamily="var(--f-mono)">CAP · 960,000</text>
+        <text x={W-PAD} y={ys(960000)-6} textAnchor="end" fontSize="10" fill="var(--fg-3)" fontFamily="var(--f-mono)">上限 · 960,000</text>
         <path d={areaPath} fill="url(#burnAreaGradV2)"/>
         <path d={linePath} fill="none" stroke="url(#burnLineGrad)" strokeWidth="2"/>
         <circle cx={xs(days-1)} cy={ys(seriesSupply[days-1])} r="6" fill="#2EE164" stroke="var(--bg)" strokeWidth="2"/>
         <circle cx={xs(days-1)} cy={ys(seriesSupply[days-1])} r="11" fill="none" stroke="#2EE164" strokeWidth="1" opacity="0.4"/>
         <text x={xs(days-1)-10} y={ys(seriesSupply[days-1])+4} textAnchor="end" fontSize="11" fill="#2EE164" fontFamily="var(--f-mono)">
-          {seriesSupply[days-1].toLocaleString()} circulating
+          {seriesSupply[days-1].toLocaleString()} 流通中
         </text>
-        <text x={PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">−90d</text>
-        <text x={W/2} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" textAnchor="middle">−45d</text>
-        <text x={W-PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" textAnchor="end">today</text>
+        <text x={PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">−90天</text>
+        <text x={W/2} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" textAnchor="middle">−45天</text>
+        <text x={W-PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" textAnchor="end">今天</text>
       </svg>
     </div>
   );

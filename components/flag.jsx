@@ -1,4 +1,4 @@
-// GOAL — real country flag component (flagcdn.com SVGs, CC BY 4.0).
+// FOOTBALL — real country flag component (flagcdn.com SVGs, CC BY 4.0).
 // Replaces the abstract palette renderer that couldn't represent Union Jack,
 // stars+stripes, taegeuk, etc. correctly.
 
@@ -28,7 +28,7 @@ const Flag = ({ country, w = 60, h = 40, className = "", style = {} }) => {
   return (
     <img
       src={url}
-      alt={country.name + " flag"}
+      alt={country.name + " 国旗"}
       width={w}
       height={h}
       loading="lazy"

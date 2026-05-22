@@ -1,4 +1,4 @@
-// GOAL — Portfolio: real on-chain balances for the connected wallet.
+// FOOTBALL — Portfolio: real on-chain balances for the connected wallet.
 const Portfolio = ({ setRoute, burned }) => {
   const wallet = (window.WALLET ? window.WALLET.state : { connected: false });
   const [walletTick, setWalletTick] = React.useState(0);
@@ -72,13 +72,13 @@ const Portfolio = ({ setRoute, burned }) => {
     return (
       <main className="match-page portfolio">
         <section style={{padding:"80px 0", textAlign:"center"}}>
-          <div className="eyebrow" style={{marginBottom:16}}>Portfolio</div>
+          <div className="eyebrow" style={{marginBottom:16}}>资产组合</div>
           <h1 className="f-display" style={{fontSize:64, lineHeight:1, margin:"0 0 24px", letterSpacing:"-0.025em"}}>
-            Connect your wallet
+            连接你的钱包
           </h1>
           <p style={{color:"var(--fg-3)", maxWidth:520, margin:"0 auto", lineHeight:1.6}}>
-            Your portfolio is read live from Ethereum mainnet — connect to see your real GOAL,
-            country-token, and player-token balances.
+            你的资产组合实时读取自 BSC — 连接后即可查看你真实的 FOOTBALL、
+            国家代币和球员代币余额。
           </p>
         </section>
         <Footer setRoute={setRoute}/>
@@ -97,38 +97,38 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-head">
         <div>
           <div className="eyebrow">
-            Wallet · <a href={`https://etherscan.io/address/${wallet.address}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{shortAddr}</a>
+            钱包 · <a href={`https://bscscan.com/address/${wallet.address}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{shortAddr}</a>
           </div>
           <h1 className="f-display" style={{fontSize:"clamp(48px,7vw,108px)", lineHeight:0.98, letterSpacing:"-0.025em", margin:"12px 0 8px"}}>
-            Portfolio
+            资产组合
           </h1>
           <div className="f-mono" style={{fontSize:13, color:"var(--fg-3)"}}>
-            {loadingBalances ? "Reading on-chain balances…" :
-              `${(positions||[]).length} country positions · ${(playerPositions||[]).length} player positions`}
+            {loadingBalances ? "读取链上余额中…" :
+              `${(positions||[]).length} 个国家持仓 · ${(playerPositions||[]).length} 个球员持仓`}
           </div>
         </div>
         <div className="pf-head-stats">
-          <PFHeroStat label="Total GOAL-denominated value" value={totalValue.toFixed(2)} unit="GOAL" big/>
-          <PFHeroStat label="GOAL balance" value={goalBal.toLocaleString(undefined,{maximumFractionDigits:4})} unit="GOAL"/>
-          <PFHeroStat label="ETH balance"  value={ethBal.toFixed(4)} unit="ETH"/>
-          <PFHeroStat label="GOAL burned to date" value={burned.toLocaleString()} unit="GOAL · cap 960k" color="var(--fire)"/>
+          <PFHeroStat label="以 FOOTBALL 计价总值" value={totalValue.toFixed(2)} unit="FOOTBALL" big/>
+          <PFHeroStat label="FOOTBALL 余额" value={goalBal.toLocaleString(undefined,{maximumFractionDigits:4})} unit="FOOTBALL"/>
+          <PFHeroStat label="BNB 余额"  value={ethBal.toFixed(4)} unit="BNB"/>
+          <PFHeroStat label="累计已销毁 FOOTBALL" value={burned.toLocaleString()} unit="FOOTBALL · 上限 960k" color="var(--fire)"/>
         </div>
       </section>
 
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">01</span>
-          <span className="eyebrow">GOAL · base asset</span>
+          <span className="eyebrow">FOOTBALL · 基础资产</span>
           <div className="hairline"/>
         </div>
         <div className="pf-match-card">
           <div>
-            <div className="eyebrow">Balance</div>
+            <div className="eyebrow">余额</div>
             <div className="f-display numeric" style={{fontSize:64, lineHeight:1}}>{goalBal.toLocaleString(undefined,{maximumFractionDigits:4})}</div>
           </div>
           <div className="pf-match-buttons">
-            <a className="btn" href={`https://etherscan.io/token/${window.GOAL_CONFIG.goal}?a=${wallet.address}`} target="_blank" rel="noreferrer noopener">Etherscan</a>
-            <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>Open Packs →</button>
+            <a className="btn" href={`https://bscscan.com/token/${window.GOAL_CONFIG.goal}?a=${wallet.address}`} target="_blank" rel="noreferrer noopener">BscScan</a>
+            <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>开包 →</button>
           </div>
         </div>
       </section>
@@ -136,21 +136,21 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">02</span>
-          <span className="eyebrow">Country positions · {(positions||[]).length}</span>
+          <span className="eyebrow">国家持仓 · {(positions||[]).length}</span>
           <div className="hairline"/>
         </div>
-        {positions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>Reading…</div>}
+        {positions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>读取中…</div>}
         {positions && positions.length === 0 && (
-          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>No country tokens yet — open a pack to get started.</div>
+          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>暂无国家代币 — 开一包即可开始。</div>
         )}
         {positions && positions.length > 0 && (
           <div className="pf-table">
             <div className="pf-table-head f-mono">
               <span style={{flex:"0 0 70px"}}></span>
-              <span style={{flex:"1 0 180px"}}>Token</span>
-              <span style={{flex:"0 0 120px", textAlign:"right"}}>Amount</span>
-              <span style={{flex:"0 0 120px", textAlign:"right"}}>Price</span>
-              <span style={{flex:"0 0 140px", textAlign:"right"}}>Value</span>
+              <span style={{flex:"1 0 180px"}}>代币</span>
+              <span style={{flex:"0 0 120px", textAlign:"right"}}>数量</span>
+              <span style={{flex:"0 0 120px", textAlign:"right"}}>价格</span>
+              <span style={{flex:"0 0 140px", textAlign:"right"}}>价值</span>
               <span style={{flex:"0 0 200px", textAlign:"right"}}></span>
             </div>
             {positions.map(p => (
@@ -165,7 +165,7 @@ const Portfolio = ({ setRoute, burned }) => {
                 <span style={{flex:"0 0 140px", textAlign:"right", color:"var(--fg)"}} className="f-mono numeric">{p.curveOpen ? p.value.toFixed(2) + " G" : "—"}</span>
                 <span style={{flex:"0 0 200px", display:"flex", justifyContent:"flex-end", gap:6}}>
                   <button className="pf-mini-btn" onClick={()=>setRoute({name: p.curveOpen ? "market" : "packCountry", country:p.c})}>
-                    {p.curveOpen ? "Trade →" : "View →"}
+                    {p.curveOpen ? "交易 →" : "查看 →"}
                   </button>
                 </span>
               </div>
@@ -177,12 +177,12 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">03</span>
-          <span className="eyebrow">Player positions · {(playerPositions||[]).length}</span>
+          <span className="eyebrow">球员持仓 · {(playerPositions||[]).length}</span>
           <div className="hairline"/>
         </div>
-        {playerPositions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>Reading…</div>}
+        {playerPositions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>读取中…</div>}
         {playerPositions && playerPositions.length === 0 && (
-          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>No player tokens yet — open country packs to unlock player draws.</div>
+          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>暂无球员代币 — 开国家包即可解锁球员抽取。</div>
         )}
         {playerPositions && playerPositions.length > 0 && (
           <div className="pf-players-grid">
@@ -197,16 +197,16 @@ const Portfolio = ({ setRoute, burned }) => {
                   <div className="pf-player-meta">
                     <Flag country={p.country} w={24} h={16}/>
                     <span className={"pp-recent-badge badge-" + p.role}>{p.role}</span>
-                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{role.rarity}</div>
+                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{({Wide:"普通",Rare:"稀有",Common:"常见"}[role.rarity]||role.rarity)}</div>
                   </div>
                   <div className="f-display" style={{fontSize:22, lineHeight:1, margin:"8px 0 4px"}}>{p.country.name}</div>
                   <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{role.label} · #{num}</div>
                   <div className="pf-player-bot">
                     <div>
-                      <div className="eyebrow">Holding</div>
+                      <div className="eyebrow">持有</div>
                       <div className="f-display numeric" style={{fontSize:24, lineHeight:1}}>{p.amount.toLocaleString(undefined,{maximumFractionDigits:4})}</div>
                     </div>
-                    <button className="pf-mini-btn" onClick={()=>setRoute({name:"playerMarket", id: `${p.c}-${p.role}`})}>View →</button>
+                    <button className="pf-mini-btn" onClick={()=>setRoute({name:"playerMarket", id: `${p.c}-${p.role}`})}>查看 →</button>
                   </div>
                 </div>
               );

@@ -1,42 +1,36 @@
-// GOAL — On-chain reader (Ethereum mainnet, real data, no demo)
-// Pulls live state from the deployed GOAL/countryFactory/countryCurves once on
-// load and every 60s thereafter. Exposes a tiny subscribe() API so React views
-// re-render when fresh data lands. countryState() in data/countries.js reads
-// from this cache.
+// FOOTBALL — On-chain reader (BSC mainnet, real data, no demo)
+// Pulls live state from the deployed FOOTBALL/countryFactory/countryCurves once
+// on load and every 60s thereafter. Exposes a tiny subscribe() API so React
+// views re-render when fresh data lands. countryState() in data/countries.js
+// reads from this cache.
 
 (function () {
-  const cfg = window.GOAL_CONFIG;
-  const CAP = 960_000;
+  const cfg = window.FOOTBALL_CONFIG;
+  // FOOTBALL total supply — 1 billion (flap-fixed). Was GOAL's 960k cap.
+  const CAP = 1_000_000_000;
   const PACKS = window.PACKS_PER_COUNTRY || 18000;
   const ASYMPTOTE = window.COUNTRY_ASYMPTOTE || 20000;
   const VIRTUAL = window.VIRTUAL_PITCH || 20000;
   const PACK_PRICE = window.PACK_PRICE || 6.9;
 
-  // Public mainnet RPCs. User can override via:
-  //   localStorage.setItem("goal_rpc", "https://your-key.alchemy.com/...")
+  // Public BSC mainnet RPCs. User can override via:
+  //   localStorage.setItem("football_rpc", "https://your-key.example.com/...")
   // Tried in parallel via Promise.any for pickProvider; tryAcrossRpcs falls
   // through them sequentially for multicalls.
-  //
-  // Excluded (confirmed broken from goalerc20.xyz production origin):
-  //   - eth.llamarpc.com       CORS preflight blocked
-  //   - eth.merkle.io          CORS preflight blocked
-  //   - blockpi.network/public CORS preflight blocked
-  //   - drpc.org free tier     batches >3 calls return 500
-  const userOverride = (() => { try { return localStorage.getItem("goal_rpc"); } catch { return null; } })();
+  const userOverride = (() => { try { return localStorage.getItem("football_rpc"); } catch { return null; } })();
   const RPCS = [];
-  // Priority 1: user's localStorage override (for personal Alchemy/Infura keys)
+  // Priority 1: user's localStorage override (for personal RPC keys)
   if (userOverride) RPCS.push(userOverride);
-  // Priority 2: site's primary Alchemy endpoint from config (the reliable one)
+  // Priority 2: site's primary endpoint from config (the reliable one)
   if (cfg.primaryRpc) RPCS.push(cfg.primaryRpc);
-  // Priority 3+: public fallbacks if the primary is throttled or down
+  // Priority 3+: public BSC fallbacks if the primary is throttled or down
   RPCS.push(
-    "https://cloudflare-eth.com",
-    "https://1rpc.io/eth",
-    "https://endpoints.omniatech.io/v1/eth/mainnet/public",
-    "https://eth.public-rpc.com",
-    "https://rpc.ankr.com/eth",
-    "https://ethereum-rpc.publicnode.com",
-    "https://eth-mainnet.public.blastapi.io",
+    "https://bsc-dataseed.bnbchain.org",
+    "https://bsc-dataseed1.defibit.io",
+    "https://bsc-dataseed1.ninicoin.io",
+    "https://rpc.ankr.com/bsc",
+    "https://bsc.publicnode.com",
+    "https://1rpc.io/bnb",
   );
 
   const ERC20_ABI = [
@@ -63,9 +57,9 @@
   const PLAYER_ROLE_MAX = { CPT: 1500, BST: 500, RKE: 2500 };
   const PLAYER_ROLE_ORDER = ["CPT", "BST", "RKE"]; // playerIndex = countryId*3 + role
 
-  // Multicall3 — canonical deployment on every EVM chain, including mainnet.
-  // Single eth_call returns all N sub-call results, bypassing every RPC's
-  // JSON-RPC-batch limits (drpc free tier maxes 3 per batch, etc.).
+  // Multicall3 — canonical deployment on every EVM chain, including BSC
+  // mainnet (same address as Ethereum). Single eth_call returns all N
+  // sub-call results, bypassing every RPC's JSON-RPC-batch limits.
   const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
   const MULTICALL3_ABI = [
     "function aggregate3((address target, bool allowFailure, bytes callData)[] calls) external payable returns ((bool success, bytes returnData)[] returnData)",
@@ -127,11 +121,16 @@
     countries: {},       // id -> { tokenAddr, curveAddr, packsSold, sealed, curveOpen, supply, reserve, price, burnedFromCurve }
     countryAddrs: {},    // id -> { tokenAddr, curveAddr }
     players: {},         // "ISO-ROLE" -> { tokenAddr, curveAddr, supply, reserve, curveOpen, price, max }
-    pool: {              // V4 GOAL/ETH pool
+    pool: {              // FOOTBALL/WBNB market pool
+      // TODO: BSC 改读 PancakeSwap V2 pair reserves —
+      // 这里原本是 Uniswap V4 池子的状态（poolId / sqrtPriceX96）。
+      // BSC 版应改为读 config.footballWbnbPair 的 getReserves()，
+      // 用 reserve0 / reserve1 算 FOOTBALL/WBNB 价格。
       active: false,
       poolId: null,
       sqrtPriceX96: null,
       initBlock: null,
+      // V2 字段（后续填充）：reserve0, reserve1, blockTimestampLast
     },
     packWindow: {        // Global pack window (from countryPackOpener)
       openedAt: 0,
@@ -140,17 +139,14 @@
     lastUpdate: 0,
   };
 
-  // Precompute the V4 poolId from the configured PoolKey.
-  // PoolId = keccak256(abi.encode(currency0, currency1, fee, tickSpacing, hooks))
+  // TODO: BSC 改读 PancakeSwap V2 pair reserves —
+  // 旧实现从 Uniswap V4 PoolKey 计算 poolId（keccak256(abi.encode(
+  // currency0, currency1, fee, tickSpacing, hooks))）。BSC 上没有 V4 池子，
+  // FOOTBALL 价格应改为读 config.footballWbnbPair 的 getReserves()
+  // （returns uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast）。
+  // 暂时保留桩函数返回 null，使下方池子检测整体跳过。
   function computePoolId() {
-    if (!cfg.pool || !window.ethers) return null;
-    try {
-      const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
-        ["address", "address", "uint24", "int24", "address"],
-        [cfg.pool.currency0, cfg.pool.currency1, cfg.pool.fee, cfg.pool.tickSpacing, cfg.pool.hooks]
-      );
-      return ethers.keccak256(encoded);
-    } catch { return null; }
+    return null;
   }
 
   function notify() {
@@ -164,7 +160,7 @@
     // next one. Now total selection time = the fastest reachable RPC.
     const candidates = RPCS.map((url) => {
       try {
-        const p = new ethers.JsonRpcProvider(url, 1, { staticNetwork: true, batchMaxCount: 1 });
+        const p = new ethers.JsonRpcProvider(url, 56, { staticNetwork: true, batchMaxCount: 1 });
         return p.getBlockNumber().then(() => ({ p, url }));
       } catch (e) {
         return Promise.reject(e);
@@ -188,7 +184,7 @@
     for (const url of RPCS) {
       if (provider && provider._getConnection?.()?.url === url) continue;
       try {
-        fallbackProviders.push(new ethers.JsonRpcProvider(url, 1, { staticNetwork: true, batchMaxCount: 1 }));
+        fallbackProviders.push(new ethers.JsonRpcProvider(url, 56, { staticNetwork: true, batchMaxCount: 1 }));
       } catch {}
     }
     return fallbackProviders;
@@ -248,7 +244,7 @@
             provider = walletProv;
             state.rpcUrl = "wallet-fallback";
           } else {
-            state.error = "All public RPCs unreachable. Connect a wallet to use its RPC, or set localStorage.goal_rpc.";
+            state.error = "All public RPCs unreachable. Connect a wallet to use its RPC, or set localStorage.football_rpc.";
             state.loading = false;
             notify();
             return;
@@ -269,7 +265,7 @@
 
       // ─── ROUND 1 (one eth_call): globals + 48 country (token, curve) addrs ───
       const r1Calls = [
-        { target: cfg.goal,              callData: ifaceErc20.encodeFunctionData("totalSupply") },
+        { target: cfg.football,          callData: ifaceErc20.encodeFunctionData("totalSupply") },
         { target: cfg.countryPackOpener, callData: ifacePackOp.encodeFunctionData("openedAt") },
         { target: cfg.countryPackOpener, callData: ifacePackOp.encodeFunctionData("windowClosesAt") },
       ];
@@ -480,48 +476,53 @@
         };
       });
 
-      // 5) V4 GOAL/ETH pool detection — public RPCs cap eth_getLogs to ~10k
-      //    blocks, so we sticky-scan: each refresh, scan from where we left
-      //    off up to head. First-ever scan covers latest-10k → head (enough
-      //    to catch the pool init when it happens going forward).
-      if (!state.pool.active) {
-        if (!state.pool.poolId) state.pool.poolId = computePoolId();
-        if (state.pool.poolId) {
-          try {
-            const INIT_TOPIC0 = ethers.id(
-              "Initialize(bytes32,address,address,uint24,int24,address,uint160,int24)"
-            );
-            const head = blockNumber;
-            const from = state.pool.lastScannedBlock != null
-              ? state.pool.lastScannedBlock + 1
-              : Math.max(0, head - SAFE_LOOKBACK);
-            // Don't re-scan; only forward. Cap to Alchemy free-tier range.
-            if (from <= head && head - from <= SAFE_LOOKBACK) {
-              const logs = await safeGetLogs({
-                address: cfg.v4PoolManager,
-                fromBlock: "0x" + from.toString(16),
-                toBlock:   "0x" + head.toString(16),
-                topics:    [INIT_TOPIC0, state.pool.poolId],
-              });
-              if (logs && logs.length > 0) {
-                const log = logs[0];
-                // 4 indexed topics (sig, id, currency0, currency1); data has
-                // [fee:uint24, tickSpacing:int24, hooks:address, sqrtPriceX96:uint160, tick:int24].
-                try {
-                  const decoded = ethers.AbiCoder.defaultAbiCoder().decode(
-                    ["uint24","int24","address","uint160","int24"],
-                    log.data
-                  );
-                  state.pool.sqrtPriceX96 = decoded[3].toString();
-                } catch {}
-                state.pool.active = true;
-                state.pool.initBlock = Number(log.blockNumber);
-              }
-              state.pool.lastScannedBlock = head;
-            }
-          } catch (e) { /* RPC range error etc — retry next refresh */ }
-        }
-      }
+      // 5) FOOTBALL/WBNB pool price.
+      // TODO: BSC 改读 PancakeSwap V2 pair reserves —
+      // 下面整段是旧的 Uniswap V4 池子检测：扫 v4PoolManager 的 Initialize
+      // 事件、解码 sqrtPriceX96。BSC 上不适用，已整体注释掉。
+      // 替代实现应该是一次 eth_call：
+      //   const pair = new ethers.Contract(cfg.footballWbnbPair, PAIR_ABI, p);
+      //   const [reserve0, reserve1] = await pair.getReserves();
+      //   // 按 token0 < token1 的排序判断哪个 reserve 是 FOOTBALL / WBNB，
+      //   // 价格 = reserveWBNB / reserveFOOTBALL（再乘 bnbPriceUsd 得 USD 价）。
+      // PAIR_ABI: "function getReserves() view returns (uint112,uint112,uint32)",
+      //           "function token0() view returns (address)"
+      //
+      // if (!state.pool.active) {
+      //   if (!state.pool.poolId) state.pool.poolId = computePoolId();
+      //   if (state.pool.poolId) {
+      //     try {
+      //       const INIT_TOPIC0 = ethers.id(
+      //         "Initialize(bytes32,address,address,uint24,int24,address,uint160,int24)"
+      //       );
+      //       const head = blockNumber;
+      //       const from = state.pool.lastScannedBlock != null
+      //         ? state.pool.lastScannedBlock + 1
+      //         : Math.max(0, head - SAFE_LOOKBACK);
+      //       if (from <= head && head - from <= SAFE_LOOKBACK) {
+      //         const logs = await safeGetLogs({
+      //           address: cfg.v4PoolManager,
+      //           fromBlock: "0x" + from.toString(16),
+      //           toBlock:   "0x" + head.toString(16),
+      //           topics:    [INIT_TOPIC0, state.pool.poolId],
+      //         });
+      //         if (logs && logs.length > 0) {
+      //           const log = logs[0];
+      //           try {
+      //             const decoded = ethers.AbiCoder.defaultAbiCoder().decode(
+      //               ["uint24","int24","address","uint160","int24"],
+      //               log.data
+      //             );
+      //             state.pool.sqrtPriceX96 = decoded[3].toString();
+      //           } catch {}
+      //           state.pool.active = true;
+      //           state.pool.initBlock = Number(log.blockNumber);
+      //         }
+      //         state.pool.lastScannedBlock = head;
+      //       }
+      //     } catch (e) { /* RPC range error etc — retry next refresh */ }
+      //   }
+      // }
 
       // ── PROGRESSIVE NOTIFY #2 ──
       // Player data and pool detection fully loaded.
@@ -529,7 +530,7 @@
       notify();
     } catch (e) {
       console.error("[CHAIN] loadAll failed", e);
-      state.error = e?.shortMessage || e?.message || "Failed to read mainnet";
+      state.error = e?.shortMessage || e?.message || "Failed to read BSC mainnet";
       state.loading = false;
       notify();
     } finally {
@@ -614,14 +615,14 @@
     return events;
   }
 
-  // GOAL token Burn events (Transfer to 0x0). Used by both the live feed
+  // FOOTBALL token Burn events (Transfer to 0x0). Used by both the live feed
   // and the analytics computation below.
-  // Alchemy free tier limits eth_getLogs to a 10,000-block range. We use 9000
-  // to leave headroom and avoid off-by-one rejections at exactly 10k.
+  // Public BSC RPCs cap eth_getLogs to a limited block range. We use 9000
+  // to stay well within range limits across the public node set.
   const SAFE_LOOKBACK = 9000;
 
   // Wrapped getLogs — uses ethers' high-level provider.getLogs() which encodes
-  // params via the library (more compatible with Alchemy's strict validator
+  // params via the library (more compatible with strict RPC validators
   // than hand-rolled JSON-RPC). Normalizes the returned ethers Log objects to
   // a raw-RPC-like shape so downstream code keeps the same field access
   // (l.topics, l.data, l.transactionHash, l.blockNumber as number, l.logIndex).
@@ -652,10 +653,10 @@
     }
     const range = Math.min(SAFE_LOOKBACK, Math.max(1, lookbackBlocks));
     const fromBlock = Math.max(0, latest - range);
-    // Filter by topic0 only on the server (Alchemy chokes on `null` middle
+    // Filter by topic0 only on the server (some RPCs choke on `null` middle
     // topics); apply the "to == 0x0" burn check client-side.
     const allLogs = await safeGetLogs({
-      address: cfg.goal,
+      address: cfg.football,
       fromBlock: "0x" + fromBlock.toString(16),
       toBlock:   "0x" + latest.toString(16),
       topics: [TRANSFER_TOPIC0],
@@ -678,13 +679,15 @@
     return events;
   }
 
-  // 24h burn rate + per-curve leaderboard. Single getLogs call (~7200 blocks
-  // ≈ 24h on mainnet at 12s/block, well within public-RPC range limits).
+  // Burn rate + per-curve leaderboard. Single getLogs call. BSC blocks are
+  // ~3s, so the SAFE_LOOKBACK window (9000 blocks) covers ~7.5h. The window's
+  // real duration is derived from block timestamps below, so the rate maths
+  // stays correct regardless of block time; ratePer24h extrapolates from it.
   // Each Transfer-to-zero event's `from` tells us which contract did the burn:
   //   - countryPackOpener  → pack-purchase fee
   //   - country curve addr → country-curve buy/sell fee
   //   - player curve addr  → player-curve buy/sell fee
-  async function getBurnAnalytics(lookbackBlocks = 7200) {
+  async function getBurnAnalytics(lookbackBlocks = SAFE_LOOKBACK) {
     if (!provider) return null;
     const { logs, latest, fromBlock } = await _rawBurnLogs(lookbackBlocks);
 
@@ -693,7 +696,8 @@
       getBlockTimestamp(fromBlock),
       getBlockTimestamp(latest),
     ]);
-    const hours = tFrom && tLatest ? Math.max(1/60, (tLatest - tFrom) / 3600) : (lookbackBlocks * 12 / 3600);
+    // Fallback assumes BSC ~3s block time if timestamps are unavailable.
+    const hours = tFrom && tLatest ? Math.max(1/60, (tLatest - tFrom) / 3600) : (lookbackBlocks * 3 / 3600);
 
     // Bucket by `from` address (lower-cased for comparison).
     const byAddr = new Map();
@@ -747,14 +751,14 @@
 
   // Per-curve trade history — Bought + Sold events, with marginal price
   // computed directly from event args (no archive-node state replay needed).
-  //   Bought.pitchIn      = GOAL paid by user (5% will burn, 95% to reserve)
+  //   Bought.pitchIn      = FOOTBALL paid by user (5% will burn, 95% to reserve)
   //   Bought.tokenOut     = curve tokens minted to user
   //   Bought.feeBurned    = 5% of pitchIn that went straight to burn
   //   marginal price (post-fee) = (pitchIn - feeBurned) / tokenOut
   //
   //   Sold.tokenIn        = curve tokens burned by user
-  //   Sold.pitchOut       = GOAL paid to user (net of 5% fee)
-  //   Sold.feeBurned      = 5% of gross GOAL out
+  //   Sold.pitchOut       = FOOTBALL paid to user (net of 5% fee)
+  //   Sold.feeBurned      = 5% of gross FOOTBALL out
   //   marginal price      = (pitchOut + feeBurned) / tokenIn
   const CURVE_TRADE_IFACE_ABI = [
     "event Bought(address indexed user, uint256 pitchIn, uint256 tokenOut, uint256 feeBurned)",
@@ -807,7 +811,7 @@
           const tokenOut  = parsed.args.tokenOut;
           const feeBurned = parsed.args.feeBurned;
           const netIn = pitchIn - feeBurned;
-          // marginal price (GOAL per curve-token) = netIn / tokenOut
+          // marginal price (FOOTBALL per curve-token) = netIn / tokenOut
           const price = tokenOut > 0n
             ? Number(ethers.formatEther(netIn)) / Number(ethers.formatEther(tokenOut))
             : 0;

@@ -1,4 +1,7 @@
-// GOAL — Pack pages: overview, country detail, player reveal
+// FOOTBALL — Pack pages: overview, country detail, player reveal
+
+// Maps the data-layer rarity tier to a Chinese label for display.
+const rarityZh = (r) => ({ Wide: "普通", Rare: "稀有", Common: "常见" }[r] || r);
 
 const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
   const [filter, setFilter] = React.useState("OPEN");
@@ -17,35 +20,34 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
     <main className="match-page pack">
       <section className="pack-hero">
         <div className="pack-hero-l">
-          <div className="eyebrow">Phase I · Pack Window</div>
+          <div className="eyebrow">阶段 I · 开包窗口</div>
           <h1 className="f-display" style={{fontSize:"clamp(44px,6vw,92px)", lineHeight:0.98, letterSpacing:"-0.045em", margin:"12px 0 24px", fontWeight:600}}>
-            48 windows.
+            48 个窗口。
             <br/>
-            <span style={{color:"var(--accent)", fontWeight:300}}>One closing clock.</span>
+            <span style={{color:"var(--accent)", fontWeight:300}}>同一个倒计时。</span>
           </h1>
           <p style={{maxWidth:560, color:"var(--fg-2)", fontSize:17, lineHeight:1.55}}>
-            Pack windows distribute the initial supply of country and player tokens. Each
-            nation has 1,000 country packs at 10 GOAL each, plus 450 player packs paid
-            in country tokens. When a window seals, that nation's curves go live.
+            开包窗口分发国家代币和球员代币的初始供应。每个国家有 1,000 个国家包，每包 10 FOOTBALL，
+            外加 450 个用国家代币支付的球员包。窗口封盘后，该国的曲线即上线交易。
           </p>
         </div>
         <div className="pack-hero-r">
           <div className="pack-clock">
             <div className="eyebrow">
-              {!countdown.available ? "Reading pack window…" :
-               countdown.closed ? "Pack window closed" :
-               "Global window closes"}
+              {!countdown.available ? "读取开包窗口中…" :
+               countdown.closed ? "开包窗口已关闭" :
+               "全局窗口关闭于"}
             </div>
             <div className="pack-clock-row">
-              <ClockUnit value={countdown.available ? countdown.days  : "—"} label="days"/>
-              <ClockUnit value={countdown.available ? countdown.hours : "—"} label="hours"/>
-              <ClockUnit value={countdown.available ? countdown.mins  : "—"} label="mins"/>
-              <ClockUnit value={countdown.available ? countdown.secs  : "—"} label="secs"/>
+              <ClockUnit value={countdown.available ? countdown.days  : "—"} label="天"/>
+              <ClockUnit value={countdown.available ? countdown.hours : "—"} label="时"/>
+              <ClockUnit value={countdown.available ? countdown.mins  : "—"} label="分"/>
+              <ClockUnit value={countdown.available ? countdown.secs  : "—"} label="秒"/>
             </div>
           </div>
           <div className="pack-progress">
             <div className="pack-progress-head">
-              <span className="eyebrow">Packs sold</span>
+              <span className="eyebrow">已售开包</span>
               <span className="f-mono" style={{fontSize:13}}>
                 <span style={{color:"var(--fg)"}}>{packsSold.toLocaleString()}</span>
                 <span style={{color:"var(--fg-3)"}}> / {totalPacks.toLocaleString()}</span>
@@ -54,10 +56,10 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
             <div className="bar"><div className="bar-fill" style={{width:`${packsSold/totalPacks*100}%`}}/></div>
             <div className="pack-progress-foot">
               <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>
-                {(packsSold/totalPacks*100).toFixed(1)}% complete
+                已完成 {(packsSold/totalPacks*100).toFixed(1)}%
               </span>
               <span className="f-mono" style={{color:"var(--accent)", fontSize:11}}>
-                {COUNTRIES.filter(c=>countryState(c).sealed).length} nations sealed
+                {COUNTRIES.filter(c=>countryState(c).sealed).length} 国已封盘
               </span>
             </div>
           </div>
@@ -72,7 +74,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               className={"filter-chip " + (filter===f ? "is-active" : "")}
               onClick={()=>setFilter(f)}
             >
-              {f}
+              {f === "ALL" ? "全部" : f === "OPEN" ? "开包中" : f === "SEALED" ? "已封盘" : "已上线"}
               <span className="filter-chip-count">
                 {f === "ALL" ? 48 :
                  f === "OPEN" ? COUNTRIES.filter(c => !countryState(c).sealed && !countryState(c).curveOpen).length :
@@ -83,19 +85,19 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
           ))}
         </div>
         <div style={{marginLeft:"auto", display:"flex", gap:12, alignItems:"center"}}>
-          <span className="eyebrow">Sort</span>
-          <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>by confederation ↓</span>
+          <span className="eyebrow">排序</span>
+          <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>按大洲分区 ↓</span>
         </div>
       </section>
 
       <section className="pack-table">
         <div className="pack-table-head f-mono">
           <span style={{width:60}}></span>
-          <span style={{flex:"1 0 200px"}}>Nation</span>
-          <span style={{flex:"0 0 100px"}}>Conf</span>
-          <span style={{flex:"0 0 160px"}}>Status</span>
-          <span style={{flex:"1 0 220px"}}>Pack progress</span>
-          <span style={{flex:"0 0 110px"}}>Price</span>
+          <span style={{flex:"1 0 200px"}}>国家</span>
+          <span style={{flex:"0 0 100px"}}>分区</span>
+          <span style={{flex:"0 0 160px"}}>状态</span>
+          <span style={{flex:"1 0 220px"}}>开包进度</span>
+          <span style={{flex:"0 0 110px"}}>价格</span>
           <span style={{flex:"0 0 110px", textAlign:"right"}}></span>
         </div>
         {list.map(c => {
@@ -110,7 +112,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               <span style={{flex:"0 0 100px"}} className="f-mono pack-table-conf">{c.conf}</span>
               <span style={{flex:"0 0 160px"}}>
                 <span className={"country-card-status " + (s.curveOpen ? "status-live" : s.sealed ? "status-sealed" : "status-pack")}>
-                  {s.curveOpen ? "Curve Live" : s.sealed ? "Sealed" : "Pack Open"}
+                  {s.curveOpen ? "曲线上线" : s.sealed ? "已封盘" : "开包中"}
                 </span>
               </span>
               <span style={{flex:"1 0 220px"}}>
@@ -124,7 +126,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               </span>
               <span style={{flex:"0 0 110px", textAlign:"right"}}>
                 <span className="pack-table-arrow">
-                  {s.curveOpen ? "Trade →" : "Open →"}
+                  {s.curveOpen ? "交易 →" : "开包 →"}
                 </span>
               </span>
             </button>
@@ -180,7 +182,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
 
   const handleBuy = async () => {
     if (!window.WALLET?.state?.connected) {
-      alert("Connect your wallet first (top right).");
+      alert("请先连接钱包（右上角）。");
       return;
     }
     setErrMsg(null);
@@ -198,7 +200,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
     } catch (e) {
       console.error(e);
       setState("error");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "Transaction failed");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || "交易失败");
     }
   };
 
@@ -206,20 +208,20 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
     <main className="match-page pack-country">
       <section className="pc-head">
         <button className="pc-back" onClick={()=>setRoute({name:"pack"})}>
-          ← All Packs
+          ← 全部开包
         </button>
         <div className="pc-head-row">
           <Flag country={c} w={120} h={80}/>
           <div>
-            <div className="eyebrow">Nation · [{c.id}] · {c.conf}</div>
+            <div className="eyebrow">国家 · [{c.id}] · {c.conf}</div>
             <h1 className="f-display" style={{fontSize:"clamp(48px,7vw,96px)", lineHeight:0.98, letterSpacing:"-0.025em", margin:"8px 0 12px"}}>
               {c.name}
             </h1>
             <div style={{display:"flex", gap:12}}>
               <span className={"country-card-status " + (s.sealed ? "status-sealed" : "status-pack")}>
-                {s.sealed ? "Sealed" : "Pack Open"}
+                {s.sealed ? "已封盘" : "开包中"}
               </span>
-              <span className="pill"><span className="pill-dot"/>{s.packsSold.toLocaleString()} of 18,000 sold</span>
+              <span className="pill"><span className="pill-dot"/>已售 {s.packsSold.toLocaleString()} / 18,000</span>
             </div>
           </div>
         </div>
@@ -227,30 +229,30 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
 
       <section className="pc-grid">
         <div className="pc-left">
-          <div className="section-eyebrow"><span className="bracket-num">A</span><span className="eyebrow">Country Pack</span><div className="hairline"/></div>
+          <div className="section-eyebrow"><span className="bracket-num">A</span><span className="eyebrow">国家包</span><div className="hairline"/></div>
 
           <div className="pc-card">
             <div className="pc-card-art">
               <Flag country={c} w={280} h={180}/>
               <div className="pc-card-overlay">
-                <div className="eyebrow">Contains</div>
+                <div className="eyebrow">包含</div>
                 <div className="f-display" style={{fontSize:36, lineHeight:1}}>1 × {c.id}</div>
-                <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>country token / pack</div>
+                <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>国家代币 / 包</div>
               </div>
             </div>
 
             <div className="pc-card-body">
               <div className="pc-spec">
-                <SpecRow label="Price" value="6.9 GOAL" mono accent="accent"/>
-                <SpecRow label="Burn (5%)" value="0.345 GOAL → burn()" mono accent="fire"/>
-                <SpecRow label="To curve reserve" value="6.555 GOAL" mono/>
-                <SpecRow label="Pack window cap" value="18,000 packs" mono/>
-                <SpecRow label="Asymptote (curve)" value="20,000" mono/>
-                <SpecRow label="V4 fee on swaps" value="5% → GOAL.burn()" mono accent="fire"/>
+                <SpecRow label="价格" value="6.9 FOOTBALL" mono accent="accent"/>
+                <SpecRow label="销毁 (5%)" value="0.345 FOOTBALL → burn()" mono accent="fire"/>
+                <SpecRow label="进入曲线储备" value="6.555 FOOTBALL" mono/>
+                <SpecRow label="开包窗口上限" value="18,000 包" mono/>
+                <SpecRow label="曲线渐近线" value="20,000" mono/>
+                <SpecRow label="swap 手续费" value="5% → FOOTBALL.burn()" mono accent="fire"/>
               </div>
 
               <div className="pc-buy">
-                <div className="eyebrow" style={{marginBottom:12}}>Quantity</div>
+                <div className="eyebrow" style={{marginBottom:12}}>数量</div>
                 <div className="pc-qty">
                   {[1, 5, 10, 25, 100].map(n => (
                     <button
@@ -266,13 +268,13 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
 
                 <div className="pc-total">
                   <div>
-                    <div className="eyebrow">You pay</div>
+                    <div className="eyebrow">你支付</div>
                     <div className="f-display numeric" style={{fontSize:48, lineHeight:1}}>{total.toLocaleString()}</div>
-                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>GOAL</div>
+                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>FOOTBALL</div>
                   </div>
                   <div className="pc-total-arrow">→</div>
                   <div style={{textAlign:"right"}}>
-                    <div className="eyebrow">You receive</div>
+                    <div className="eyebrow">你获得</div>
                     <div className="f-display-it numeric" style={{fontSize:48, lineHeight:1, color:"var(--accent)"}}>{tokensReceived.toLocaleString()}</div>
                     <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{c.id}</div>
                   </div>
@@ -281,7 +283,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                 <div className="pc-burn-note">
                   <span className="f-mono" style={{color:"var(--fire)"}}>▲</span>
                   <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
-                    A 5% protocol fee is reserved on each curve swap. <span style={{color:"var(--fire)"}}>{(total*0.05).toFixed(2)} GOAL</span> will burn on first curve interaction.
+                    每笔曲线 swap 预留 5% 协议费。<span style={{color:"var(--fire)"}}>{(total*0.05).toFixed(2)} FOOTBALL</span> 将在首次曲线交互时销毁。
                   </span>
                 </div>
 
@@ -289,25 +291,25 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                   <>
                     {!wallet.connected ? (
                       <button className="btn btn-primary pc-cta" onClick={() => window.dispatchEvent(new CustomEvent("goal:openWalletModal"))} disabled>
-                        Connect wallet to buy
+                        连接钱包后购买
                       </button>
                     ) : cantBuy ? (
                       <button className="btn pc-cta" disabled>
-                        {s.curveOpen ? "Curve trading — use Markets page" : "Pack window sealed"}
+                        {s.curveOpen ? "曲线交易中 — 请前往市场页" : "开包窗口已封盘"}
                       </button>
                     ) : !chainReady ? (
                       <button className="btn pc-cta" disabled>
-                        <span className="pc-spin"/> Reading {c.id} from chain…
+                        <span className="pc-spin"/> 正从链上读取 {c.id}…
                       </button>
                     ) : (
                       <>
                         <button className="btn btn-primary pc-cta" onClick={handleBuy}>
-                          Confirm purchase · {total} GOAL
+                          确认购买 · {total} FOOTBALL
                         </button>
                         {insufficientGoal && (
                           <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:8, textAlign:"center"}}>
-                            ⚠ Balance reads {wallet.goalBalance.toLocaleString(undefined,{maximumFractionDigits:4})} GOAL — {(total - wallet.goalBalance).toFixed(2)} short.
-                            If you actually have it, click anyway — chain is source of truth.
+                            ⚠ 余额读数为 {wallet.goalBalance.toLocaleString(undefined,{maximumFractionDigits:4})} FOOTBALL — 还差 {(total - wallet.goalBalance).toFixed(2)}。
+                            如果你实际持有足够，仍可点击 — 以链上数据为准。
                           </div>
                         )}
                       </>
@@ -321,38 +323,38 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                 )}
                 {state === "approving" && (
                   <button className="btn pc-cta" disabled>
-                    <span className="pc-spin"/> Approve GOAL in wallet…
+                    <span className="pc-spin"/> 请在钱包中授权 FOOTBALL…
                   </button>
                 )}
                 {state === "sending" && (
                   <button className="btn pc-cta" disabled>
-                    <span className="pc-spin"/> Confirm in wallet…
+                    <span className="pc-spin"/> 请在钱包中确认…
                   </button>
                 )}
                 {state === "mining" && (
                   <button className="btn pc-cta" disabled>
-                    <span className="pc-spin"/> Mining on Ethereum…
+                    <span className="pc-spin"/> 正在 BSC 上打包…
                   </button>
                 )}
                 {state === "success" && (
                   <div className="pc-success">
                     <div className="pc-success-row">
-                      <span className="f-mono" style={{color:"var(--bull)"}}>✓ confirmed</span>
+                      <span className="f-mono" style={{color:"var(--bull)"}}>✓ 已确认</span>
                       {txHash && (
                         <a className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}
-                           href={`https://etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer noopener">
+                           href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer noopener">
                           {txHash.slice(0, 10)}…
                         </a>
                       )}
                     </div>
                     <div className="f-display" style={{fontSize:32, lineHeight:1, margin:"8px 0"}}>
-                      +{tokensReceived} <span className="f-display-it" style={{color:"var(--accent)"}}>{c.id}</span> received
+                      +{tokensReceived} <span className="f-display-it" style={{color:"var(--accent)"}}>{c.id}</span> 已到账
                     </div>
                     <button className="btn btn-primary" onClick={()=>setRoute({name:"packPlayer", country:c.id})}>
-                      Open Player Packs →
+                      开球员包 →
                     </button>
                     <button className="btn" onClick={()=>{setState("idle"); setPackCount(1); setTxHash(null);}}>
-                      Buy more country packs
+                      继续购买国家包
                     </button>
                   </div>
                 )}
@@ -362,7 +364,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
         </div>
 
         <div className="pc-right">
-          <div className="section-eyebrow"><span className="bracket-num">B</span><span className="eyebrow">Recent</span><div className="hairline"/></div>
+          <div className="section-eyebrow"><span className="bracket-num">B</span><span className="eyebrow">近期动态</span><div className="hairline"/></div>
           <RecentActivity countryId={c.id}/>
         </div>
       </section>
@@ -378,7 +380,7 @@ const RecentActivity = ({ countryId }) => {
     <TransferLogFeed
       tokenAddr={addrs.tokenAddr}
       mintsOnly={true}
-      heading="Recent pack opens"
+      heading="近期开包"
       limit={8}
     />
   );
@@ -450,14 +452,14 @@ const PackPlayer = ({ setRoute, countryId }) => {
       window.CHAIN.refresh();
     } catch (e) {
       setStage("idle");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "Failed to resume pack");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || "恢复开包失败");
     }
   }
 
   const handleOpen = async () => {
     if (stage !== "idle") return;
     if (!window.WALLET?.state?.connected) {
-      alert("Connect your wallet first (top right).");
+      alert("请先连接钱包（右上角）。");
       return;
     }
     setErrMsg(null);
@@ -507,7 +509,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
     } catch (e) {
       console.error(e);
       setStage("idle");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "Transaction failed");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || "交易失败");
     }
   };
 
@@ -535,18 +537,18 @@ const PackPlayer = ({ setRoute, countryId }) => {
     <main className="match-page pack-player">
       <section className="pp-head-v2">
         <button className="pc-back" onClick={()=>setRoute({name:"packCountry", country:c.id})}>
-          ← Back to {c.id}
+          ← 返回 {c.id}
         </button>
         <div className="pp-head-v2-row">
           <Flag country={c} w={88} h={60}/>
           <div className="pp-head-v2-meta">
-            <h1 className="f-display pp-head-v2-title">{c.name} players</h1>
+            <h1 className="f-display pp-head-v2-title">{c.name} 球员</h1>
             <div className="f-mono pp-head-v2-sub">
-              3 player markets · Phase 1 · {pools.CPT + pools.BST + pools.RKE}/450 packs left
+              3 个球员市场 · 阶段 1 · 剩余 {pools.CPT + pools.BST + pools.RKE}/450 包
             </div>
           </div>
           <div className="pp-balance">
-            <div className="eyebrow">Your {c.id}</div>
+            <div className="eyebrow">你的 {c.id}</div>
             <div className="f-display numeric pp-balance-v">—</div>
           </div>
         </div>
@@ -569,20 +571,20 @@ const PackPlayer = ({ setRoute, countryId }) => {
                         initials={window.playerInitials ? window.playerInitials(c.id, role) : null}
                         w={140} h={160}/>
               </div>
-              <div className={"roster-card-tier eyebrow tier-text-" + role}>{r.rarity.toUpperCase()}</div>
+              <div className={"roster-card-tier eyebrow tier-text-" + role}>{rarityZh(r.rarity)}</div>
               <div className="roster-card-name f-display">{pname}</div>
               <div className="roster-card-handle f-mono">{window.playerHandle ? window.playerHandle(c.id, role) : handle}</div>
               <div className="roster-card-stats">
                 <div className="roster-card-stat">
-                  <div className="eyebrow">Pack mints</div>
+                  <div className="eyebrow">已开包</div>
                   <div className="f-mono numeric roster-card-stat-v">{minted}/{r.packs}</div>
                 </div>
                 <div className="roster-card-stat">
-                  <div className="eyebrow">Supply</div>
+                  <div className="eyebrow">供应量</div>
                   <div className="f-mono numeric roster-card-stat-v">{supply}/{r.max}</div>
                 </div>
                 <div className="roster-card-stat">
-                  <div className="eyebrow">Curve price</div>
+                  <div className="eyebrow">曲线价格</div>
                   <div className="f-mono numeric roster-card-stat-v">
                     {(() => {
                       const ps = chain.players && chain.players[`${c.id}-${role}`];
@@ -591,7 +593,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
                   </div>
                 </div>
                 <div className="roster-card-stat">
-                  <div className="eyebrow">Supply</div>
+                  <div className="eyebrow">供应量</div>
                   <div className="f-mono numeric roster-card-stat-v">
                     {(() => {
                       const ps = chain.players && chain.players[`${c.id}-${role}`];
@@ -602,10 +604,10 @@ const PackPlayer = ({ setRoute, countryId }) => {
               </div>
               <div className="roster-card-actions">
                 <button className="roster-card-btn" onClick={() => setRoute({name:"playerMarket", id: `${c.id}-${role}`})}>
-                  Chart
+                  图表
                 </button>
                 <button className="roster-card-btn is-locked" disabled>
-                  Locked
+                  已锁定
                 </button>
               </div>
             </div>
@@ -616,13 +618,13 @@ const PackPlayer = ({ setRoute, countryId }) => {
       <section className="pp-open">
         <div className="pp-open-head">
           <div>
-            <div className="eyebrow">Open {c.name} player packs</div>
+            <div className="eyebrow">开 {c.name} 球员包</div>
             <div className="pp-open-desc">
-              Each pack burns 1 {c.id} token and mints a role via Chainlink VRF. {pools.CPT + pools.BST + pools.RKE}/450 packs remaining on-chain.
+              每开一包销毁 1 枚 {c.id} 代币，并通过 Chainlink VRF 铸造一个角色。链上剩余 {pools.CPT + pools.BST + pools.RKE}/450 包。
             </div>
           </div>
           <div className="pp-open-bal">
-            <div className="eyebrow">Your {c.id}</div>
+            <div className="eyebrow">你的 {c.id}</div>
             <div className="f-display numeric" style={{fontSize:32, lineHeight:1}}>
               <CountryBalance iso={c.id}/>
             </div>
@@ -634,7 +636,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
               <button key={n}
                       className={"pp-open-qty-btn " + (packCount === n ? "is-active" : "")}
                       onClick={()=>setPackCount(n)} disabled={stage !== "idle"}>
-                {n} pack{n > 1 ? "s" : ""}
+                {n} 包
               </button>
             ))}
           </div>
@@ -643,14 +645,14 @@ const PackPlayer = ({ setRoute, countryId }) => {
             const phase2 = chain.countries?.[c.id]?.curveOpen;
             const remaining = pools.CPT + pools.BST + pools.RKE;
             const disabled = stage !== "idle" || !ws.connected || !phase2 || remaining < packCount;
-            let label = `Open ${packCount} pack${packCount > 1 ? "s" : ""}`;
-            if (stage === "committing") label = "Confirm in wallet…";
-            else if (stage === "requesting") label = `Waiting for VRF · ${vrfSeconds}s`;
-            else if (stage === "spinning") label = "Claiming…";
-            else if (stage === "revealed") label = "Open again";
-            else if (!ws.connected) label = "Connect wallet";
-            else if (!phase2) label = "Country curve not active yet";
-            else if (remaining < packCount) label = `Only ${remaining} packs left`;
+            let label = `开 ${packCount} 包`;
+            if (stage === "committing") label = "请在钱包中确认…";
+            else if (stage === "requesting") label = `等待 VRF · ${vrfSeconds}秒`;
+            else if (stage === "spinning") label = "领取中…";
+            else if (stage === "revealed") label = "再开一次";
+            else if (!ws.connected) label = "连接钱包";
+            else if (!phase2) label = "国家曲线尚未激活";
+            else if (remaining < packCount) label = `仅剩 ${remaining} 包`;
             return (
               <button className="pp-open-cta" onClick={stage === "revealed" ? () => { setStage("idle"); setReveals([]); setResult(null); setRequestId(null); } : handleOpen} disabled={disabled && stage !== "revealed"}>
                 {stage !== "idle" && stage !== "revealed" && <span className="pc-spin"/>}
@@ -660,27 +662,27 @@ const PackPlayer = ({ setRoute, countryId }) => {
           })()}
         </div>
         <div className="pp-open-flow f-mono">
-          Two-tx flow: open (burns {c.id}, requests VRF v2.5) → ~30–90s wait → claim (reveals players). Country tokens are permanently burned on open.
+          两笔交易流程：开包（销毁 {c.id}，请求 VRF v2.5）→ 约 30–90 秒等待 → 领取（揭晓球员）。国家代币在开包时被永久销毁。
           {stage === "requesting" && canRecover && (
             <button onClick={handleRecover} style={{marginLeft:12, color:"var(--fire)", background:"transparent", border:"none", textDecoration:"underline", cursor:"pointer"}}>
-              Cancel &amp; refund (24h elapsed)
+              取消并退款（已超 24 小时）
             </button>
           )}
           {stage === "requesting" && !canRecover && openedAt > 0 && vrfSeconds > 300 && (
             <span style={{marginLeft:12, color:"var(--fg-3)", fontSize:11}}>
-              Stuck? Recovery available in {Math.ceil((RECOVERY_AFTER_S - sinceOpened) / 3600)}h
+              卡住了？{Math.ceil((RECOVERY_AFTER_S - sinceOpened) / 3600)} 小时后可恢复
             </span>
           )}
         </div>
         {errMsg && <div className="f-mono" style={{color:"var(--fire)", fontSize:12, marginTop:8}}>{errMsg}</div>}
         {txHash && stage !== "idle" && (
           <div className="f-mono" style={{fontSize:11, marginTop:6, color:"var(--fg-3)"}}>
-            tx: <a href={`https://etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{txHash.slice(0,12)}…</a>
+            交易: <a href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{txHash.slice(0,12)}…</a>
           </div>
         )}
         {reveals.length > 0 && (
           <div className="pp-open-recent">
-            <span className="eyebrow">This open revealed</span>
+            <span className="eyebrow">本次开包揭晓</span>
             <div className="pp-open-recent-list">
               {reveals.map((rv, i) => {
                 const pname = window.playerName ? window.playerName(c.id, rv.role) : `${c.id} ${rv.role}`;
@@ -700,7 +702,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
         <div className="pp-reveal-overlay">
           <div className={"pp-reveal-modal " + (result ? "tier-" + result : "")}>
             <div className="pp-reveal-bar">
-              <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>VRF · v2.5 · request {requestId || "—"}</span>
+              <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>VRF · v2.5 · 请求 {requestId || "—"}</span>
               <StatusLight stage={stage}/>
             </div>
             <div className="pp-slot">
@@ -715,15 +717,15 @@ const PackPlayer = ({ setRoute, countryId }) => {
               {(stage === "committing" || stage === "requesting" || stage === "spinning") && (
                 <button className="btn pp-cta" disabled>
                   <span className="pc-spin"/> {
-                    stage === "committing" ? "Confirm in wallet…" :
-                    stage === "requesting" ? `Chainlink VRF · ${vrfSeconds}s` :
-                    "Claiming reveal…"
+                    stage === "committing" ? "请在钱包中确认…" :
+                    stage === "requesting" ? `Chainlink VRF · ${vrfSeconds}秒` :
+                    "正在领取揭晓结果…"
                   }
                 </button>
               )}
               {stage === "revealed" && (
                 <button className="btn btn-fire pp-cta" onClick={() => { setStage("idle"); setReveals([]); setResult(null); setRequestId(null); }}>
-                  ✓ {reveals.reduce((s,r)=>s+r.packs*10,0)} {c.id} player tokens minted · Close
+                  ✓ 已铸造 {reveals.reduce((s,r)=>s+r.packs*10,0)} 枚 {c.id} 球员代币 · 关闭
                 </button>
               )}
             </div>
@@ -747,12 +749,12 @@ const PoolBar = ({ role, remaining, total, label, rarity, color, country }) => {
           {country && <Jersey country={country} role={role} number={num} w={48} h={54}/>}
           <div>
             <div className="f-display" style={{fontSize:22, lineHeight:1}}>{label}</div>
-            <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{rarity} · {total} packs / nation</div>
+            <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{rarity} · {total} 包 / 国</div>
           </div>
         </div>
         <div className="pool-bar-count">
           <span className="f-display numeric" style={{fontSize:32, lineHeight:1}}>{remaining}</span>
-          <span className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>of {total}</span>
+          <span className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>共 {total}</span>
         </div>
       </div>
       <div className="bar"><div className="bar-fill" style={{width:`${pct}%`, background:color}}/></div>
@@ -762,12 +764,12 @@ const PoolBar = ({ role, remaining, total, label, rarity, color, country }) => {
 
 const StatusLight = ({ stage }) => {
   const states = {
-    idle:       { color: "var(--fg-3)", label: "READY" },
-    committing: { color: "var(--accent)", label: "COMMIT", pulse: true },
-    requesting: { color: "var(--accent)", label: "VRF SENT", pulse: true },
-    spinning:   { color: "var(--accent)", label: "ENTROPY", pulse: true },
-    revealed:   { color: "var(--bull)", label: "RESOLVED" },
-    claimed:    { color: "var(--bull)", label: "MINTED" },
+    idle:       { color: "var(--fg-3)", label: "就绪" },
+    committing: { color: "var(--accent)", label: "提交中", pulse: true },
+    requesting: { color: "var(--accent)", label: "VRF 已发送", pulse: true },
+    spinning:   { color: "var(--accent)", label: "随机熵", pulse: true },
+    revealed:   { color: "var(--bull)", label: "已解析" },
+    claimed:    { color: "var(--bull)", label: "已铸造" },
   };
   const s = states[stage];
   return (
@@ -782,12 +784,12 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "idle") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">Awaiting</div>
+        <div className="eyebrow">等待中</div>
         <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>
-          Hit open to <span className="f-display-it" style={{color:"var(--accent)"}}>burn one</span> {country.id} token.
+          点击开包，<span className="f-display-it" style={{color:"var(--accent)"}}>销毁一枚</span> {country.id} 代币。
         </div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
-          Chainlink VRF will return one role. The pack mints 10 of the resolved player token.
+          Chainlink VRF 将返回一个角色。每包铸造 10 枚解析出的球员代币。
         </div>
       </div>
     );
@@ -795,10 +797,10 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "committing") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">01 / Commit</div>
-        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>Burning 1 {country.id}…</div>
+        <div className="eyebrow">01 / 提交</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>正在销毁 1 枚 {country.id}…</div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
-          Calling openPack(country) on the PlayerPackOpener…
+          正在调用 PlayerPackOpener 的 openPack(country)…
         </div>
       </div>
     );
@@ -806,8 +808,8 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "requesting") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">02 / VRF request</div>
-        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>Awaiting <span className="f-display-it">{requestId}</span></div>
+        <div className="eyebrow">02 / VRF 请求</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>等待 <span className="f-display-it">{requestId}</span></div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
           numWords=1 · randomWord % (cpt+bst+rke) → role
         </div>
@@ -817,12 +819,12 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "spinning") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">03 / Resolving</div>
+        <div className="eyebrow">03 / 解析中</div>
         <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>
           <span className="dots"><span/><span/><span/></span>
         </div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
-          fulfillRandomWords() — decrementing quotas in callback.
+          fulfillRandomWords() — 在回调中扣减配额。
         </div>
       </div>
     );
@@ -833,7 +835,7 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
     return (
       <div className={"pp-status pp-status-revealed pp-status-" + result}>
         <div className="pp-status-burst"/>
-        <div className="eyebrow" style={{color:r.color}}>{r.rarity} · {result}</div>
+        <div className="eyebrow" style={{color:r.color}}>{rarityZh(r.rarity)} · {result}</div>
         <div className="f-display" style={{fontSize:32, lineHeight:1.05, color: r.color, marginTop:4}}>
           {playerName}
         </div>
@@ -841,7 +843,7 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
           <span style={{color:"var(--fg)"}}>{country.name}</span> · {r.label} · #{result === "CPT" ? 10 : result === "BST" ? 9 : 23}
         </div>
         <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", marginTop:6}}>
-          +10 {country.id}.{result} player tokens · curve seeded on claim
+          +10 枚 {country.id}.{result} 球员代币 · 曲线在领取时注入
         </div>
       </div>
     );
@@ -893,7 +895,7 @@ const SlotReel = ({ stage, roles, target, country }) => {
                     <div className="pp-reel-item-info">
                       <div className="pp-reel-item-tag f-mono">{r}</div>
                       <div className="pp-reel-item-label f-display">{role.label}</div>
-                      <div className="pp-reel-item-rarity f-mono">{role.rarity}</div>
+                      <div className="pp-reel-item-rarity f-mono">{rarityZh(role.rarity)}</div>
                     </div>
                   </div>
         );

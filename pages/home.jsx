@@ -1,4 +1,4 @@
-// GOAL — Home page
+// FOOTBALL — Home page
 const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
   const [filter, setFilter] = React.useState("ALL");
   const confs = ["ALL", "UEFA", "CONMEBOL", "AFC", "CAF", "CONCACAF", "OFC"];
@@ -12,16 +12,16 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
         <div className="pitch-bg"/>
         <PitchLines/>
         <div className="home-hero-mark">
-          <div className="eyebrow">Goal Protocol · Ethereum Mainnet · 6&nbsp;ETH FDV</div>
+          <div className="eyebrow">FOOTBALL 协议 · BSC · 6&nbsp;BNB FDV</div>
           <div className="home-hero-tagline f-mono">
             {!countdown.available ? (
-              <span style={{color:"var(--fg-3)"}}>reading pack window…</span>
+              <span style={{color:"var(--fg-3)"}}>读取开包窗口中…</span>
             ) : countdown.closed ? (
-              <span style={{color:"var(--fire)"}}>pack window closed · curves opening</span>
+              <span style={{color:"var(--fire)"}}>开包窗口已关闭 · 曲线开启中</span>
             ) : (
               <>
-                <span style={{color:"var(--fg)"}}>{countdown.days}d {countdown.hours}h {countdown.mins}m {countdown.secs}s</span>
-                <span> · pack window closes</span>
+                <span style={{color:"var(--fg)"}}>{countdown.days}天 {countdown.hours}时 {countdown.mins}分 {countdown.secs}秒</span>
+                <span> · 距开包窗口关闭</span>
               </>
             )}
           </div>
@@ -29,32 +29,32 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
         </div>
 
         <div className="home-hero-headline">
-          <span className="line-1">The World Cup,</span>
-          <span className="line-2">on-chain.</span>
+          <span className="line-1">世界杯，</span>
+          <span className="line-2">全部上链。</span>
         </div>
 
         <div className="home-hero-grid">
           <div className="home-hero-prose">
             <p className="home-hero-lede">
-              48 nations. 144 players. <span style={{color:"var(--pitch-green)"}}>One&nbsp;ball.</span>
+              48 国家。144 球员。<span style={{color:"var(--pitch-green)"}}>同&nbsp;一颗球。</span>
               <br/>
-              960,000 supply, deflating with every trade.
+              总量 960,000，每笔交易持续通缩。
             </p>
             <p className="home-hero-fine">
-              Closed-loop curves on Uniswap V4. No team. No mint. No exit.
+              基于 PancakeSwap 的闭环曲线。无团队。无增发。无退出。
               <br/>
-              Immutable on Ethereum mainnet. <span style={{color:"var(--accent)"}}>The ball never stops.</span>
+              在 BSC 上永久不可篡改。<span style={{color:"var(--accent)"}}>这颗球永不停转。</span>
             </p>
             <div className="home-hero-cta">
               <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>
-                Open a Pack
+                开一包
                 <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5 L10 5 M6 1 L10 5 L6 9" stroke="currentColor" strokeWidth="1.4" fill="none"/></svg>
               </button>
               <button className="btn" onClick={()=>setRoute({name:"markets"})}>
-                Trade Curves
+                交易曲线
               </button>
               <button className="btn" onClick={()=>setRoute({name:"mechanics"})}>
-                Read Mechanics
+                查看机制
               </button>
             </div>
           </div>
@@ -71,20 +71,20 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
       {/* ============ PHASE STATUS ============ */}
       <section className="home-phases">
         <div className="section-eyebrow">
-          <span className="eyebrow">Phase Status</span>
+          <span className="eyebrow">阶段状态</span>
           <div className="hairline" />
         </div>
 
         <div className="home-phases-grid">
           <PhaseCard
-            num="I" title="Pack Window" state="OPEN"
-            sub={`${packsSold.toLocaleString()} / ${totalPacks.toLocaleString()} packs sold`}
+            num="I" title="开包窗口" state="OPEN"
+            sub={`已售 ${packsSold.toLocaleString()} / ${totalPacks.toLocaleString()} 包`}
             pct={Math.round(packsSold / totalPacks * 100)}
             countdown={countdown}
           />
           <PhaseCard
-            num="II" title="Curve Trading" state="PARTIAL"
-            sub={`${COUNTRIES.filter(c=>countryState(c).curveOpen).length} / 48 country curves live`}
+            num="II" title="曲线交易" state="PARTIAL"
+            sub={`${COUNTRIES.filter(c=>countryState(c).curveOpen).length} / 48 条国家曲线已上线`}
             pct={Math.round(COUNTRIES.filter(c=>countryState(c).curveOpen).length / 48 * 100)}
           />
         </div>
@@ -93,7 +93,7 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
       {/* ============ COUNTRY GRID ============ */}
       <section className="home-countries">
         <div className="section-eyebrow">
-          <span className="eyebrow">48 nations · 144 players · 192 curves</span>
+          <span className="eyebrow">48 国家 · 144 球员 · 192 条曲线</span>
           <div className="hairline" />
         </div>
 
@@ -120,7 +120,7 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
                 <div className="country-card-top">
                   <Flag country={c} w={48} h={32} />
                   <span className={"country-card-status " + (s.curveOpen ? "status-live" : s.sealed ? "status-sealed" : "status-pack")}>
-                    {s.curveOpen ? "Curve Live" : s.sealed ? "Sealed" : "Pack Open"}
+                    {s.curveOpen ? "曲线上线" : s.sealed ? "已封盘" : "开包中"}
                   </span>
                 </div>
                 <div>
@@ -134,13 +134,13 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
                 <div className="country-card-foot">
                   {s.curveOpen ? (
                     <>
-                      <span><span className="v">{s.price.toFixed(2)}</span> G/tkn</span>
+                      <span><span className="v">{s.price.toFixed(2)}</span> G/枚</span>
                       <span><span className="v">{s.supply.toLocaleString()}</span> / 20k</span>
                     </>
                   ) : (
                     <>
-                      <span><span className="v">{(s.packsSold/1000).toFixed(1)}k</span>/18k packs</span>
-                      <span>6.9 G/pack</span>
+                      <span><span className="v">{(s.packsSold/1000).toFixed(1)}k</span>/18k 包</span>
+                      <span>6.9 G/包</span>
                     </>
                   )}
                 </div>
@@ -153,7 +153,7 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
       {/* ============ V4 HOOKS CALLOUT ============ */}
       <section className="home-v4">
         <div className="section-eyebrow">
-          <span className="eyebrow">Uniswap V4</span>
+          <span className="eyebrow">PancakeSwap</span>
           <div className="hairline" />
         </div>
 
@@ -161,22 +161,21 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
           <div>
             <div className="eyebrow" style={{marginBottom:12}}>Hook · 0xC0DE</div>
             <h2 className="f-display" style={{fontSize:"clamp(36px,5vw,72px)", lineHeight:1.0, margin:"0 0 24px", letterSpacing:"-0.045em", fontWeight:600}}>
-              The burn lives inside the swap.
+              销毁就发生在交易内部。
             </h2>
             <p style={{color:"var(--fg-2)", fontSize:17, lineHeight:1.6, maxWidth:560}}>
-              GOAL's 192 bonding curves are deployed as a single Uniswap V4 hook contract.
-              Every swap routes through <code className="inline-code">beforeSwap</code>, where the
-              5% protocol fee is extracted and routed straight to <code className="inline-code">GOAL.burn()</code>.
-              No router, no intermediate transfer, no second transaction. The deflation is
-              atomic with the trade.
+              FOOTBALL 的 192 条联合曲线部署为单个 PancakeSwap hook 合约。
+              每笔 swap 都会经过 <code className="inline-code">beforeSwap</code>，5% 协议费在此被提取并直接送进
+              <code className="inline-code">FOOTBALL.burn()</code>。
+              无路由、无中转、无第二笔交易。通缩与交易原子完成。
             </p>
             <div className="home-v4-stats">
-              <div><div className="stat-label f-mono">HOOK PERMISSIONS</div><div className="f-mono" style={{color:"var(--fg)"}}>beforeSwap · afterSwap</div></div>
-              <div><div className="stat-label f-mono">PER-SWAP OVERHEAD</div><div className="f-mono" style={{color:"var(--fg)"}}>~21,000 gas</div></div>
-              <div><div className="stat-label f-mono">FEE CAPTURE</div><div className="f-mono" style={{color:"var(--fg)"}}>100% → burn</div></div>
+              <div><div className="stat-label f-mono">HOOK 权限</div><div className="f-mono" style={{color:"var(--fg)"}}>beforeSwap · afterSwap</div></div>
+              <div><div className="stat-label f-mono">单笔 SWAP 开销</div><div className="f-mono" style={{color:"var(--fg)"}}>约 21,000 gas</div></div>
+              <div><div className="stat-label f-mono">手续费去向</div><div className="f-mono" style={{color:"var(--fg)"}}>100% → 销毁</div></div>
             </div>
             <button className="btn" style={{marginTop:32}} onClick={()=>setRoute({name:"mechanics"})}>
-              Read the hook spec
+              阅读 hook 规格
               <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5 L10 5 M6 1 L10 5 L6 9" stroke="currentColor" strokeWidth="1.4" fill="none"/></svg>
             </button>
           </div>
@@ -191,7 +190,7 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
 };
 
 /* ============ Sub-components ============ */
-// Live GOAL price ticker — auto-appears once DexScreener indexes the V4 pool.
+// Live FOOTBALL price ticker — auto-appears once DexScreener indexes the PancakeSwap pool.
 const GoalPriceTicker = () => {
   const [price, setPrice] = React.useState(() => window.PRICES?.state?.goal || null);
   React.useEffect(() => {
@@ -203,16 +202,16 @@ const GoalPriceTicker = () => {
   const up = (price.change24h || 0) >= 0;
   return (
     <a className="home-hero-tagline f-mono"
-       href={price.pairUrl || `https://dexscreener.com/ethereum/${window.GOAL_CONFIG.goal}`}
+       href={price.pairUrl || `https://dexscreener.com/bsc/${window.GOAL_CONFIG.goal}`}
        target="_blank" rel="noreferrer noopener"
        style={{display:"inline-flex", gap:14, alignItems:"center", textDecoration:"none", marginTop:6}}>
       <span style={{color:"var(--fg)"}}>${price.priceUsd.toLocaleString(undefined, {maximumFractionDigits: 6})}</span>
       <span style={{color: up ? "var(--bull)" : "var(--bear)"}}>
-        {up ? "▲" : "▼"} {Math.abs(price.change24h).toFixed(2)}% 24h
+        {up ? "▲" : "▼"} {Math.abs(price.change24h).toFixed(2)}% 24小时
       </span>
       <span style={{color:"var(--fg-3)", fontSize:11}}>
-        · vol ${price.volume24h.toLocaleString(undefined,{maximumFractionDigits:0})}
-        · liq ${price.liquidityUsd.toLocaleString(undefined,{maximumFractionDigits:0})}
+        · 成交量 ${price.volume24h.toLocaleString(undefined,{maximumFractionDigits:0})}
+        · 流动性 ${price.liquidityUsd.toLocaleString(undefined,{maximumFractionDigits:0})}
       </span>
       <span style={{color:"var(--fg-4)", fontSize:10}}>{price.dexId} →</span>
     </a>
@@ -296,24 +295,24 @@ const SupplyGauge = ({ burned }) => {
       <div className="supply-gauge-glow"/>
 
       <div className="supply-gauge-head">
-        <span className="eyebrow">Live · Ethereum mainnet</span>
+        <span className="eyebrow">实时 · BSC</span>
         <span className="supply-gauge-live-dot"/>
       </div>
 
       <div className="supply-gauge-row">
         <div className="supply-gauge-col">
-          <div className="supply-gauge-label">Circulating</div>
+          <div className="supply-gauge-label">流通量</div>
           <div className="supply-gauge-big">
             <AnimatedNumber value={remaining} duration={1400} decimals={remainDecimals}/>
           </div>
           <div className="supply-gauge-unit">
-            <span className="supply-gauge-unit-tag">GOAL</span>
-            <span className="supply-gauge-unit-sub">capped · 960,000</span>
+            <span className="supply-gauge-unit-tag">FOOTBALL</span>
+            <span className="supply-gauge-unit-sub">封顶 · 960,000</span>
           </div>
         </div>
         <div className="supply-gauge-divider"/>
         <div className="supply-gauge-col supply-gauge-col-burn">
-          <div className="supply-gauge-label">Burned forever</div>
+          <div className="supply-gauge-label">已永久销毁</div>
           <div className="supply-gauge-burn">
             <span className="supply-gauge-burn-mark">▲</span>
             <AnimatedNumber value={burned} duration={1400} decimals={burnDecimals}/>
@@ -322,7 +321,7 @@ const SupplyGauge = ({ burned }) => {
             <span className="supply-gauge-unit-tag is-fire">
               ▲ {rate24h === null ? "…" : rate24h.toLocaleString(undefined,{maximumFractionDigits: rate24h < 100 ? 3 : 0})}
             </span>
-            <span className="supply-gauge-unit-sub">GOAL / 24h on-chain</span>
+            <span className="supply-gauge-unit-sub">FOOTBALL / 24小时链上</span>
           </div>
         </div>
       </div>
@@ -339,7 +338,7 @@ const SupplyGauge = ({ burned }) => {
         <span className="f-mono supply-gauge-foot-end">0</span>
         <span className="supply-gauge-foot-pct">
           <span className="f-display numeric">{pct.toFixed(2)}</span>
-          <span className="f-mono">% burned</span>
+          <span className="f-mono">% 已销毁</span>
         </span>
         <span className="f-mono supply-gauge-foot-end is-right">960k</span>
       </div>
@@ -352,10 +351,10 @@ const PhaseCard = ({ num, title, state, sub, pct, countdown }) => (
     <div className="phase-card-top">
       <span className="f-display-it" style={{fontSize:64, lineHeight:0.9, color:"var(--fg-4)"}}>{num}</span>
       <div className="phase-card-meta">
-        <div className="eyebrow">Phase {num}</div>
+        <div className="eyebrow">阶段 {num}</div>
         <div className="phase-card-title f-display">{title}</div>
         <div className={"pill " + (state==="OPEN" ? "accent" : state==="PARTIAL" ? "bull" : "")}>
-          <span className="pill-dot"/>{state}
+          <span className="pill-dot"/>{state==="OPEN" ? "开放中" : state==="PARTIAL" ? "部分上线" : state}
         </div>
       </div>
     </div>
@@ -368,7 +367,7 @@ const PhaseCard = ({ num, title, state, sub, pct, countdown }) => (
     </div>
     {countdown && (
       <div className="phase-card-countdown">
-        <span className="eyebrow">{!countdown.available ? "Reading window…" : countdown.closed ? "Closed" : "Closes in"}</span>
+        <span className="eyebrow">{!countdown.available ? "读取窗口中…" : countdown.closed ? "已关闭" : "剩余时间"}</span>
         <div className="f-mono numeric" style={{fontSize:22, color: countdown.closed ? "var(--fire)" : "var(--fg)"}}>
           {!countdown.available ? "—" :
            countdown.closed ? "00:00:00:00" :
@@ -380,7 +379,7 @@ const PhaseCard = ({ num, title, state, sub, pct, countdown }) => (
 );
 
 const Ticker = ({ burned }) => {
-  // Real on-chain ticker — sources from GOAL Transfer logs (burns) every 30s.
+  // Real on-chain ticker — sources from FOOTBALL Transfer logs (burns) every 30s.
   const [events, setEvents] = React.useState([]);
 
   React.useEffect(() => {
@@ -390,13 +389,13 @@ const Ticker = ({ burned }) => {
       try {
         const burns = await window.CHAIN.getRecentBurns(16);
         if (cancel) return;
-        const lines = burns.map(b => `BURN · ${b.value.toFixed(2)} GOAL`);
+        const lines = burns.map(b => `销毁 · ${b.value.toFixed(2)} FOOTBALL`);
         // Round out with real per-country supply tags
         const live = window.COUNTRIES
           .filter(c => countryState(c).curveOpen)
           .slice(0, 8)
-          .map(c => `${c.id} · curve live @ ${countryState(c).price.toFixed(2)} G`);
-        const combined = lines.length || live.length ? [...lines, ...live] : ["No on-chain events yet · packs open"];
+          .map(c => `${c.id} · 曲线上线 @ ${countryState(c).price.toFixed(2)} G`);
+        const combined = lines.length || live.length ? [...lines, ...live] : ["暂无链上事件 · 开包进行中"];
         setEvents(combined);
       } catch (e) { /* keep current */ }
     }
@@ -415,13 +414,13 @@ const Ticker = ({ burned }) => {
   }, []);
 
   const colorize = (text) => {
-    if (text.startsWith("BURN")) return <span style={{color:"var(--fire)"}}>{text}</span>;
+    if (text.startsWith("销毁")) return <span style={{color:"var(--fire)"}}>{text}</span>;
     const m = text.match(/^([A-Z]{3})(.*)$/);
     if (m) return <><span style={{color:"var(--pitch-green)"}}>{m[1]}</span>{m[2]}</>;
     return text;
   };
 
-  const display = events.length ? events : ["Reading on-chain events…"];
+  const display = events.length ? events : ["读取链上事件中…"];
   return (
     <div className="ticker">
       <div className="ticker-inner">
@@ -439,7 +438,7 @@ const Ticker = ({ burned }) => {
 const CodeBlock = () => (
   <div className="code-block">
     <div className="code-block-bar">
-      <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>GoalCurveHook.sol</span>
+      <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>FootballCurveHook.sol</span>
       <span className="f-mono" style={{color:"var(--fg-4)", fontSize:11}}>solidity 0.8.24</span>
     </div>
     <pre className="code-block-pre">
@@ -451,7 +450,7 @@ const CodeBlock = () => (
   uint256 amountIn = uint256(-params.amountSpecified);
   uint256 fee      = amountIn * 500 / 10_000;     // 5%
 
-  GOAL.burn(fee);                                // ← atomic deflation
+  FOOTBALL.burn(fee);                            // ← 原子通缩
   emit Burned(key.toId(), fee);
 
   return (BaseHook.beforeSwap.selector,
@@ -466,28 +465,28 @@ const Footer = ({ setRoute }) => (
   <footer className="match-footer">
     <div className="match-footer-inner">
       <div className="match-footer-credit">
-        <div style={{color:"var(--fg-2)"}}>GOAL PROTOCOL</div>
-        <div>The 2026 World Cup, on-chain.</div>
-        <div>No team. No mint. No proxy. No exit. The ball never stops.</div>
+        <div style={{color:"var(--fg-2)"}}>FOOTBALL 协议</div>
+        <div>2026 世界杯，全部上链。</div>
+        <div>无团队。无增发。无代理。无退出。这颗球永不停转。</div>
         <div style={{marginTop:8, color:"var(--fg-4)"}} className="f-mono">
-          {window.GOAL_CONFIG?.goal} · mainnet
+          {window.GOAL_CONFIG?.goal} · BSC
         </div>
       </div>
       <div className="col gap-2">
-        <span className="eyebrow">Protocol</span>
-        <a className="footer-link" onClick={()=>setRoute({name:"mechanics"})}>Mechanics</a>
-        <a className="footer-link" onClick={()=>setRoute({name:"burn"})}>Burn Dashboard</a>
-        <a className="footer-link" href={`https://etherscan.io/token/${window.GOAL_CONFIG?.goal}`} target="_blank" rel="noreferrer noopener">Etherscan</a>
+        <span className="eyebrow">协议</span>
+        <a className="footer-link" onClick={()=>setRoute({name:"mechanics"})}>机制</a>
+        <a className="footer-link" onClick={()=>setRoute({name:"burn"})}>销毁看板</a>
+        <a className="footer-link" href={`https://bscscan.com/token/${window.GOAL_CONFIG?.goal}`} target="_blank" rel="noreferrer noopener">BscScan</a>
       </div>
       <div className="col gap-2">
-        <span className="eyebrow">Community</span>
-        <a className="footer-link" href="https://x.com/goal_erc" target="_blank" rel="noreferrer noopener">@goal_erc on X</a>
+        <span className="eyebrow">社区</span>
+        <a className="footer-link" href="https://x.com/DELPHIbsc" target="_blank" rel="noreferrer noopener">X 上关注 @DELPHIbsc</a>
         <a className="footer-link" href="https://goalerc20.xyz" target="_blank" rel="noreferrer noopener">goalerc20.xyz</a>
       </div>
       <div className="col gap-2">
-        <span className="eyebrow">Network</span>
-        <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>Ethereum · Mainnet · 1</span>
-        <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>Uniswap V4</span>
+        <span className="eyebrow">网络</span>
+        <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>BSC · 主网 · 56</span>
+        <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>PancakeSwap</span>
         <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>Chainlink VRF v2.5</span>
         <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>OpenZeppelin v5</span>
       </div>

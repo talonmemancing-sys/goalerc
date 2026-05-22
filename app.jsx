@@ -1,4 +1,4 @@
-// GOAL — main app shell
+// FOOTBALL — main app shell
 const { useState, useEffect, useMemo } = React;
 
 // Subscribe to live CHAIN cache. Re-renders whenever a fresh mainnet read lands.

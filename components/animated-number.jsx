@@ -1,4 +1,4 @@
-// MATCH — Animated number that counts toward its target value.
+// FOOTBALL — Animated number that counts toward its target value.
 // Always renders the current value (no flash from 0).
 const AnimatedNumber = ({ value, decimals = 0, duration = 1100, prefix = "", suffix = "", className = "" }) => {
   const target = Number(value) || 0;

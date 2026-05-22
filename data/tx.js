@@ -1,9 +1,9 @@
-// GOAL — real on-chain transactions.
+// FOOTBALL — real on-chain transactions (BSC mainnet).
 // Encodes & sends: buyCountryPack, openPlayerPack (VRF 2-step), curve buy/sell.
 // Reads quotes from curve.quoteBuy / curve.quoteSell.
 
 (function () {
-  const cfg = window.GOAL_CONFIG;
+  const cfg = window.FOOTBALL_CONFIG;
 
   const ERC20_ABI = [
     "function approve(address,uint256) returns (bool)",
@@ -54,7 +54,7 @@
     if (!window.WALLET?.state?.connected) throw new Error("Wallet not connected");
     if (!window.WALLET.state.onMainnet) {
       await window.WALLET.switchToMainnet();
-      if (!window.WALLET.state.onMainnet) throw new Error("Please switch to Ethereum mainnet");
+      if (!window.WALLET.state.onMainnet) throw new Error("Please switch to BNB Smart Chain");
     }
     const eip1193 = window.WALLET._provider;
     if (!eip1193) throw new Error("Wallet provider unavailable");
@@ -95,11 +95,14 @@
   async function buyCountryPack(iso, nPacks, onStep) {
     const { signer, address } = await getSignerCtx();
     const country = isoToContractIdx(iso);
-    const pricePerPack = ethers.parseEther("6.9");
+    // Pack price (FOOTBALL-denominated) comes from config — set on graduation.
+    const pricePerPack = ethers.parseEther(String(cfg.packPriceFootball || "6.9"));
     const cost = pricePerPack * BigInt(nPacks);
 
     if (onStep) onStep("approving");
-    await ensureAllowance(cfg.goal, cfg.countryPackOpener, cost, signer, address);
+    // FOOTBALL is fee-on-transfer (4% DEX tax), but a plain ERC20 transfer to
+    // a protocol contract is tax-exempt — the pack opener receives the full cost.
+    await ensureAllowance(cfg.football, cfg.countryPackOpener, cost, signer, address);
 
     if (onStep) onStep("sending");
     const opener = new ethers.Contract(cfg.countryPackOpener, COUNTRY_PACK_OPENER_ABI, signer);
@@ -202,7 +205,7 @@
     return tx.hash;
   }
 
-  // ── CURVE: BUY (pay GOAL, receive curve token) ──────────────────────
+  // ── CURVE: BUY (pay FOOTBALL, receive curve token) ──────────────────
   async function curveBuy(curveAddr, pitchInWei, slippageBps = 100, onStep) {
     const { signer, address } = await getSignerCtx();
     const curveRead = new ethers.Contract(curveAddr, CURVE_ABI, window.CHAIN._provider);
@@ -210,7 +213,7 @@
     const minOut = (expectedOut * (10000n - BigInt(slippageBps))) / 10000n;
 
     if (onStep) onStep("approving");
-    await ensureAllowance(cfg.goal, curveAddr, pitchInWei, signer, address);
+    await ensureAllowance(cfg.football, curveAddr, pitchInWei, signer, address);
 
     if (onStep) onStep("sending");
     const curve = new ethers.Contract(curveAddr, CURVE_ABI, signer);
@@ -221,7 +224,7 @@
     return { txHash: tx.hash, expectedOut, minOut, receipt };
   }
 
-  // ── CURVE: SELL (burn curve token, receive GOAL) ────────────────────
+  // ── CURVE: SELL (burn curve token, receive FOOTBALL) ────────────────
   async function curveSell(curveAddr, curveTokenAddr, tokenInWei, slippageBps = 100, onStep) {
     const { signer, address } = await getSignerCtx();
     const curveRead = new ethers.Contract(curveAddr, CURVE_ABI, window.CHAIN._provider);
