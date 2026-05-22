@@ -117,7 +117,9 @@
       } catch {}
     }
 
-    const tx = await token.approve(spender, amount);
+    // 授权无限额度（MaxUint256）—— 一次授权永久有效,不再每笔重复弹授权。
+    // 标准 ERC20 对无限额度不递减,下次 ensureAllowance 直接命中 current>=amount 跳过。
+    const tx = await token.approve(spender, ethers.MaxUint256);
     await confirm(amount, tx);
     return tx.hash;
   }
