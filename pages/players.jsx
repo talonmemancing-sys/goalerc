@@ -1,7 +1,7 @@
 // FOOTBALL — Player markets pages (gallery + single player detail)
 
 // Maps the data-layer rarity tier to a Chinese label for display.
-const rarityZhP = (r) => ({ Wide: "普通", Rare: "稀有", Common: "常见" }[r] || r);
+const rarityZhP = (r) => ({ Wide: L("普通","Common"), Rare: L("稀有","Rare"), Common: L("常见","Standard") }[r] || r);
 const { useState: usePlState, useMemo: usePlMemo, useEffect: usePlEffect } = React;
 
 /* ============== Helper: build all 144 players from real chain state ============== */
@@ -54,39 +54,38 @@ const PlayersMarket = ({ setRoute }) => {
 
   const confs = ["ALL", "UEFA", "CONMEBOL", "AFC", "CAF", "CONCACAF", "OFC"];
   const roles = [
-    { id: "ALL", label: "全部", count: 144 },
-    { id: "BST", label: "巨星", count: 48, color: "var(--rare-best)" },
-    { id: "CPT", label: "队长", count: 48, color: "var(--rare-captain)" },
-    { id: "RKE", label: "新星", count: 48, color: "var(--rare-rookie)" },
+    { id: "ALL", label: L("全部","All"), count: 144 },
+    { id: "BST", label: L("巨星","Best"), count: 48, color: "var(--rare-best)" },
+    { id: "CPT", label: L("队长","Captain"), count: 48, color: "var(--rare-captain)" },
+    { id: "RKE", label: L("新星","Rookie"), count: 48, color: "var(--rare-rookie)" },
   ];
 
   return (
     <main className="match-page players-page">
       <section className="players-hero">
         <div>
-          <div className="eyebrow">球员 · 144 条曲线</div>
+          <div className="eyebrow">{L("球员 · 144 条曲线","Players · 144 curves")}</div>
           <h1 className="f-display" style={{fontSize:"clamp(44px,6vw,92px)", lineHeight:0.98, letterSpacing:"-0.045em", margin:"12px 0 8px", fontWeight:600}}>
-            144 名球员。
+            {L("144 名球员。","144 players.")}
             <br/>
-            <span style={{color:"var(--rare-best)", fontWeight:300}}>同一颗球，背书所有。</span>
+            <span style={{color:"var(--rare-best)", fontWeight:300}}>{L("同一颗球，背书所有。","One ball backs them all.")}</span>
           </h1>
           <p style={{maxWidth:560, color:"var(--fg-2)", fontSize:17, lineHeight:1.55}}>
-            每国三个角色。50 巨星（最稀有）、150 队长、250 新星 — 总量固定、
-            曲线不可篡改、以 FOOTBALL 计价。
+            {L("每国三个角色。50 巨星（最稀有）、150 队长、250 新星 — 总量固定、曲线不可篡改、以 FOOTBALL 计价。","Three roles per country. 50 Best (rarest), 150 Captains, 250 Rookies — fixed supply, immutable curves, priced in FOOTBALL.")}
           </p>
         </div>
         <div className="players-hero-stats">
           <div className="player-tier-stat tier-BST">
             <div className="player-tier-stat-num">48</div>
-            <div className="player-tier-stat-label">巨星 · 每个 500</div>
+            <div className="player-tier-stat-label">{L("巨星 · 每个 500","Best · 500 each")}</div>
           </div>
           <div className="player-tier-stat tier-CPT">
             <div className="player-tier-stat-num">48</div>
-            <div className="player-tier-stat-label">队长 · 每个 1,500</div>
+            <div className="player-tier-stat-label">{L("队长 · 每个 1,500","Captain · 1,500 each")}</div>
           </div>
           <div className="player-tier-stat tier-RKE">
             <div className="player-tier-stat-num">48</div>
-            <div className="player-tier-stat-label">新星 · 每个 2,500</div>
+            <div className="player-tier-stat-label">{L("新星 · 每个 2,500","Rookie · 2,500 each")}</div>
           </div>
         </div>
       </section>
@@ -109,12 +108,12 @@ const PlayersMarket = ({ setRoute }) => {
           ))}
         </div>
         <div className="players-sort">
-          <span className="eyebrow">排序</span>
+          <span className="eyebrow">{L("排序","Sort")}</span>
           {[
-            {id: "price", label: "价格"},
-            {id: "ch", label: "24小时"},
-            {id: "burn", label: "销毁量"},
-            {id: "scarcity", label: "稀缺度"},
+            {id: "price", label: L("价格","Price")},
+            {id: "ch", label: L("24小时","24h")},
+            {id: "burn", label: L("销毁量","Burned")},
+            {id: "scarcity", label: L("稀缺度","Scarcity")},
           ].map(s => (
             <button key={s.id} className={"markets-sort-btn " + (sort === s.id ? "is-active" : "")}
                     onClick={() => setSort(s.id)}>{s.label}</button>
@@ -153,12 +152,12 @@ const PlayerCard = ({ p, onClick }) => {
       </div>
       <div className="player-card-stats">
         <div className="player-card-stat">
-          <span className="eyebrow">价格</span>
+          <span className="eyebrow">{L("价格","Price")}</span>
           <span className="f-display numeric player-card-stat-v">{p.price.toFixed(2)}</span>
           <span className="f-mono player-card-stat-u">FB</span>
         </div>
         <div className="player-card-stat is-right">
-          <span className="eyebrow">24小时</span>
+          <span className="eyebrow">{L("24小时","24h")}</span>
           <span className={"f-mono player-card-ch " + (up ? "is-up" : "is-down")}>
             {up ? "▲" : "▼"} {(Math.abs(p.ch24) * 100).toFixed(1)}%
           </span>
@@ -166,7 +165,7 @@ const PlayerCard = ({ p, onClick }) => {
       </div>
       <div className="player-card-scarcity">
         <div className="player-card-scarcity-row">
-          <span className="f-mono" style={{fontSize:10, color:"var(--fg-3)", letterSpacing:"0.04em"}}>供应量 / 渐近线</span>
+          <span className="f-mono" style={{fontSize:10, color:"var(--fg-3)", letterSpacing:"0.04em"}}>{L("供应量 / 渐近线","Supply / Asymptote")}</span>
           <span className="f-mono numeric" style={{fontSize:11, color:"var(--fg-2)"}}>
             {p.supply.toLocaleString()} / {p.roleData.max.toLocaleString()}
           </span>
@@ -245,9 +244,9 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
   const pending = txState === "approving" || txState === "sending" || txState === "mining";
 
   const handleTrade = async () => {
-    if (!wallet.connected) { alert("请先连接钱包。"); return; }
-    if (!ps.curveOpen) { alert("球员曲线尚未激活 — 需先封盘对应的国家窗口。"); return; }
-    if (!ps.curveAddr || !ps.tokenAddr) { alert("球员曲线尚未部署。"); return; }
+    if (!wallet.connected) { alert(L("请先连接钱包。","Please connect your wallet first.")); return; }
+    if (!ps.curveOpen) { alert(L("球员曲线尚未激活 — 需先封盘对应的国家窗口。","Player curve is not active yet — the matching country window must be closed first.")); return; }
+    if (!ps.curveAddr || !ps.tokenAddr) { alert(L("球员曲线尚未部署。","Player curve is not deployed yet.")); return; }
     setErrMsg(null); setTxHash(null);
     try {
       const amtWei = ethers.parseEther(String(amount));
@@ -268,14 +267,14 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
     } catch (e) {
       console.error(e);
       setTxState("error");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "交易失败");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || L("交易失败","Transaction failed"));
     }
   };
 
   return (
     <main className={"match-page player-detail tier-" + role}>
       <section className="pd-head">
-        <button className="pc-back" onClick={()=>setRoute({name:"players"})}>← 球员</button>
+        <button className="pc-back" onClick={()=>setRoute({name:"players"})}>{L("← 球员","← Players")}</button>
         <div className="pd-head-grid">
           <div className="pd-jersey-wrap">
             <div className={"pd-jersey-glow tier-glow-" + role}/>
@@ -298,22 +297,22 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
 
             <div className="pd-stats">
               <div className="pd-stat">
-                <div className="eyebrow">价格</div>
+                <div className="eyebrow">{L("价格","Price")}</div>
                 <div className="f-display numeric pd-stat-big">{price.toFixed(3)}</div>
                 <div className="f-mono pd-stat-unit">FOOTBALL</div>
               </div>
               <div className="pd-stat">
-                <div className="eyebrow">供应量</div>
+                <div className="eyebrow">{L("供应量","Supply")}</div>
                 <div className="f-display numeric pd-stat-big">{supply.toLocaleString()}</div>
-                <div className="f-mono pd-stat-unit">共 {r.max.toLocaleString()}</div>
+                <div className="f-mono pd-stat-unit">{L("共","of")} {r.max.toLocaleString()}</div>
               </div>
               <div className="pd-stat">
-                <div className="eyebrow">已销毁</div>
+                <div className="eyebrow">{L("已销毁","Burned")}</div>
                 <div className="f-display numeric pd-stat-big" style={{color:"var(--fire)"}}>—</div>
-                <div className="f-mono pd-stat-unit">索引器待接入</div>
+                <div className="f-mono pd-stat-unit">{L("索引器待接入","Indexer pending")}</div>
               </div>
               <div className="pd-stat">
-                <div className="eyebrow">储备</div>
+                <div className="eyebrow">{L("储备","Reserve")}</div>
                 <div className="f-display numeric pd-stat-big">{Math.round(reservePool).toLocaleString()}</div>
                 <div className="f-mono pd-stat-unit">FOOTBALL</div>
               </div>
@@ -321,9 +320,9 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
 
             <div className="pd-scarcity">
               <div className="pd-scarcity-row">
-                <span className="eyebrow">稀缺度 · 距渐近线 {scarcity.toFixed(1)}%</span>
+                <span className="eyebrow">{L(`稀缺度 · 距渐近线 ${scarcity.toFixed(1)}%`, `Scarcity · ${scarcity.toFixed(1)}% to Asymptote`)}</span>
                 <span className="f-mono" style={{fontSize:11, color: scarcity > 80 ? "var(--fire)" : "var(--fg-3)"}}>
-                  {scarcity > 80 ? "⚠ 抛物线区" : "安全区"}
+                  {scarcity > 80 ? L("⚠ 抛物线区","⚠ Parabolic Zone") : L("安全区","Safe Zone")}
                 </span>
               </div>
               <div className="pd-scarcity-bar">
@@ -344,7 +343,7 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
               ))}
             </div>
             <div className="md-chart-meta">
-              <span className="eyebrow">虚拟储备</span>
+              <span className="eyebrow">{L("虚拟储备","Virtual Reserve")}</span>
               <span className="f-mono" style={{fontSize:11, color: r.color}}>{r.max.toLocaleString()}</span>
             </div>
           </div>
@@ -360,22 +359,22 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
           <TransferLogFeed
             tokenAddr={ps.tokenAddr}
             symbol={`${country.id}.${role}`}
-            heading="近期转账"
+            heading={L("近期转账","Recent Transfers")}
           />
         </div>
 
         <div className="md-trade">
           <div className="md-trade-tabs">
-            <button className={"md-trade-tab " + (mode==="buy" ? "is-active is-buy" : "")} onClick={()=>setMode("buy")}>买入</button>
-            <button className={"md-trade-tab " + (mode==="sell" ? "is-active is-sell" : "")} onClick={()=>setMode("sell")}>卖出</button>
+            <button className={"md-trade-tab " + (mode==="buy" ? "is-active is-buy" : "")} onClick={()=>setMode("buy")}>{L("买入","Buy")}</button>
+            <button className={"md-trade-tab " + (mode==="sell" ? "is-active is-sell" : "")} onClick={()=>setMode("sell")}>{L("卖出","Sell")}</button>
           </div>
 
           <div className="md-trade-body">
             <div className="md-input">
               <div className="md-input-head">
-                <span className="eyebrow">{mode==="buy" ? "你支付" : "你卖出"}</span>
+                <span className="eyebrow">{mode==="buy" ? L("你支付","You pay") : L("你卖出","You sell")}</span>
                 <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
-                  余额：{wallet.connected
+                  {L("余额：","Balance: ")}{wallet.connected
                     ? (balToShow !== null ? balToShow.toLocaleString(undefined,{maximumFractionDigits:4}) : "…")
                     : "—"} {mode==="buy" ? "FOOTBALL" : `${country.id}.${role}`}
                 </span>
@@ -391,7 +390,7 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
                 {[25, 50, 75].map(p => (
                   <button key={p} className="md-preset" onClick={() => balToShow && setAmount(Number((balToShow * p/100).toFixed(4)))}>{p}%</button>
                 ))}
-                <button className="md-preset" onClick={() => balToShow && setAmount(Number(balToShow.toFixed(4)))}>最大</button>
+                <button className="md-preset" onClick={() => balToShow && setAmount(Number(balToShow.toFixed(4)))}>{L("最大","Max")}</button>
               </div>
             </div>
 
@@ -399,8 +398,8 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
 
             <div className="md-input">
               <div className="md-input-head">
-                <span className="eyebrow">你获得（预估）</span>
-                <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>扣除 5% 曲线手续费 → 销毁</span>
+                <span className="eyebrow">{L("你获得（预估）","You receive (est.)")}</span>
+                <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{L("扣除 5% 曲线手续费 → 销毁","After 5% curve fee → burned")}</span>
               </div>
               <div className="md-input-row">
                 <div className="md-input-field f-display-it numeric" style={{color: r.color}}>
@@ -413,9 +412,9 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
             </div>
 
             <div className="md-rate">
-              <div className="md-rate-row"><span className="eyebrow">汇率</span><span className="f-mono">1 {country.id}.{role} = {price.toFixed(3)} FOOTBALL</span></div>
+              <div className="md-rate-row"><span className="eyebrow">{L("汇率","Rate")}</span><span className="f-mono">1 {country.id}.{role} = {price.toFixed(3)} FOOTBALL</span></div>
               <div className="md-rate-row">
-                <span className="eyebrow">滑点</span>
+                <span className="eyebrow">{L("滑点","Slippage")}</span>
                 <span style={{display:"flex", gap:4}}>
                   {[[10,"0.1%"],[50,"0.5%"],[100,"1%"],[200,"2%"]].map(([bps, lbl]) => (
                     <button key={bps} onClick={()=>setSlippageBps(bps)} className="f-mono"
@@ -428,22 +427,22 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
                   ))}
                 </span>
               </div>
-              <div className="md-rate-row"><span className="eyebrow">曲线手续费</span><span className="f-mono" style={{color:"var(--fire)"}}>5% → 销毁</span></div>
+              <div className="md-rate-row"><span className="eyebrow">{L("曲线手续费","Curve Fee")}</span><span className="f-mono" style={{color:"var(--fire)"}}>{L("5% → 销毁","5% → burned")}</span></div>
               <div className="md-rate-row" style={{paddingTop:10, borderTop:"1px solid var(--line)"}}>
-                <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>净销毁</span>
+                <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>{L("净销毁","Net Burn")}</span>
                 <span className="f-mono numeric" style={{fontSize:13, color:"var(--fire)"}}>−{feeBurn} {mode==="buy" ? "FOOTBALL" : country.id+"."+role}</span>
               </div>
             </div>
 
             <button className={"btn md-trade-cta " + (mode==="buy" ? "btn-primary" : "btn-fire")}
                     onClick={handleTrade} disabled={pending || !wallet.connected || !ps.curveOpen}>
-              {!wallet.connected ? "连接钱包" :
-               !ps.curveOpen ? "曲线尚未激活" :
-               txState === "approving" ? <><span className="pc-spin"/> 请在钱包中授权…</> :
-               txState === "sending"   ? <><span className="pc-spin"/> 请在钱包中确认…</> :
-               txState === "mining"    ? <><span className="pc-spin"/> 打包中…</> :
-               txState === "success"   ? "✓ 已确认" :
-               `${mode==="buy" ? "买入" : "卖出"} ${country.id}.${role}`}
+              {!wallet.connected ? L("连接钱包","Connect Wallet") :
+               !ps.curveOpen ? L("曲线尚未激活","Curve Not Active") :
+               txState === "approving" ? <><span className="pc-spin"/> {L("请在钱包中授权…","Approve in wallet…")}</> :
+               txState === "sending"   ? <><span className="pc-spin"/> {L("请在钱包中确认…","Confirm in wallet…")}</> :
+               txState === "mining"    ? <><span className="pc-spin"/> {L("打包中…","Mining…")}</> :
+               txState === "success"   ? L("✓ 已确认","✓ Confirmed") :
+               `${mode==="buy" ? L("买入","Buy") : L("卖出","Sell")} ${country.id}.${role}`}
             </button>
 
             {errMsg && <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:8}}>{errMsg}</div>}
@@ -451,18 +450,18 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
               {txHash ? (
                 <a className="f-mono" style={{fontSize:10, color:"var(--fg-4)"}}
                    href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer noopener">
-                  交易: {txHash.slice(0, 14)}…（BscScan）
+                  {L("交易: ","Tx: ")}{txHash.slice(0, 14)}{L("…（BscScan）","… (BscScan)")}
                 </a>
               ) : (
                 <span className="f-mono" style={{fontSize:10, color:"var(--fg-4)"}}>
-                  曲线 · {ps.curveAddr ? `${ps.curveAddr.slice(0,8)}…${ps.curveAddr.slice(-4)}` : "未部署"}
+                  {L("曲线 · ","Curve · ")}{ps.curveAddr ? `${ps.curveAddr.slice(0,8)}…${ps.curveAddr.slice(-4)}` : L("未部署","Not deployed")}
                 </span>
               )}
             </div>
 
             <button className="pd-go-country" onClick={() => setRoute({name:"market", country: country.id})}>
               <Flag country={country} w={20} h={14}/>
-              <span>查看 {country.name} 国家曲线 →</span>
+              <span>{L("查看 ","View ")}{country.name}{L(" 国家曲线 →"," country curve →")}</span>
             </button>
           </div>
         </div>
@@ -508,7 +507,7 @@ const CurveChartPlayer = ({ price, supply, max, seed }) => {
       <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth="1.5"/>
       <circle cx={xs(days-1)} cy={ys(points[days-1])} r="5" fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"/>
       <text x={xs(days-1)-10} y={ys(points[days-1])+4} textAnchor="end" fontSize="11" fill="var(--accent)" fontFamily="var(--f-mono)">{price.toFixed(3)} FOOTBALL</text>
-      <text x={PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">供应量</text>
+      <text x={PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">{L("供应量","Supply")}</text>
       <text x={W/2} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" textAnchor="middle">[{supply.toLocaleString()} / {max.toLocaleString()}]</text>
     </svg>
   );

@@ -1,7 +1,7 @@
 // FOOTBALL — Pack pages: overview, country detail, player reveal
 
 // Maps the data-layer rarity tier to a Chinese label for display.
-const rarityZh = (r) => ({ Wide: "普通", Rare: "稀有", Common: "常见" }[r] || r);
+const rarityZh = (r) => ({ Wide: L("普通","Common"), Rare: L("稀有","Rare"), Common: L("常见","Standard") }[r] || r);
 
 const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
   const [filter, setFilter] = React.useState("OPEN");
@@ -20,35 +20,34 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
     <main className="match-page pack">
       <section className="pack-hero">
         <div className="pack-hero-l">
-          <div className="eyebrow">阶段 I · 开包窗口</div>
+          <div className="eyebrow">{L("阶段 I · 开包窗口", "Phase I · Pack Window")}</div>
           <h1 className="f-display" style={{fontSize:"clamp(44px,6vw,92px)", lineHeight:0.98, letterSpacing:"-0.045em", margin:"12px 0 24px", fontWeight:600}}>
-            48 个窗口。
+            {L("48 个窗口。", "48 Windows.")}
             <br/>
-            <span style={{color:"var(--accent)", fontWeight:300}}>同一个倒计时。</span>
+            <span style={{color:"var(--accent)", fontWeight:300}}>{L("同一个倒计时。", "One Countdown.")}</span>
           </h1>
           <p style={{maxWidth:560, color:"var(--fg-2)", fontSize:17, lineHeight:1.55}}>
-            开包窗口分发国家代币与球员代币的初始供应。每个国家最多 18,000 个国家包，
-            每包用 FOOTBALL 购买、铸造 1 枚国家代币；窗口封盘后，该国曲线即上线交易。
-            随后可用国家代币开 450 个球员包。
+            {L("开包窗口分发国家代币与球员代币的初始供应。每个国家最多 18,000 个国家包，每包用 FOOTBALL 购买、铸造 1 枚国家代币；窗口封盘后，该国曲线即上线交易。随后可用国家代币开 450 个球员包。",
+               "The Pack Window distributes the initial supply of Country Tokens and Player Tokens. Each country offers up to 18,000 Country Packs — each pack is bought with FOOTBALL and mints 1 Country Token. Once a window seals, that country's curve goes live for trading. Country Tokens can then open 450 Player Packs.")}
           </p>
         </div>
         <div className="pack-hero-r">
           <div className="pack-clock">
             <div className="eyebrow">
-              {!countdown.available ? "读取开包窗口中…" :
-               countdown.closed ? "开包窗口已关闭" :
-               "全局窗口关闭于"}
+              {!countdown.available ? L("读取开包窗口中…", "Loading Pack Window…") :
+               countdown.closed ? L("开包窗口已关闭", "Pack Window closed") :
+               L("全局窗口关闭于", "Global window closes in")}
             </div>
             <div className="pack-clock-row">
-              <ClockUnit value={countdown.available ? countdown.days  : "—"} label="天"/>
-              <ClockUnit value={countdown.available ? countdown.hours : "—"} label="时"/>
-              <ClockUnit value={countdown.available ? countdown.mins  : "—"} label="分"/>
-              <ClockUnit value={countdown.available ? countdown.secs  : "—"} label="秒"/>
+              <ClockUnit value={countdown.available ? countdown.days  : "—"} label={L("天","D")}/>
+              <ClockUnit value={countdown.available ? countdown.hours : "—"} label={L("时","H")}/>
+              <ClockUnit value={countdown.available ? countdown.mins  : "—"} label={L("分","M")}/>
+              <ClockUnit value={countdown.available ? countdown.secs  : "—"} label={L("秒","S")}/>
             </div>
           </div>
           <div className="pack-progress">
             <div className="pack-progress-head">
-              <span className="eyebrow">已售开包</span>
+              <span className="eyebrow">{L("已售开包", "Packs Sold")}</span>
               <span className="f-mono" style={{fontSize:13}}>
                 <span style={{color:"var(--fg)"}}>{packsSold.toLocaleString()}</span>
                 <span style={{color:"var(--fg-3)"}}> / {totalPacks.toLocaleString()}</span>
@@ -57,10 +56,10 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
             <div className="bar"><div className="bar-fill" style={{width:`${packsSold/totalPacks*100}%`}}/></div>
             <div className="pack-progress-foot">
               <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>
-                已完成 {(packsSold/totalPacks*100).toFixed(1)}%
+                {L(`已完成 ${(packsSold/totalPacks*100).toFixed(1)}%`, `${(packsSold/totalPacks*100).toFixed(1)}% complete`)}
               </span>
               <span className="f-mono" style={{color:"var(--accent)", fontSize:11}}>
-                {COUNTRIES.filter(c=>countryState(c).sealed).length} 国已封盘
+                {L(`${COUNTRIES.filter(c=>countryState(c).sealed).length} 国已封盘`, `${COUNTRIES.filter(c=>countryState(c).sealed).length} countries sealed`)}
               </span>
             </div>
           </div>
@@ -75,7 +74,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               className={"filter-chip " + (filter===f ? "is-active" : "")}
               onClick={()=>setFilter(f)}
             >
-              {f === "ALL" ? "全部" : f === "OPEN" ? "开包中" : f === "SEALED" ? "已封盘" : "已上线 · 开球员包"}
+              {f === "ALL" ? L("全部","All") : f === "OPEN" ? L("开包中","Opening") : f === "SEALED" ? L("已封盘","Sealed") : L("已上线 · 开球员包","Live · Player Packs")}
               <span className="filter-chip-count">
                 {f === "ALL" ? 48 :
                  f === "OPEN" ? COUNTRIES.filter(c => !countryState(c).sealed && !countryState(c).curveOpen).length :
@@ -86,19 +85,19 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
           ))}
         </div>
         <div style={{marginLeft:"auto", display:"flex", gap:12, alignItems:"center"}}>
-          <span className="eyebrow">排序</span>
-          <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>按大洲分区 ↓</span>
+          <span className="eyebrow">{L("排序","Sort")}</span>
+          <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>{L("按大洲分区 ↓","By confederation ↓")}</span>
         </div>
       </section>
 
       <section className="pack-table">
         <div className="pack-table-head f-mono">
           <span style={{width:60}}></span>
-          <span style={{flex:"1 0 200px"}}>国家</span>
-          <span style={{flex:"0 0 100px"}}>分区</span>
-          <span style={{flex:"0 0 160px"}}>状态</span>
-          <span style={{flex:"1 0 220px"}}>开包进度</span>
-          <span style={{flex:"0 0 110px"}}>价格 · FOOTBALL</span>
+          <span style={{flex:"1 0 200px"}}>{L("国家","Country")}</span>
+          <span style={{flex:"0 0 100px"}}>{L("分区","Conf")}</span>
+          <span style={{flex:"0 0 160px"}}>{L("状态","Status")}</span>
+          <span style={{flex:"1 0 220px"}}>{L("开包进度","Pack Progress")}</span>
+          <span style={{flex:"0 0 110px"}}>{L("价格 · FOOTBALL","Price · FOOTBALL")}</span>
           <span style={{flex:"0 0 110px", textAlign:"right"}}></span>
         </div>
         {list.map(c => {
@@ -113,7 +112,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               <span style={{flex:"0 0 100px"}} className="f-mono pack-table-conf">{c.conf}</span>
               <span style={{flex:"0 0 160px"}}>
                 <span className={"country-card-status " + (s.curveOpen ? "status-live" : s.sealed ? "status-sealed" : "status-pack")}>
-                  {s.curveOpen ? "曲线上线" : s.sealed ? "已封盘" : "开包中"}
+                  {s.curveOpen ? L("曲线上线","Curve Live") : s.sealed ? L("已封盘","Sealed") : L("开包中","Opening")}
                 </span>
               </span>
               <span style={{flex:"1 0 220px"}}>
@@ -127,7 +126,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               </span>
               <span style={{flex:"0 0 110px", textAlign:"right"}}>
                 <span className="pack-table-arrow">
-                  {s.curveOpen ? "开球员包 →" : "开包 →"}
+                  {s.curveOpen ? L("开球员包 →","Player Packs →") : L("开包 →","Open Packs →")}
                 </span>
               </span>
             </button>
@@ -183,7 +182,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
 
   const handleBuy = async () => {
     if (!window.WALLET?.state?.connected) {
-      alert("请先连接钱包（右上角）。");
+      alert(L("请先连接钱包（右上角）。", "Please connect your wallet first (top right)."));
       return;
     }
     setErrMsg(null);
@@ -201,7 +200,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
     } catch (e) {
       console.error(e);
       setState("error");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "交易失败");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || L("交易失败", "Transaction failed"));
     }
   };
 
@@ -209,20 +208,20 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
     <main className="match-page pack-country">
       <section className="pc-head">
         <button className="pc-back" onClick={()=>setRoute({name:"pack"})}>
-          ← 全部开包
+          {L("← 全部开包", "← All Packs")}
         </button>
         <div className="pc-head-row">
           <Flag country={c} w={120} h={80}/>
           <div>
-            <div className="eyebrow">国家 · [{c.id}] · {c.conf}</div>
+            <div className="eyebrow">{L("国家","Country")} · [{c.id}] · {c.conf}</div>
             <h1 className="f-display" style={{fontSize:"clamp(48px,7vw,96px)", lineHeight:0.98, letterSpacing:"-0.025em", margin:"8px 0 12px"}}>
               {c.name}
             </h1>
             <div style={{display:"flex", gap:12}}>
               <span className={"country-card-status " + (s.sealed ? "status-sealed" : "status-pack")}>
-                {s.sealed ? "已封盘" : "开包中"}
+                {s.sealed ? L("已封盘","Sealed") : L("开包中","Opening")}
               </span>
-              <span className="pill"><span className="pill-dot"/>已售 {s.packsSold.toLocaleString()} / 18,000</span>
+              <span className="pill"><span className="pill-dot"/>{L(`已售 ${s.packsSold.toLocaleString()} / 18,000`, `${s.packsSold.toLocaleString()} / 18,000 sold`)}</span>
             </div>
           </div>
         </div>
@@ -230,31 +229,31 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
 
       <section className="pc-grid">
         <div className="pc-left">
-          <div className="section-eyebrow"><span className="bracket-num">A</span><span className="eyebrow">国家包</span><div className="hairline"/></div>
+          <div className="section-eyebrow"><span className="bracket-num">A</span><span className="eyebrow">{L("国家包","Country Pack")}</span><div className="hairline"/></div>
 
           <div className="pc-card">
             <div className="pc-card-art">
               <Flag country={c} w={280} h={180}/>
               <div className="pc-card-overlay">
-                <div className="eyebrow">包含</div>
+                <div className="eyebrow">{L("包含","Contains")}</div>
                 <div className="f-display" style={{fontSize:36, lineHeight:1}}>1 × {c.id}</div>
-                <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>国家代币 / 包</div>
+                <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{L("国家代币 / 包","Country Token / pack")}</div>
               </div>
             </div>
 
             <div className="pc-card-body">
               <div className="pc-spec">
-                <SpecRow label="包价" value={`${PACK_PRICE.toLocaleString()} FOOTBALL`} mono accent="accent"/>
-                <SpecRow label="销毁 (5%)" value={`${PACK_BURN.toLocaleString()} FOOTBALL · 永久销毁`} mono accent="fire"/>
-                <SpecRow label="注入曲线储备 (95%)" value={`${PACK_TO_CURVE.toLocaleString()} FOOTBALL`} mono/>
-                <SpecRow label="每包铸造" value="1 枚国家代币" mono/>
-                <SpecRow label="开包窗口上限" value="18,000 包 / 国" mono/>
-                <SpecRow label="曲线渐近线" value="20,000 枚" mono/>
-                <SpecRow label="曲线买/卖手续费" value="5% → 永久销毁" mono accent="fire"/>
+                <SpecRow label={L("包价","Pack Price")} value={`${PACK_PRICE.toLocaleString()} FOOTBALL`} mono accent="accent"/>
+                <SpecRow label={L("销毁 (5%)","Burn (5%)")} value={L(`${PACK_BURN.toLocaleString()} FOOTBALL · 永久销毁`, `${PACK_BURN.toLocaleString()} FOOTBALL · burned forever`)} mono accent="fire"/>
+                <SpecRow label={L("注入曲线储备 (95%)","To Curve Reserve (95%)")} value={`${PACK_TO_CURVE.toLocaleString()} FOOTBALL`} mono/>
+                <SpecRow label={L("每包铸造","Minted / Pack")} value={L("1 枚国家代币","1 Country Token")} mono/>
+                <SpecRow label={L("开包窗口上限","Pack Window Cap")} value={L("18,000 包 / 国","18,000 packs / country")} mono/>
+                <SpecRow label={L("曲线渐近线","Curve Asymptote")} value={L("20,000 枚","20,000 tokens")} mono/>
+                <SpecRow label={L("曲线买/卖手续费","Curve Buy/Sell Fee")} value={L("5% → 永久销毁","5% → burned forever")} mono accent="fire"/>
               </div>
 
               <div className="pc-buy">
-                <div className="eyebrow" style={{marginBottom:12}}>数量</div>
+                <div className="eyebrow" style={{marginBottom:12}}>{L("数量","Quantity")}</div>
                 <div className="pc-qty">
                   {[1, 5, 10, 25, 100].map(n => (
                     <button
@@ -270,13 +269,13 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
 
                 <div className="pc-total">
                   <div>
-                    <div className="eyebrow">你支付</div>
+                    <div className="eyebrow">{L("你支付","You Pay")}</div>
                     <div className="f-display numeric" style={{fontSize:48, lineHeight:1}}>{total.toLocaleString()}</div>
                     <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>FOOTBALL</div>
                   </div>
                   <div className="pc-total-arrow">→</div>
                   <div style={{textAlign:"right"}}>
-                    <div className="eyebrow">你获得</div>
+                    <div className="eyebrow">{L("你获得","You Get")}</div>
                     <div className="f-display-it numeric" style={{fontSize:48, lineHeight:1, color:"var(--accent)"}}>{tokensReceived.toLocaleString()}</div>
                     <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{c.id}</div>
                   </div>
@@ -285,7 +284,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                 <div className="pc-burn-note">
                   <span className="f-mono" style={{color:"var(--fire)"}}>▲</span>
                   <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
-                    本次购买立即销毁 <span style={{color:"var(--fire)"}}>{burnAmount.toLocaleString()} FOOTBALL</span>（包价的 5%），其余 95% 注入 {c.id} 曲线储备。
+                    {L("本次购买立即销毁 ", "This purchase immediately burns ")}<span style={{color:"var(--fire)"}}>{burnAmount.toLocaleString()} FOOTBALL</span>{L(`（包价的 5%），其余 95% 注入 ${c.id} 曲线储备。`, ` (5% of pack price); the other 95% goes to the ${c.id} curve reserve.`)}
                   </span>
                 </div>
 
@@ -293,25 +292,25 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                   <>
                     {!wallet.connected ? (
                       <button className="btn btn-primary pc-cta" onClick={() => window.dispatchEvent(new CustomEvent("goal:openWalletModal"))} disabled>
-                        连接钱包后购买
+                        {L("连接钱包后购买","Connect Wallet to Buy")}
                       </button>
                     ) : cantBuy ? (
                       <button className="btn pc-cta" disabled>
-                        {s.curveOpen ? "曲线交易中 — 请前往市场页" : "开包窗口已封盘"}
+                        {s.curveOpen ? L("曲线交易中 — 请前往市场页","Curve trading — go to Market") : L("开包窗口已封盘","Pack Window sealed")}
                       </button>
                     ) : !chainReady ? (
                       <button className="btn pc-cta" disabled>
-                        <span className="pc-spin"/> 正从链上读取 {c.id}…
+                        <span className="pc-spin"/> {L(`正从链上读取 ${c.id}…`, `Loading ${c.id} from chain…`)}
                       </button>
                     ) : (
                       <>
                         <button className="btn btn-primary pc-cta" onClick={handleBuy}>
-                          确认购买 · {total} FOOTBALL
+                          {L(`确认购买 · ${total} FOOTBALL`, `Confirm Buy · ${total} FOOTBALL`)}
                         </button>
                         {insufficientGoal && (
                           <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:8, textAlign:"center"}}>
-                            ⚠ 余额读数为 {wallet.goalBalance.toLocaleString(undefined,{maximumFractionDigits:4})} FOOTBALL — 还差 {(total - wallet.goalBalance).toFixed(2)}。
-                            如果你实际持有足够，仍可点击 — 以链上数据为准。
+                            {L(`⚠ 余额读数为 ${wallet.goalBalance.toLocaleString(undefined,{maximumFractionDigits:4})} FOOTBALL — 还差 ${(total - wallet.goalBalance).toFixed(2)}。如果你实际持有足够，仍可点击 — 以链上数据为准。`,
+                               `⚠ Balance reads ${wallet.goalBalance.toLocaleString(undefined,{maximumFractionDigits:4})} FOOTBALL — ${(total - wallet.goalBalance).toFixed(2)} short. If you actually hold enough, you can still click — on-chain data is the source of truth.`)}
                           </div>
                         )}
                       </>
@@ -325,23 +324,23 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                 )}
                 {state === "approving" && (
                   <button className="btn pc-cta" disabled>
-                    <span className="pc-spin"/> 请在钱包中授权 FOOTBALL…
+                    <span className="pc-spin"/> {L("请在钱包中授权 FOOTBALL…","Approve FOOTBALL in your wallet…")}
                   </button>
                 )}
                 {state === "sending" && (
                   <button className="btn pc-cta" disabled>
-                    <span className="pc-spin"/> 请在钱包中确认…
+                    <span className="pc-spin"/> {L("请在钱包中确认…","Confirm in your wallet…")}
                   </button>
                 )}
                 {state === "mining" && (
                   <button className="btn pc-cta" disabled>
-                    <span className="pc-spin"/> 正在 BSC 上打包…
+                    <span className="pc-spin"/> {L("正在 BSC 上打包…","Mining on BSC…")}
                   </button>
                 )}
                 {state === "success" && (
                   <div className="pc-success">
                     <div className="pc-success-row">
-                      <span className="f-mono" style={{color:"var(--bull)"}}>✓ 已确认</span>
+                      <span className="f-mono" style={{color:"var(--bull)"}}>{L("✓ 已确认","✓ Confirmed")}</span>
                       {txHash && (
                         <a className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}
                            href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer noopener">
@@ -350,13 +349,13 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                       )}
                     </div>
                     <div className="f-display" style={{fontSize:32, lineHeight:1, margin:"8px 0"}}>
-                      +{tokensReceived} <span className="f-display-it" style={{color:"var(--accent)"}}>{c.id}</span> 已到账
+                      +{tokensReceived} <span className="f-display-it" style={{color:"var(--accent)"}}>{c.id}</span> {L("已到账","received")}
                     </div>
                     <button className="btn btn-primary" onClick={()=>setRoute({name:"packPlayer", country:c.id})}>
-                      开球员包 →
+                      {L("开球员包 →","Open Player Packs →")}
                     </button>
                     <button className="btn" onClick={()=>{setState("idle"); setPackCount(1); setTxHash(null);}}>
-                      继续购买国家包
+                      {L("继续购买国家包","Buy More Country Packs")}
                     </button>
                   </div>
                 )}
@@ -366,7 +365,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
         </div>
 
         <div className="pc-right">
-          <div className="section-eyebrow"><span className="bracket-num">B</span><span className="eyebrow">近期动态</span><div className="hairline"/></div>
+          <div className="section-eyebrow"><span className="bracket-num">B</span><span className="eyebrow">{L("近期动态","Recent Activity")}</span><div className="hairline"/></div>
           <RecentActivity countryId={c.id}/>
         </div>
       </section>
@@ -382,7 +381,7 @@ const RecentActivity = ({ countryId }) => {
     <TransferLogFeed
       tokenAddr={addrs.tokenAddr}
       mintsOnly={true}
-      heading="近期开包"
+      heading={L("近期开包","Recent Packs")}
       limit={8}
     />
   );
@@ -469,14 +468,14 @@ const PackPlayer = ({ setRoute, countryId }) => {
       window.CHAIN.refresh();
     } catch (e) {
       setStage("idle");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "恢复开包失败");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || L("恢复开包失败", "Failed to resume pack open"));
     }
   }
 
   const handleOpen = async () => {
     if (stage !== "idle") return;
     if (!window.WALLET?.state?.connected) {
-      alert("请先连接钱包（右上角）。");
+      alert(L("请先连接钱包（右上角）。", "Please connect your wallet first (top right)."));
       return;
     }
     setErrMsg(null);
@@ -526,7 +525,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
     } catch (e) {
       console.error(e);
       setStage("idle");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "交易失败");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || L("交易失败", "Transaction failed"));
     }
   };
 
@@ -554,18 +553,18 @@ const PackPlayer = ({ setRoute, countryId }) => {
     <main className="match-page pack-player">
       <section className="pp-head-v2">
         <button className="pc-back" onClick={()=>setRoute({name:"packCountry", country:c.id})}>
-          ← 返回 {c.id}
+          {L(`← 返回 ${c.id}`, `← Back to ${c.id}`)}
         </button>
         <div className="pp-head-v2-row">
           <Flag country={c} w={88} h={60}/>
           <div className="pp-head-v2-meta">
-            <h1 className="f-display pp-head-v2-title">{c.name} 球员</h1>
+            <h1 className="f-display pp-head-v2-title">{L(`${c.name} 球员`, `${c.name} Players`)}</h1>
             <div className="f-mono pp-head-v2-sub">
-              3 个球员市场 · 还能开 {openable == null ? "…" : openable}/450 包
+              {L(`3 个球员市场 · 还能开 ${openable == null ? "…" : openable}/450 包`, `3 player markets · ${openable == null ? "…" : openable}/450 packs openable`)}
             </div>
           </div>
           <div className="pp-balance">
-            <div className="eyebrow">你的 {c.id}</div>
+            <div className="eyebrow">{L(`你的 ${c.id}`, `Your ${c.id}`)}</div>
             <div className="f-display numeric pp-balance-v">—</div>
           </div>
         </div>
@@ -593,15 +592,15 @@ const PackPlayer = ({ setRoute, countryId }) => {
               <div className="roster-card-handle f-mono">{window.playerHandle ? window.playerHandle(c.id, role) : handle}</div>
               <div className="roster-card-stats">
                 <div className="roster-card-stat">
-                  <div className="eyebrow">已开包</div>
+                  <div className="eyebrow">{L("已开包","Opened")}</div>
                   <div className="f-mono numeric roster-card-stat-v">{minted}/{r.packs}</div>
                 </div>
                 <div className="roster-card-stat">
-                  <div className="eyebrow">供应量</div>
+                  <div className="eyebrow">{L("供应量","Supply")}</div>
                   <div className="f-mono numeric roster-card-stat-v">{supply}/{r.max}</div>
                 </div>
                 <div className="roster-card-stat">
-                  <div className="eyebrow">曲线价格</div>
+                  <div className="eyebrow">{L("曲线价格","Curve Price")}</div>
                   <div className="f-mono numeric roster-card-stat-v">
                     {(() => {
                       const ps = chain.players && chain.players[`${c.id}-${role}`];
@@ -610,7 +609,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
                   </div>
                 </div>
                 <div className="roster-card-stat">
-                  <div className="eyebrow">供应量</div>
+                  <div className="eyebrow">{L("供应量","Supply")}</div>
                   <div className="f-mono numeric roster-card-stat-v">
                     {(() => {
                       const ps = chain.players && chain.players[`${c.id}-${role}`];
@@ -621,10 +620,10 @@ const PackPlayer = ({ setRoute, countryId }) => {
               </div>
               <div className="roster-card-actions">
                 <button className="roster-card-btn" onClick={() => setRoute({name:"playerMarket", id: `${c.id}-${role}`})}>
-                  图表
+                  {L("图表","Chart")}
                 </button>
                 <button className="roster-card-btn is-locked" disabled>
-                  已锁定
+                  {L("已锁定","Locked")}
                 </button>
               </div>
             </div>
@@ -635,13 +634,14 @@ const PackPlayer = ({ setRoute, countryId }) => {
       <section className="pp-open">
         <div className="pp-open-head">
           <div>
-            <div className="eyebrow">开 {c.name} 球员包</div>
+            <div className="eyebrow">{L(`开 ${c.name} 球员包`, `Open ${c.name} Player Packs`)}</div>
             <div className="pp-open-desc">
-              每开一包消耗 1 枚 {c.id} 代币，通过 Chainlink VRF 随机抽取角色，每包铸造 10 枚球员代币。链上还能开 {openable == null ? "…" : openable}/450 包。
+              {L(`每开一包消耗 1 枚 ${c.id} 代币，通过 Chainlink VRF 随机抽取角色，每包铸造 10 枚球员代币。链上还能开 ${openable == null ? "…" : openable}/450 包。`,
+                 `Each pack burns 1 ${c.id} token, draws a role at random via Chainlink VRF, and mints 10 Player Tokens. On-chain openable: ${openable == null ? "…" : openable}/450 packs.`)}
             </div>
           </div>
           <div className="pp-open-bal">
-            <div className="eyebrow">你的 {c.id}</div>
+            <div className="eyebrow">{L(`你的 ${c.id}`, `Your ${c.id}`)}</div>
             <div className="f-display numeric" style={{fontSize:32, lineHeight:1}}>
               <CountryBalance iso={c.id}/>
             </div>
@@ -653,7 +653,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
               <button key={n}
                       className={"pp-open-qty-btn " + (packCount === n ? "is-active" : "")}
                       onClick={()=>setPackCount(n)} disabled={stage !== "idle"}>
-                {n} 包
+                {L(`${n} 包`, `${n} packs`)}
               </button>
             ))}
           </div>
@@ -663,16 +663,16 @@ const PackPlayer = ({ setRoute, countryId }) => {
             const loading = openable == null;
             const remaining = openable || 0;
             const disabled = stage !== "idle" || !ws.connected || !phase2 || loading || remaining < packCount;
-            let label = `开 ${packCount} 包`;
-            if (stage === "committing") label = "请在钱包中确认…";
-            else if (stage === "requesting") label = `等待 VRF · ${vrfSeconds}秒`;
-            else if (stage === "spinning") label = "领取中…";
-            else if (stage === "revealed") label = "再开一次";
-            else if (!ws.connected) label = "连接钱包";
-            else if (!phase2) label = "国家曲线尚未激活";
-            else if (loading) label = "读取链上额度…";
-            else if (remaining <= 0) label = "球员包已售罄";
-            else if (remaining < packCount) label = `仅剩 ${remaining} 包`;
+            let label = L(`开 ${packCount} 包`, `Open ${packCount} packs`);
+            if (stage === "committing") label = L("请在钱包中确认…", "Confirm in your wallet…");
+            else if (stage === "requesting") label = L(`等待 VRF · ${vrfSeconds}秒`, `Waiting for VRF · ${vrfSeconds}s`);
+            else if (stage === "spinning") label = L("领取中…", "Claiming…");
+            else if (stage === "revealed") label = L("再开一次", "Open Again");
+            else if (!ws.connected) label = L("连接钱包", "Connect Wallet");
+            else if (!phase2) label = L("国家曲线尚未激活", "Country curve not yet active");
+            else if (loading) label = L("读取链上额度…", "Loading on-chain quota…");
+            else if (remaining <= 0) label = L("球员包已售罄", "Player Packs Sold Out");
+            else if (remaining < packCount) label = L(`仅剩 ${remaining} 包`, `Only ${remaining} packs left`);
             return (
               <button className="pp-open-cta" onClick={stage === "revealed" ? () => { setStage("idle"); setReveals([]); setResult(null); setRequestId(null); } : handleOpen} disabled={disabled && stage !== "revealed"}>
                 {stage !== "idle" && stage !== "revealed" && <span className="pc-spin"/>}
@@ -682,27 +682,28 @@ const PackPlayer = ({ setRoute, countryId }) => {
           })()}
         </div>
         <div className="pp-open-flow f-mono">
-          两笔交易流程：开包（提交 1 枚 {c.id}/包，请求 VRF v2.5）→ 约 30–90 秒等待 → 领取（揭晓球员、铸造球员代币）。若 VRF 超 24 小时未回调，可取回国家代币。
+          {L(`两笔交易流程：开包（提交 1 枚 ${c.id}/包，请求 VRF v2.5）→ 约 30–90 秒等待 → 领取（揭晓球员、铸造球员代币）。若 VRF 超 24 小时未回调，可取回国家代币。`,
+             `Two-transaction flow: Open (commit 1 ${c.id}/pack, request VRF v2.5) → ~30–90s wait → Claim (reveal players, mint Player Tokens). If VRF doesn't call back within 24 hours, you can recover your Country Tokens.`)}
           {stage === "requesting" && canRecover && (
             <button onClick={handleRecover} style={{marginLeft:12, color:"var(--fire)", background:"transparent", border:"none", textDecoration:"underline", cursor:"pointer"}}>
-              取消并退款（已超 24 小时）
+              {L("取消并退款（已超 24 小时）", "Cancel and Refund (over 24 hours)")}
             </button>
           )}
           {stage === "requesting" && !canRecover && openedAt > 0 && vrfSeconds > 300 && (
             <span style={{marginLeft:12, color:"var(--fg-3)", fontSize:11}}>
-              卡住了？{Math.ceil((RECOVERY_AFTER_S - sinceOpened) / 3600)} 小时后可恢复
+              {L(`卡住了？${Math.ceil((RECOVERY_AFTER_S - sinceOpened) / 3600)} 小时后可恢复`, `Stuck? Recoverable in ${Math.ceil((RECOVERY_AFTER_S - sinceOpened) / 3600)}h`)}
             </span>
           )}
         </div>
         {errMsg && <div className="f-mono" style={{color:"var(--fire)", fontSize:12, marginTop:8}}>{errMsg}</div>}
         {txHash && stage !== "idle" && (
           <div className="f-mono" style={{fontSize:11, marginTop:6, color:"var(--fg-3)"}}>
-            交易: <a href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{txHash.slice(0,12)}…</a>
+            {L("交易: ","Tx: ")}<a href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{txHash.slice(0,12)}…</a>
           </div>
         )}
         {reveals.length > 0 && (
           <div className="pp-open-recent">
-            <span className="eyebrow">本次开包揭晓</span>
+            <span className="eyebrow">{L("本次开包揭晓","This Pack's Reveal")}</span>
             <div className="pp-open-recent-list">
               {reveals.map((rv, i) => {
                 const pname = window.playerName ? window.playerName(c.id, rv.role) : `${c.id} ${rv.role}`;
@@ -722,7 +723,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
         <div className="pp-reveal-overlay">
           <div className={"pp-reveal-modal " + (result ? "tier-" + result : "")}>
             <div className="pp-reveal-bar">
-              <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>VRF · v2.5 · 请求 {requestId || "—"}</span>
+              <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>{L(`VRF · v2.5 · 请求 ${requestId || "—"}`, `VRF · v2.5 · Request ${requestId || "—"}`)}</span>
               <StatusLight stage={stage}/>
             </div>
             <div className="pp-slot">
@@ -737,15 +738,15 @@ const PackPlayer = ({ setRoute, countryId }) => {
               {(stage === "committing" || stage === "requesting" || stage === "spinning") && (
                 <button className="btn pp-cta" disabled>
                   <span className="pc-spin"/> {
-                    stage === "committing" ? "请在钱包中确认…" :
-                    stage === "requesting" ? `Chainlink VRF · ${vrfSeconds}秒` :
-                    "正在领取揭晓结果…"
+                    stage === "committing" ? L("请在钱包中确认…","Confirm in your wallet…") :
+                    stage === "requesting" ? L(`Chainlink VRF · ${vrfSeconds}秒`, `Chainlink VRF · ${vrfSeconds}s`) :
+                    L("正在领取揭晓结果…","Claiming reveal…")
                   }
                 </button>
               )}
               {stage === "revealed" && (
                 <button className="btn btn-fire pp-cta" onClick={() => { setStage("idle"); setReveals([]); setResult(null); setRequestId(null); }}>
-                  ✓ 已铸造 {reveals.reduce((s,r)=>s+r.packs*10,0)} 枚 {c.id} 球员代币 · 关闭
+                  {L("✓ 已铸造 ","✓ Minted ")}{reveals.reduce((s,r)=>s+r.packs*10,0)}{L(` 枚 ${c.id} 球员代币 · 关闭`, ` ${c.id} Player Tokens · Close`)}
                 </button>
               )}
             </div>
@@ -769,12 +770,12 @@ const PoolBar = ({ role, remaining, total, label, rarity, color, country }) => {
           {country && <Jersey country={country} role={role} number={num} w={48} h={54}/>}
           <div>
             <div className="f-display" style={{fontSize:22, lineHeight:1}}>{label}</div>
-            <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{rarity} · {total} 包 / 国</div>
+            <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{rarity} · {L(`${total} 包 / 国`, `${total} packs / country`)}</div>
           </div>
         </div>
         <div className="pool-bar-count">
           <span className="f-display numeric" style={{fontSize:32, lineHeight:1}}>{remaining}</span>
-          <span className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>共 {total}</span>
+          <span className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>{L(`共 ${total}`, `of ${total}`)}</span>
         </div>
       </div>
       <div className="bar"><div className="bar-fill" style={{width:`${pct}%`, background:color}}/></div>
@@ -784,12 +785,12 @@ const PoolBar = ({ role, remaining, total, label, rarity, color, country }) => {
 
 const StatusLight = ({ stage }) => {
   const states = {
-    idle:       { color: "var(--fg-3)", label: "就绪" },
-    committing: { color: "var(--accent)", label: "提交中", pulse: true },
-    requesting: { color: "var(--accent)", label: "VRF 已发送", pulse: true },
-    spinning:   { color: "var(--accent)", label: "随机熵", pulse: true },
-    revealed:   { color: "var(--bull)", label: "已解析" },
-    claimed:    { color: "var(--bull)", label: "已铸造" },
+    idle:       { color: "var(--fg-3)", label: L("就绪","Ready") },
+    committing: { color: "var(--accent)", label: L("提交中","Committing"), pulse: true },
+    requesting: { color: "var(--accent)", label: L("VRF 已发送","VRF Sent"), pulse: true },
+    spinning:   { color: "var(--accent)", label: L("随机熵","Entropy"), pulse: true },
+    revealed:   { color: "var(--bull)", label: L("已解析","Resolved") },
+    claimed:    { color: "var(--bull)", label: L("已铸造","Minted") },
   };
   const s = states[stage];
   return (
@@ -804,12 +805,13 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "idle") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">等待中</div>
+        <div className="eyebrow">{L("等待中","Waiting")}</div>
         <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>
-          点击开包，<span className="f-display-it" style={{color:"var(--accent)"}}>销毁一枚</span> {country.id} 代币。
+          {L("点击开包，","Click to open and ")}<span className="f-display-it" style={{color:"var(--accent)"}}>{L("销毁一枚","burn one")}</span> {L(`${country.id} 代币。`, `${country.id} token.`)}
         </div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
-          Chainlink VRF 将返回一个角色。每包铸造 10 枚解析出的球员代币。
+          {L("Chainlink VRF 将返回一个角色。每包铸造 10 枚解析出的球员代币。",
+             "Chainlink VRF returns a role. Each pack mints 10 of the resolved Player Tokens.")}
         </div>
       </div>
     );
@@ -817,10 +819,10 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "committing") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">01 / 提交</div>
-        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>正在销毁 1 枚 {country.id}…</div>
+        <div className="eyebrow">{L("01 / 提交","01 / Commit")}</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>{L(`正在销毁 1 枚 ${country.id}…`, `Burning 1 ${country.id}…`)}</div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
-          正在调用 PlayerPackOpener 的 openPack(country)…
+          {L("正在调用 PlayerPackOpener 的 openPack(country)…","Calling PlayerPackOpener.openPack(country)…")}
         </div>
       </div>
     );
@@ -828,8 +830,8 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "requesting") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">02 / VRF 请求</div>
-        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>等待 <span className="f-display-it">{requestId}</span></div>
+        <div className="eyebrow">{L("02 / VRF 请求","02 / VRF Request")}</div>
+        <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>{L("等待 ","Waiting on ")}<span className="f-display-it">{requestId}</span></div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
           numWords=1 · randomWord % (cpt+bst+rke) → role
         </div>
@@ -839,12 +841,12 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
   if (stage === "spinning") {
     return (
       <div className="pp-status">
-        <div className="eyebrow">03 / 解析中</div>
+        <div className="eyebrow">{L("03 / 解析中","03 / Resolving")}</div>
         <div className="f-display" style={{fontSize:28, lineHeight:1.05}}>
           <span className="dots"><span/><span/><span/></span>
         </div>
         <div className="f-mono" style={{fontSize:12, color:"var(--fg-3)", marginTop:8}}>
-          fulfillRandomWords() — 在回调中扣减配额。
+          {L("fulfillRandomWords() — 在回调中扣减配额。","fulfillRandomWords() — quota decremented in the callback.")}
         </div>
       </div>
     );
@@ -863,7 +865,7 @@ const StatusBlock = ({ stage, result, country, requestId }) => {
           <span style={{color:"var(--fg)"}}>{country.name}</span> · {r.label} · #{result === "CPT" ? 10 : result === "BST" ? 9 : 23}
         </div>
         <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", marginTop:6}}>
-          +10 枚 {country.id}.{result} 球员代币 · 曲线在领取时注入
+          {L(`+10 枚 ${country.id}.${result} 球员代币 · 曲线在领取时注入`, `+10 ${country.id}.${result} Player Tokens · curve funded on claim`)}
         </div>
       </div>
     );

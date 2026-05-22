@@ -72,13 +72,13 @@ const Portfolio = ({ setRoute, burned }) => {
     return (
       <main className="match-page portfolio">
         <section style={{padding:"80px 0", textAlign:"center"}}>
-          <div className="eyebrow" style={{marginBottom:16}}>资产组合</div>
+          <div className="eyebrow" style={{marginBottom:16}}>{L("资产组合", "Portfolio")}</div>
           <h1 className="f-display" style={{fontSize:64, lineHeight:1, margin:"0 0 24px", letterSpacing:"-0.025em"}}>
-            连接你的钱包
+            {L("连接你的钱包", "Connect Your Wallet")}
           </h1>
           <p style={{color:"var(--fg-3)", maxWidth:520, margin:"0 auto", lineHeight:1.6}}>
-            你的资产组合实时读取自 BSC — 连接后即可查看你真实的 FOOTBALL、
-            国家代币和球员代币余额。
+            {L("你的资产组合实时读取自 BSC — 连接后即可查看你真实的 FOOTBALL、国家代币和球员代币余额。",
+               "Your portfolio reads live from BSC — connect to see your real FOOTBALL, country token and player token balances.")}
           </p>
         </section>
         <Footer setRoute={setRoute}/>
@@ -97,38 +97,39 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-head">
         <div>
           <div className="eyebrow">
-            钱包 · <a href={`https://bscscan.com/address/${wallet.address}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{shortAddr}</a>
+            {L("钱包", "Wallet")} · <a href={`https://bscscan.com/address/${wallet.address}`} target="_blank" rel="noreferrer noopener" style={{color:"inherit"}}>{shortAddr}</a>
           </div>
           <h1 className="f-display" style={{fontSize:"clamp(48px,7vw,108px)", lineHeight:0.98, letterSpacing:"-0.025em", margin:"12px 0 8px"}}>
-            资产组合
+            {L("资产组合", "Portfolio")}
           </h1>
           <div className="f-mono" style={{fontSize:13, color:"var(--fg-3)"}}>
-            {loadingBalances ? "读取链上余额中…" :
-              `${(positions||[]).length} 个国家持仓 · ${(playerPositions||[]).length} 个球员持仓`}
+            {loadingBalances ? L("读取链上余额中…", "Reading on-chain balances…") :
+              L(`${(positions||[]).length} 个国家持仓 · ${(playerPositions||[]).length} 个球员持仓`,
+                `${(positions||[]).length} country positions · ${(playerPositions||[]).length} player positions`)}
           </div>
         </div>
         <div className="pf-head-stats">
-          <PFHeroStat label="以 FOOTBALL 计价总值" value={totalValue.toFixed(2)} unit="FOOTBALL" big/>
-          <PFHeroStat label="FOOTBALL 余额" value={goalBal.toLocaleString(undefined,{maximumFractionDigits:4})} unit="FOOTBALL"/>
-          <PFHeroStat label="BNB 余额"  value={ethBal.toFixed(4)} unit="BNB"/>
-          <PFHeroStat label="累计已销毁 FOOTBALL" value={burned.toLocaleString()} unit="FOOTBALL" color="var(--fire)"/>
+          <PFHeroStat label={L("以 FOOTBALL 计价总值", "Total Value in FOOTBALL")} value={totalValue.toFixed(2)} unit="FOOTBALL" big/>
+          <PFHeroStat label={L("FOOTBALL 余额", "FOOTBALL Balance")} value={goalBal.toLocaleString(undefined,{maximumFractionDigits:4})} unit="FOOTBALL"/>
+          <PFHeroStat label={L("BNB 余额", "BNB Balance")}  value={ethBal.toFixed(4)} unit="BNB"/>
+          <PFHeroStat label={L("累计已销毁 FOOTBALL", "Total FOOTBALL Burned")} value={burned.toLocaleString()} unit="FOOTBALL" color="var(--fire)"/>
         </div>
       </section>
 
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">01</span>
-          <span className="eyebrow">FOOTBALL · 基础资产</span>
+          <span className="eyebrow">{L("FOOTBALL · 基础资产", "FOOTBALL · Base Asset")}</span>
           <div className="hairline"/>
         </div>
         <div className="pf-match-card">
           <div>
-            <div className="eyebrow">余额</div>
+            <div className="eyebrow">{L("余额", "Balance")}</div>
             <div className="f-display numeric" style={{fontSize:64, lineHeight:1}}>{goalBal.toLocaleString(undefined,{maximumFractionDigits:4})}</div>
           </div>
           <div className="pf-match-buttons">
             <a className="btn" href={`https://bscscan.com/token/${window.FOOTBALL_CONFIG.football}?a=${wallet.address}`} target="_blank" rel="noreferrer noopener">BscScan</a>
-            <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>开包 →</button>
+            <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>{L("开包 →", "Open Pack →")}</button>
           </div>
         </div>
       </section>
@@ -136,7 +137,7 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">02</span>
-          <span className="eyebrow">金库分红 · 买包人专属</span>
+          <span className="eyebrow">{L("金库分红 · 买包人专属", "Treasury Dividends · Pack Buyers Only")}</span>
           <div className="hairline"/>
         </div>
         <DividendPanel wallet={wallet} chain={chain}/>
@@ -145,21 +146,21 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">03</span>
-          <span className="eyebrow">国家持仓 · {(positions||[]).length}</span>
+          <span className="eyebrow">{L("国家持仓", "Country Positions")} · {(positions||[]).length}</span>
           <div className="hairline"/>
         </div>
-        {positions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>读取中…</div>}
+        {positions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>{L("读取中…", "Loading…")}</div>}
         {positions && positions.length === 0 && (
-          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>暂无国家代币 — 开一包即可开始。</div>
+          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>{L("暂无国家代币 — 开一包即可开始。", "No country tokens yet — open a pack to get started.")}</div>
         )}
         {positions && positions.length > 0 && (
           <div className="pf-table">
             <div className="pf-table-head f-mono">
               <span style={{flex:"0 0 70px"}}></span>
-              <span style={{flex:"1 0 180px"}}>代币</span>
-              <span style={{flex:"0 0 120px", textAlign:"right"}}>数量</span>
-              <span style={{flex:"0 0 120px", textAlign:"right"}}>价格</span>
-              <span style={{flex:"0 0 140px", textAlign:"right"}}>价值</span>
+              <span style={{flex:"1 0 180px"}}>{L("代币", "Token")}</span>
+              <span style={{flex:"0 0 120px", textAlign:"right"}}>{L("数量", "Amount")}</span>
+              <span style={{flex:"0 0 120px", textAlign:"right"}}>{L("价格", "Price")}</span>
+              <span style={{flex:"0 0 140px", textAlign:"right"}}>{L("价值", "Value")}</span>
               <span style={{flex:"0 0 200px", textAlign:"right"}}></span>
             </div>
             {positions.map(p => (
@@ -174,7 +175,7 @@ const Portfolio = ({ setRoute, burned }) => {
                 <span style={{flex:"0 0 140px", textAlign:"right", color:"var(--fg)"}} className="f-mono numeric">{p.curveOpen ? p.value.toFixed(2) + " G" : "—"}</span>
                 <span style={{flex:"0 0 200px", display:"flex", justifyContent:"flex-end", gap:6}}>
                   <button className="pf-mini-btn" onClick={()=>setRoute({name: p.curveOpen ? "market" : "packCountry", country:p.c})}>
-                    {p.curveOpen ? "交易 →" : "查看 →"}
+                    {p.curveOpen ? L("交易 →", "Trade →") : L("查看 →", "View →")}
                   </button>
                 </span>
               </div>
@@ -186,12 +187,12 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">04</span>
-          <span className="eyebrow">球员持仓 · {(playerPositions||[]).length}</span>
+          <span className="eyebrow">{L("球员持仓", "Player Positions")} · {(playerPositions||[]).length}</span>
           <div className="hairline"/>
         </div>
-        {playerPositions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>读取中…</div>}
+        {playerPositions === null && <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>{L("读取中…", "Loading…")}</div>}
         {playerPositions && playerPositions.length === 0 && (
-          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>暂无球员代币 — 开国家包即可解锁球员抽取。</div>
+          <div className="f-mono" style={{padding:24, color:"var(--fg-3)"}}>{L("暂无球员代币 — 开国家包即可解锁球员抽取。", "No player tokens yet — open country packs to unlock player draws.")}</div>
         )}
         {playerPositions && playerPositions.length > 0 && (
           <div className="pf-players-grid">
@@ -206,16 +207,16 @@ const Portfolio = ({ setRoute, burned }) => {
                   <div className="pf-player-meta">
                     <Flag country={p.country} w={24} h={16}/>
                     <span className={"pp-recent-badge badge-" + p.role}>{p.role}</span>
-                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{({Wide:"普通",Rare:"稀有",Common:"常见"}[role.rarity]||role.rarity)}</div>
+                    <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{({Wide:L("普通","Common"),Rare:L("稀有","Rare"),Common:L("常见","Common")}[role.rarity]||role.rarity)}</div>
                   </div>
                   <div className="f-display" style={{fontSize:22, lineHeight:1, margin:"8px 0 4px"}}>{p.country.name}</div>
                   <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{role.label} · #{num}</div>
                   <div className="pf-player-bot">
                     <div>
-                      <div className="eyebrow">持有</div>
+                      <div className="eyebrow">{L("持有", "Holding")}</div>
                       <div className="f-display numeric" style={{fontSize:24, lineHeight:1}}>{p.amount.toLocaleString(undefined,{maximumFractionDigits:4})}</div>
                     </div>
-                    <button className="pf-mini-btn" onClick={()=>setRoute({name:"playerMarket", id: `${p.c}-${p.role}`})}>查看 →</button>
+                    <button className="pf-mini-btn" onClick={()=>setRoute({name:"playerMarket", id: `${p.c}-${p.role}`})}>{L("查看 →", "View →")}</button>
                   </div>
                 </div>
               );
@@ -287,7 +288,7 @@ const DividendPanel = ({ wallet, chain }) => {
       setTimeout(() => setClaiming("idle"), 4000);
     } catch (e) {
       setClaiming("error");
-      setMsg(e?.shortMessage || e?.reason || e?.message || "领取失败");
+      setMsg(e?.shortMessage || e?.reason || e?.message || L("领取失败", "Claim failed"));
     }
   };
 
@@ -303,7 +304,7 @@ const DividendPanel = ({ wallet, chain }) => {
       setTimeout(() => setDistributing("idle"), 4000);
     } catch (e) {
       setDistributing("error");
-      setMsg(e?.shortMessage || e?.reason || e?.message || "结算失败");
+      setMsg(e?.shortMessage || e?.reason || e?.message || L("结算失败", "Settle failed"));
     }
   };
 
@@ -318,7 +319,7 @@ const DividendPanel = ({ wallet, chain }) => {
     <div style={{border:"1px solid var(--line)", background:"var(--bg-1)", padding:"28px 24px"}}>
       <div style={{display:"flex", flexWrap:"wrap", gap:24, justifyContent:"space-between", alignItems:"flex-end"}}>
         <div>
-          <div className="eyebrow">你的可领分红</div>
+          <div className="eyebrow">{L("你的可领分红", "Your Claimable Dividends")}</div>
           <div className="f-display numeric" style={{fontSize:56, lineHeight:1, color:"var(--accent)"}}>
             {stats === null ? "…" : claimable.toLocaleString(undefined,{maximumFractionDigits:6})}
           </div>
@@ -326,35 +327,36 @@ const DividendPanel = ({ wallet, chain }) => {
         </div>
         <div style={{textAlign:"right"}}>
           <div className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>
-            你买了 <span style={{color:"var(--fg)"}}>{packs.toLocaleString()}</span> 包 · 占全网 <span style={{color:"var(--fg)"}}>{share.toFixed(2)}%</span>
+            {L("你买了", "You bought")} <span style={{color:"var(--fg)"}}>{packs.toLocaleString()}</span> {L("包 · 占全网", "packs · ")}<span style={{color:"var(--fg)"}}>{share.toFixed(2)}%</span>{L("", " of all packs")}
           </div>
           <button className="btn btn-primary" style={{marginTop:10}} onClick={handleClaim}
                   disabled={claimBusy || claimable <= 0}>
-            {claiming === "sending" ? "请在钱包确认…" :
-             claiming === "mining" ? "领取中…" :
-             claiming === "done" ? "✓ 已领取" :
-             claimable > 0 ? `领取 ${claimable.toFixed(4)} BNB` : "暂无可领分红"}
+            {claiming === "sending" ? L("请在钱包确认…", "Confirm in wallet…") :
+             claiming === "mining" ? L("领取中…", "Claiming…") :
+             claiming === "done" ? L("✓ 已领取", "✓ Claimed") :
+             claimable > 0 ? L(`领取 ${claimable.toFixed(4)} BNB`, `Claim ${claimable.toFixed(4)} BNB`) : L("暂无可领分红", "No dividends to claim")}
           </button>
         </div>
       </div>
 
       <div style={{display:"flex", flexWrap:"wrap", gap:16, marginTop:24, paddingTop:20, borderTop:"1px solid var(--line)"}}>
-        <DivStat label="分红池" value={stats?.dividendPoolBnb} unit="BNB"/>
-        <DivStat label="冠军回购储备" value={stats?.championReserveBnb} unit="BNB"/>
-        <DivStat label="待结算税收" value={stats?.undistributed} unit="BNB"/>
-        <DivStat label="全网累计买包" value={totalPacks} unit="包" int/>
+        <DivStat label={L("分红池", "Dividend Pool")} value={stats?.dividendPoolBnb} unit="BNB"/>
+        <DivStat label={L("冠军回购储备", "Champion Buyback Reserve")} value={stats?.championReserveBnb} unit="BNB"/>
+        <DivStat label={L("待结算税收", "Pending Tax")} value={stats?.undistributed} unit="BNB"/>
+        <DivStat label={L("全网累计买包", "Total Packs Bought")} value={totalPacks} unit={L("包", "packs")} int/>
       </div>
 
       <div style={{display:"flex", alignItems:"center", gap:12, marginTop:18, flexWrap:"wrap"}}>
         <button className="btn" onClick={handleDistribute}
                 disabled={distBusy || (stats?.undistributed || 0) <= 0}>
-          {distributing === "sending" ? "请在钱包确认…" :
-           distributing === "mining" ? "结算中…" :
-           distributing === "done" ? "✓ 已结算" :
-           "结算金库"}
+          {distributing === "sending" ? L("请在钱包确认…", "Confirm in wallet…") :
+           distributing === "mining" ? L("结算中…", "Settling…") :
+           distributing === "done" ? L("✓ 已结算", "✓ Settled") :
+           L("结算金库", "Settle Treasury")}
         </button>
         <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)", maxWidth:440, lineHeight:1.5}}>
-          税收入需先「结算」才会拆进分红池 —— 任何人都能调用，把待结算 BNB 按买包数量分给全体买包人。
+          {L("税收入需先「结算」才会拆进分红池 —— 任何人都能调用，把待结算 BNB 按买包数量分给全体买包人。",
+             "Tax revenue must be settled before it splits into the dividend pool — anyone can call it to distribute pending BNB to all pack buyers by pack count.")}
         </span>
       </div>
 

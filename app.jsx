@@ -15,8 +15,17 @@ function useChain() {
 }
 window.useChain = useChain;
 
+// Re-render the whole app when the language switches.
+function useLang() {
+  const [, force] = useState(0);
+  useEffect(() => (window.onLangChange ? window.onLangChange(() => force((n) => n + 1)) : undefined), []);
+  return window.LANG;
+}
+window.useLang = useLang;
+
 const App = () => {
   const [route, setRoute] = useState({ name: "home" });
+  useLang(); // language switch → full re-render
   const chain = useChain();
   const burned = chain.burned || 0;   // real float — may be 0.345 etc, don't floor
   React.useEffect(() => { window.__matchSetRoute = setRoute; }, []);

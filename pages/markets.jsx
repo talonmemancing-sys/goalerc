@@ -19,47 +19,47 @@ const Markets = ({ setRoute, burned }) => {
     <main className="match-page markets">
       <section className="markets-hero">
         <div>
-          <div className="eyebrow">阶段 II · 曲线交易</div>
+          <div className="eyebrow">{L("阶段 II · 曲线交易", "Phase II · Curve Trading")}</div>
           <h1 className="f-display" style={{fontSize:"clamp(44px,6vw,92px)", lineHeight:0.98, letterSpacing:"-0.045em", margin:"12px 0 24px", fontWeight:600}}>
-            <span className="numeric">{liveCount}</span> 条曲线上线
+            <span className="numeric">{liveCount}</span> {L("条曲线上线", "curves live")}
             <br/>
-            <span style={{color:"var(--accent)", fontWeight:300}}>共 192 条。</span>
+            <span style={{color:"var(--accent)", fontWeight:300}}>{L("共 192 条。", "of 192.")}</span>
           </h1>
           <p style={{maxWidth:600, color:"var(--fg-2)", fontSize:17, lineHeight:1.55}}>
-            每条曲线都是以 FOOTBALL 计价的虚拟储备联合曲线。流动性由开包窗口收入注入。
-            每笔买入与卖出收取 5% 手续费并永久销毁。
+            {L("每条曲线都是以 FOOTBALL 计价的虚拟储备联合曲线。流动性由开包窗口收入注入。每笔买入与卖出收取 5% 手续费并永久销毁。",
+               "Every curve is a virtual-reserve bonding curve priced in FOOTBALL. Liquidity is seeded by pack-window revenue. Each buy and sell takes a 5% fee that is burned permanently.")}
           </p>
         </div>
         <div className="markets-hero-stats">
-          <MarketStat label="累计销毁（曲线）" value={"—"} suffix="" big/>
-          <MarketStat label="合计供应量"  value={COUNTRIES.filter(c=>countryState(c).curveOpen).reduce((s,c)=>s+countryState(c).supply, 0)}/>
-          <MarketStat label="24小时成交量" value={"—"}/>
-          <MarketStat label="平均价格"  value={liveCount > 0 ? Number((COUNTRIES.filter(c=>countryState(c).curveOpen).reduce((s,c)=>s+countryState(c).price,0) / liveCount).toFixed(2)) : "—"} suffix={liveCount > 0 ? " FOOTBALL" : ""}/>
+          <MarketStat label={L("累计销毁（曲线）", "Total Burned (Curves)")} value={"—"} suffix="" big/>
+          <MarketStat label={L("合计供应量", "Total Supply")}  value={COUNTRIES.filter(c=>countryState(c).curveOpen).reduce((s,c)=>s+countryState(c).supply, 0)}/>
+          <MarketStat label={L("24小时成交量", "24h Volume")} value={"—"}/>
+          <MarketStat label={L("平均价格", "Average Price")}  value={liveCount > 0 ? Number((COUNTRIES.filter(c=>countryState(c).curveOpen).reduce((s,c)=>s+countryState(c).price,0) / liveCount).toFixed(2)) : "—"} suffix={liveCount > 0 ? " FOOTBALL" : ""}/>
         </div>
       </section>
 
       <section className="markets-filters">
         <div className="markets-tabs">
           <button className={"markets-tab " + (type==="country" ? "is-active" : "")} onClick={()=>setType("country")}>
-            国家曲线<span className="markets-tab-count">{liveCount}</span>
+            {L("国家曲线", "Country Curves")}<span className="markets-tab-count">{liveCount}</span>
           </button>
           <button className={"markets-tab " + (type==="player" ? "is-active" : "")} onClick={()=>setType("player")}>
-            球员曲线<span className="markets-tab-count">{liveCount * 3}</span>
+            {L("球员曲线", "Player Curves")}<span className="markets-tab-count">{liveCount * 3}</span>
           </button>
         </div>
         <div className="markets-filter-r">
           <div className="markets-chips">
             {["LIVE", "SEALED", "PENDING"].map(f => (
               <button key={f} className={"filter-chip " + (filter===f ? "is-active" : "")} onClick={()=>setFilter(f)}>
-                {f === "LIVE" ? "已上线" : f === "SEALED" ? "已封盘" : "待开放"}
+                {f === "LIVE" ? L("已上线", "Live") : f === "SEALED" ? L("已封盘", "Sealed") : L("待开放", "Pending")}
               </button>
             ))}
           </div>
           <div className="markets-sort">
-            <span className="eyebrow">排序</span>
+            <span className="eyebrow">{L("排序", "Sort")}</span>
             {["price", "supply", "burn"].map(s => (
               <button key={s} className={"markets-sort-btn " + (sort===s ? "is-active" : "")} onClick={()=>setSort(s)}>
-                {s === "price" ? "价格" : s === "supply" ? "供应量" : "销毁量"}
+                {s === "price" ? L("价格", "Price") : s === "supply" ? L("供应量", "Supply") : L("销毁量", "Burned")}
               </button>
             ))}
           </div>
@@ -69,12 +69,12 @@ const Markets = ({ setRoute, burned }) => {
       <section className="markets-table">
         <div className="markets-table-head f-mono">
           <span style={{flex:"0 0 50px"}}>#</span>
-          <span style={{flex:"1 0 220px"}}>曲线</span>
-          <span style={{flex:"0 0 120px"}}>价格</span>
-          <span style={{flex:"0 0 100px"}}>24小时</span>
-          <span style={{flex:"0 0 200px"}}>走势</span>
-          <span style={{flex:"0 0 180px"}}>供应量 / 渐近线</span>
-          <span style={{flex:"0 0 120px"}}>已销毁</span>
+          <span style={{flex:"1 0 220px"}}>{L("曲线", "Curve")}</span>
+          <span style={{flex:"0 0 120px"}}>{L("价格", "Price")}</span>
+          <span style={{flex:"0 0 100px"}}>{L("24小时", "24h")}</span>
+          <span style={{flex:"0 0 200px"}}>{L("走势", "Trend")}</span>
+          <span style={{flex:"0 0 180px"}}>{L("供应量 / 渐近线", "Supply / Asymptote")}</span>
+          <span style={{flex:"0 0 120px"}}>{L("已销毁", "Burned")}</span>
           <span style={{flex:"0 0 100px", textAlign:"right"}}></span>
         </div>
         {list.map((c, i) => (
@@ -127,7 +127,7 @@ const CurveRow = ({ c, i, onClick }) => {
         ) : <span className="f-mono" style={{color:"var(--fg-3)", fontSize:13}}>—</span>}
       </span>
       <span style={{flex:"0 0 200px"}}>
-        {s.curveOpen ? <Sparkline seed={parseInt(c.id, 36)} up={up}/> : <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>{s.sealed ? "等待封盘…" : "开包中"}</span>}
+        {s.curveOpen ? <Sparkline seed={parseInt(c.id, 36)} up={up}/> : <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>{s.sealed ? L("等待封盘…", "Awaiting seal…") : L("开包中", "Selling")}</span>}
       </span>
       <span style={{flex:"0 0 180px"}}>
         <div className="markets-supply">
@@ -142,7 +142,7 @@ const CurveRow = ({ c, i, onClick }) => {
         <span className="f-mono" style={{color:"var(--fg-3)", fontSize:13}}>—</span>
       </span>
       <span style={{flex:"0 0 100px", textAlign:"right"}}>
-        <span className="pack-table-arrow">{s.curveOpen ? "交易 →" : s.sealed ? "等待中" : "开包 →"}</span>
+        <span className="pack-table-arrow">{s.curveOpen ? L("交易 →", "Trade →") : s.sealed ? L("等待中", "Waiting") : L("开包 →", "Open Packs →")}</span>
       </span>
     </button>
   );
@@ -227,9 +227,9 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
   const tokenOut = quoteOut !== null ? quoteOut : 0;
 
   const handleTrade = async () => {
-    if (!wallet.connected) { alert("请先连接钱包。"); return; }
-    if (!s.curveOpen) { alert("曲线交易尚未激活 — 开包窗口仍开放中。"); return; }
-    if (!s.curveAddr || !s.tokenAddr) { alert("曲线尚未部署。"); return; }
+    if (!wallet.connected) { alert(L("请先连接钱包。", "Please connect your wallet first.")); return; }
+    if (!s.curveOpen) { alert(L("曲线交易尚未激活 — 开包窗口仍开放中。", "Curve trading is not active yet — the pack window is still open.")); return; }
+    if (!s.curveAddr || !s.tokenAddr) { alert(L("曲线尚未部署。", "The curve has not been deployed yet.")); return; }
     setErrMsg(null); setTxHash(null);
     try {
       const amtWei = ethers.parseEther(String(amount));
@@ -250,7 +250,7 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
     } catch (e) {
       console.error(e);
       setTxState("error");
-      setErrMsg(e?.shortMessage || e?.reason || e?.message || "交易失败");
+      setErrMsg(e?.shortMessage || e?.reason || e?.message || L("交易失败", "Transaction failed"));
     }
   };
 
@@ -260,23 +260,23 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
   return (
     <main className="match-page market-detail">
       <section className="md-head">
-        <button className="pc-back" onClick={()=>setRoute({name:"markets"})}>← 全部市场</button>
+        <button className="pc-back" onClick={()=>setRoute({name:"markets"})}>{L("← 全部市场", "← All Markets")}</button>
         <div className="md-head-row">
           <div className="md-head-l">
             <Flag country={c} w={88} h={60}/>
             <div>
-              <div className="eyebrow">[{c.id}] / FOOTBALL · 国家曲线 · {c.conf}</div>
+              <div className="eyebrow">[{c.id}] / FOOTBALL · {L("国家曲线", "Country Curve")} · {c.conf}</div>
               <h1 className="f-display" style={{fontSize:"clamp(40px,6vw,84px)", lineHeight:0.98, letterSpacing:"-0.025em", margin:"6px 0 8px"}}>
                 {c.name}
               </h1>
               <div style={{display:"flex", gap:12, alignItems:"center"}}>
                 <span className="f-mono numeric" style={{fontSize:24, color:"var(--fg)"}}>{s.price.toFixed(3)} FOOTBALL</span>
                 <span className="f-mono numeric" style={{fontSize:13, color: s.price > 5 ? "var(--bull)" : "var(--bear)"}}>
-                  {s.price > 5 ? "▲" : "▼"} 2.81% · 24小时
+                  {s.price > 5 ? "▲" : "▼"} 2.81% · {L("24小时", "24h")}
                 </span>
               </div>
               <div className="md-head-players">
-                <div className="md-head-players-label eyebrow">3 条球员曲线</div>
+                <div className="md-head-players-label eyebrow">{L("3 条球员曲线", "3 Player Curves")}</div>
                 {["BST","CPT","RKE"].map(role => {
                   const pname = window.playerName ? window.playerName(c.id, role) : `${c.id} ${role}`;
                   const num = role === "CPT" ? 10 : role === "BST" ? 9 : 23;
@@ -293,10 +293,10 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
             </div>
           </div>
           <div className="md-head-stats">
-            <MDStat label="供应量"        value={s.supply}                  sub={`共 ${A.toLocaleString()}`}/>
-            <MDStat label="距渐近线" value={`${(100 - s.supply/A*100).toFixed(2)}%`}/>
-            <MDStat label="储备 (FOOTBALL)" value={Math.round(s.reserve || 0)} fire={false}/>
-            <MDStat label="已销毁"         value="—" sub="索引器待接入"/>
+            <MDStat label={L("供应量", "Supply")}        value={s.supply}                  sub={L(`共 ${A.toLocaleString()}`, `of ${A.toLocaleString()}`)}/>
+            <MDStat label={L("距渐近线", "To Asymptote")} value={`${(100 - s.supply/A*100).toFixed(2)}%`}/>
+            <MDStat label={L("储备 (FOOTBALL)", "Reserve (FOOTBALL)")} value={Math.round(s.reserve || 0)} fire={false}/>
+            <MDStat label={L("已销毁", "Burned")}         value="—" sub={L("索引器待接入", "Indexer pending")}/>
           </div>
         </div>
       </section>
@@ -310,15 +310,15 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
               ))}
             </div>
             <div className="md-chart-meta">
-              <span className="eyebrow">虚拟储备 XYK</span>
-              <span className="f-mono" style={{fontSize:11, color:"var(--accent)"}}>渐近线 {A.toLocaleString()}</span>
+              <span className="eyebrow">{L("虚拟储备 XYK", "Virtual Reserve XYK")}</span>
+              <span className="f-mono" style={{fontSize:11, color:"var(--accent)"}}>{L("渐近线", "Asymptote")} {A.toLocaleString()}</span>
             </div>
           </div>
           <CurveChart c={c} s={s}/>
           <div className="md-events">
             <div className="md-events-head">
-              <span className="eyebrow">近期转账</span>
-              <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>最近 8 笔</span>
+              <span className="eyebrow">{L("近期转账", "Recent Transfers")}</span>
+              <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{L("最近 8 笔", "Last 8")}</span>
             </div>
             <TransferLogFeed tokenAddr={s.tokenAddr} symbol={c.id} mintsOnly={false} limit={8}/>
           </div>
@@ -326,16 +326,16 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
 
         <div className="md-trade">
           <div className="md-trade-tabs">
-            <button className={"md-trade-tab " + (mode==="buy" ? "is-active is-buy" : "")} onClick={()=>setMode("buy")}>买入</button>
-            <button className={"md-trade-tab " + (mode==="sell" ? "is-active is-sell" : "")} onClick={()=>setMode("sell")}>卖出</button>
+            <button className={"md-trade-tab " + (mode==="buy" ? "is-active is-buy" : "")} onClick={()=>setMode("buy")}>{L("买入", "Buy")}</button>
+            <button className={"md-trade-tab " + (mode==="sell" ? "is-active is-sell" : "")} onClick={()=>setMode("sell")}>{L("卖出", "Sell")}</button>
           </div>
 
           <div className="md-trade-body">
             <div className="md-input">
               <div className="md-input-head">
-                <span className="eyebrow">{mode==="buy" ? "你支付" : "你卖出"}</span>
+                <span className="eyebrow">{mode==="buy" ? L("你支付", "You pay") : L("你卖出", "You sell")}</span>
                 <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
-                  余额：{wallet.connected
+                  {L("余额：", "Balance: ")}{wallet.connected
                     ? (balToShow !== null ? balToShow.toLocaleString(undefined,{maximumFractionDigits:4}) : "…")
                     : "—"} {mode==="buy" ? "FOOTBALL" : c.id}
                 </span>
@@ -355,7 +355,7 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
                 {[25, 50, 75].map(p => (
                   <button key={p} className="md-preset" onClick={() => balToShow && setAmount(Number((balToShow * p/100).toFixed(4)))}>{p}%</button>
                 ))}
-                <button className="md-preset" onClick={() => balToShow && setAmount(Number(balToShow.toFixed(4)))}>最大</button>
+                <button className="md-preset" onClick={() => balToShow && setAmount(Number(balToShow.toFixed(4)))}>{L("最大", "Max")}</button>
               </div>
             </div>
 
@@ -363,8 +363,8 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
 
             <div className="md-input">
               <div className="md-input-head">
-                <span className="eyebrow">你获得（预估）</span>
-                <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>扣除 5% 曲线手续费 → 销毁</span>
+                <span className="eyebrow">{L("你获得（预估）", "You receive (est.)")}</span>
+                <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{L("扣除 5% 曲线手续费 → 销毁", "After 5% curve fee → Burn")}</span>
               </div>
               <div className="md-input-row">
                 <div className="md-input-field f-display-it numeric" style={{color:"var(--accent)"}}>
@@ -378,11 +378,11 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
 
             <div className="md-rate">
               <div className="md-rate-row">
-                <span className="eyebrow">汇率</span>
+                <span className="eyebrow">{L("汇率", "Rate")}</span>
                 <span className="f-mono">1 {c.id} = {s.price.toFixed(3)} FOOTBALL</span>
               </div>
               <div className="md-rate-row">
-                <span className="eyebrow">滑点</span>
+                <span className="eyebrow">{L("滑点", "Slippage")}</span>
                 <span style={{display:"flex", gap:4}}>
                   {[[10,"0.1%"],[50,"0.5%"],[100,"1%"],[200,"2%"]].map(([bps, lbl]) => (
                     <button key={bps} onClick={()=>setSlippageBps(bps)}
@@ -397,11 +397,11 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
                 </span>
               </div>
               <div className="md-rate-row">
-                <span className="eyebrow">曲线手续费</span>
-                <span className="f-mono" style={{color:"var(--fire)"}}>5% → 销毁</span>
+                <span className="eyebrow">{L("曲线手续费", "Curve Fee")}</span>
+                <span className="f-mono" style={{color:"var(--fire)"}}>5% → {L("销毁", "Burn")}</span>
               </div>
               <div className="md-rate-row" style={{paddingTop:10, borderTop:"1px solid var(--line)"}}>
-                <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>本笔净销毁</span>
+                <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>{L("本笔净销毁", "Net Burn")}</span>
                 <span className="f-mono numeric" style={{fontSize:13, color:"var(--fire)"}}>−{feeBurn} {mode==="buy" ? "FOOTBALL" : c.id}</span>
               </div>
             </div>
@@ -411,13 +411,13 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
               onClick={handleTrade}
               disabled={pending || !wallet.connected || !s.curveOpen}
             >
-              {!wallet.connected ? "连接钱包" :
-               !s.curveOpen ? "曲线尚未激活" :
-               txState === "approving" ? <><span className="pc-spin"/> 请在钱包中授权…</> :
-               txState === "sending"   ? <><span className="pc-spin"/> 请在钱包中确认…</> :
-               txState === "mining"    ? <><span className="pc-spin"/> 打包中…</> :
-               txState === "success"   ? "✓ 已确认" :
-               `${mode==="buy" ? "买入" : "卖出"} ${c.id}`}
+              {!wallet.connected ? L("连接钱包", "Connect Wallet") :
+               !s.curveOpen ? L("曲线尚未激活", "Curve Not Active") :
+               txState === "approving" ? <><span className="pc-spin"/> {L("请在钱包中授权…", "Approve in wallet…")}</> :
+               txState === "sending"   ? <><span className="pc-spin"/> {L("请在钱包中确认…", "Confirm in wallet…")}</> :
+               txState === "mining"    ? <><span className="pc-spin"/> {L("打包中…", "Confirming…")}</> :
+               txState === "success"   ? L("✓ 已确认", "✓ Confirmed") :
+               `${mode==="buy" ? L("买入", "Buy") : L("卖出", "Sell")} ${c.id}`}
             </button>
 
             {errMsg && <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:8}}>{errMsg}</div>}
@@ -425,14 +425,14 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
               <div className="md-trade-foot">
                 <a className="f-mono" style={{fontSize:10, color:"var(--fg-4)"}}
                    href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer noopener">
-                  交易: {txHash.slice(0, 14)}…（BscScan）
+                  {L("交易: ", "Tx: ")}{txHash.slice(0, 14)}{L("…（BscScan）", "… (BscScan)")}
                 </a>
               </div>
             )}
             {!txHash && (
               <div className="md-trade-foot">
                 <span className="f-mono" style={{fontSize:10, color:"var(--fg-4)"}}>
-                  曲线 · {s.curveAddr ? `${s.curveAddr.slice(0,8)}…${s.curveAddr.slice(-4)}` : "未部署"}
+                  {L("曲线", "Curve")} · {s.curveAddr ? `${s.curveAddr.slice(0,8)}…${s.curveAddr.slice(-4)}` : L("未部署", "Not deployed")}
                 </span>
               </div>
             )}

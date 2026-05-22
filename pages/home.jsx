@@ -12,16 +12,16 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
         <div className="pitch-bg"/>
         <PitchLines/>
         <div className="home-hero-mark">
-          <div className="eyebrow">FOOTBALL 协议 · BSC · 48 国 144 球员</div>
+          <div className="eyebrow">{L("FOOTBALL 协议 · BSC · 48 国 144 球员", "FOOTBALL Protocol · BSC · 48 Nations 144 Players")}</div>
           <div className="home-hero-tagline f-mono">
             {!countdown.available ? (
-              <span style={{color:"var(--fg-3)"}}>读取开包窗口中…</span>
+              <span style={{color:"var(--fg-3)"}}>{L("读取开包窗口中…", "Loading Pack Window…")}</span>
             ) : countdown.closed ? (
-              <span style={{color:"var(--fire)"}}>开包窗口已关闭 · 曲线开启中</span>
+              <span style={{color:"var(--fire)"}}>{L("开包窗口已关闭 · 曲线开启中", "Pack Window closed · Curves going live")}</span>
             ) : (
               <>
-                <span style={{color:"var(--fg)"}}>{countdown.days}天 {countdown.hours}时 {countdown.mins}分 {countdown.secs}秒</span>
-                <span> · 距开包窗口关闭</span>
+                <span style={{color:"var(--fg)"}}>{L(`${countdown.days}天 ${countdown.hours}时 ${countdown.mins}分 ${countdown.secs}秒`, `${countdown.days}d ${countdown.hours}h ${countdown.mins}m ${countdown.secs}s`)}</span>
+                <span>{L(" · 距开包窗口关闭", " · until Pack Window closes")}</span>
               </>
             )}
           </div>
@@ -29,32 +29,32 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
         </div>
 
         <div className="home-hero-headline">
-          <span className="line-1">世界杯，</span>
-          <span className="line-2">全部上链。</span>
+          <span className="line-1">{L("世界杯，", "The World Cup,")}</span>
+          <span className="line-2">{L("全部上链。", "fully on-chain.")}</span>
         </div>
 
         <div className="home-hero-grid">
           <div className="home-hero-prose">
             <p className="home-hero-lede">
-              48 国家。144 球员。<span style={{color:"var(--pitch-green)"}}>同&nbsp;一颗球。</span>
+              {L("48 国家。144 球员。", "48 Nations. 144 Players.")}<span style={{color:"var(--pitch-green)"}}>{L("同 一颗球。", "One ball.")}</span>
               <br/>
-              FOOTBALL 总量 10 亿，每笔曲线交易持续销毁。
+              {L("FOOTBALL 总量 10 亿，每笔曲线交易持续销毁。", "FOOTBALL has a 1 billion total supply, burned with every curve trade.")}
             </p>
             <p className="home-hero-fine">
-              192 条链上联合曲线。无团队。无增发。无退出。
+              {L("192 条链上联合曲线。无团队。无增发。无退出。", "192 on-chain bonding curves. No team. No mint. No exit.")}
               <br/>
-              在 BSC 上永久不可篡改。<span style={{color:"var(--accent)"}}>这颗球永不停转。</span>
+              {L("在 BSC 上永久不可篡改。", "Immutable forever on BSC.")}<span style={{color:"var(--accent)"}}>{L("这颗球永不停转。", "The ball never stops.")}</span>
             </p>
             <div className="home-hero-cta">
               <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>
-                开一包
+                {L("开一包", "Open a Pack")}
                 <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5 L10 5 M6 1 L10 5 L6 9" stroke="currentColor" strokeWidth="1.4" fill="none"/></svg>
               </button>
               <button className="btn" onClick={()=>setRoute({name:"markets"})}>
-                交易曲线
+                {L("交易曲线", "Trade Curves")}
               </button>
               <button className="btn" onClick={()=>setRoute({name:"mechanics"})}>
-                查看机制
+                {L("查看机制", "View Mechanics")}
               </button>
             </div>
           </div>
@@ -71,20 +71,20 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
       {/* ============ PHASE STATUS ============ */}
       <section className="home-phases">
         <div className="section-eyebrow">
-          <span className="eyebrow">阶段状态</span>
+          <span className="eyebrow">{L("阶段状态", "Phase Status")}</span>
           <div className="hairline" />
         </div>
 
         <div className="home-phases-grid">
           <PhaseCard
-            num="I" title="开包窗口" state="OPEN"
-            sub={`已售 ${packsSold.toLocaleString()} / ${totalPacks.toLocaleString()} 包`}
+            num="I" title={L("开包窗口", "Pack Window")} state="OPEN"
+            sub={L(`已售 ${packsSold.toLocaleString()} / ${totalPacks.toLocaleString()} 包`, `${packsSold.toLocaleString()} / ${totalPacks.toLocaleString()} packs sold`)}
             pct={Math.round(packsSold / totalPacks * 100)}
             countdown={countdown}
           />
           <PhaseCard
-            num="II" title="曲线交易" state="PARTIAL"
-            sub={`${COUNTRIES.filter(c=>countryState(c).curveOpen).length} / 48 条国家曲线已上线`}
+            num="II" title={L("曲线交易", "Curve Trading")} state="PARTIAL"
+            sub={L(`${COUNTRIES.filter(c=>countryState(c).curveOpen).length} / 48 条国家曲线已上线`, `${COUNTRIES.filter(c=>countryState(c).curveOpen).length} / 48 country curves live`)}
             pct={Math.round(COUNTRIES.filter(c=>countryState(c).curveOpen).length / 48 * 100)}
           />
         </div>
@@ -93,7 +93,7 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
       {/* ============ COUNTRY GRID ============ */}
       <section className="home-countries">
         <div className="section-eyebrow">
-          <span className="eyebrow">48 国家 · 144 球员 · 192 条曲线</span>
+          <span className="eyebrow">{L("48 国家 · 144 球员 · 192 条曲线", "48 Nations · 144 Players · 192 Curves")}</span>
           <div className="hairline" />
         </div>
 
@@ -120,7 +120,7 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
                 <div className="country-card-top">
                   <Flag country={c} w={48} h={32} />
                   <span className={"country-card-status " + (s.curveOpen ? "status-live" : s.sealed ? "status-sealed" : "status-pack")}>
-                    {s.curveOpen ? "曲线上线" : s.sealed ? "已封盘" : "开包中"}
+                    {s.curveOpen ? L("曲线上线", "Curve Live") : s.sealed ? L("已封盘", "Sealed") : L("开包中", "Selling")}
                   </span>
                 </div>
                 <div>
@@ -134,13 +134,13 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
                 <div className="country-card-foot">
                   {s.curveOpen ? (
                     <>
-                      <span><span className="v">{s.price.toFixed(2)}</span> /枚</span>
+                      <span><span className="v">{s.price.toFixed(2)}</span>{L(" /枚", " /token")}</span>
                       <span><span className="v">{s.supply.toLocaleString()}</span> / 20k</span>
                     </>
                   ) : (
                     <>
-                      <span><span className="v">{(s.packsSold/1000).toFixed(1)}k</span>/18k 包</span>
-                      <span>1 枚/包</span>
+                      <span><span className="v">{(s.packsSold/1000).toFixed(1)}k</span>{L("/18k 包", "/18k packs")}</span>
+                      <span>{L("1 枚/包", "1 token/pack")}</span>
                     </>
                   )}
                 </div>
@@ -153,29 +153,28 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
       {/* ============ TREASURY · 4% 税分配 ============ */}
       <section className="home-v4">
         <div className="section-eyebrow">
-          <span className="eyebrow">金库 · 4% 交易税</span>
+          <span className="eyebrow">{L("金库 · 4% 交易税", "Treasury · 4% Trading Tax")}</span>
           <div className="hairline" />
         </div>
 
         <div className="home-v4-grid">
           <div>
-            <div className="eyebrow" style={{marginBottom:12}}>PitchTreasury · 链上自动分账</div>
+            <div className="eyebrow" style={{marginBottom:12}}>{L("PitchTreasury · 链上自动分账", "PitchTreasury · On-chain Auto-split")}</div>
             <h2 className="f-display" style={{fontSize:"clamp(36px,5vw,72px)", lineHeight:1.0, margin:"0 0 24px", letterSpacing:"-0.045em", fontWeight:600}}>
-              买过包，就持续分红。
+              {L("买过包，就持续分红。", "Buy a pack, earn dividends forever.")}
             </h2>
             <p style={{color:"var(--fg-2)", fontSize:17, lineHeight:1.6, maxWidth:560}}>
-              FOOTBALL 是 flap.sh 发射的 4/4 税代币 —— 每一笔在内盘或 PancakeSwap 上的买卖，
-              4% 自动换成 BNB 打进金库合约。金库把每笔进账拆成两份：
+              {L("FOOTBALL 是 flap.sh 发射的 4/4 税代币 —— 每一笔在内盘或 PancakeSwap 上的买卖，4% 自动换成 BNB 打进金库合约。金库把每笔进账拆成两份：", "FOOTBALL is a 4/4 tax token launched on flap.sh — every buy or sell, whether on the internal market or PancakeSwap, sends 4% as BNB into the Treasury contract. The Treasury splits each inflow into two halves:")}
             </p>
             <div className="home-v4-stats">
-              <div><div className="stat-label f-mono">50% · 冠军回购</div><div className="f-mono" style={{color:"var(--fg)"}}>回购 FOOTBALL</div></div>
-              <div><div className="stat-label f-mono">50% · 持包人分红</div><div className="f-mono" style={{color:"var(--fg)"}}>发给买包的人</div></div>
+              <div><div className="stat-label f-mono">{L("50% · 冠军回购", "50% · Champion Buyback")}</div><div className="f-mono" style={{color:"var(--fg)"}}>{L("回购 FOOTBALL", "Buy back FOOTBALL")}</div></div>
+              <div><div className="stat-label f-mono">{L("50% · 持包人分红", "50% · Pack Holder Dividends")}</div><div className="f-mono" style={{color:"var(--fg)"}}>{L("发给买包的人", "Paid to pack buyers")}</div></div>
             </div>
             <p style={{color:"var(--fg-3)", fontSize:13, lineHeight:1.6, maxWidth:560, marginTop:16}}>
-              分红按你买过的国家包数量加权（MasterChef 会计），BNB 随时可在金库领取。
+              {L("分红按你买过的国家包数量加权（MasterChef 会计），BNB 随时可在金库领取。", "Dividends are weighted by the number of Country Packs you bought (MasterChef accounting), and BNB can be claimed from the Treasury anytime.")}
             </p>
             <button className="btn" style={{marginTop:32}} onClick={()=>setRoute({name:"mechanics"})}>
-              阅读完整机制
+              {L("阅读完整机制", "Read the full mechanics")}
               <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5 L10 5 M6 1 L10 5 L6 9" stroke="currentColor" strokeWidth="1.4" fill="none"/></svg>
             </button>
           </div>
@@ -207,11 +206,11 @@ const GoalPriceTicker = () => {
        style={{display:"inline-flex", gap:14, alignItems:"center", textDecoration:"none", marginTop:6}}>
       <span style={{color:"var(--fg)"}}>${price.priceUsd.toLocaleString(undefined, {maximumFractionDigits: 6})}</span>
       <span style={{color: up ? "var(--bull)" : "var(--bear)"}}>
-        {up ? "▲" : "▼"} {Math.abs(price.change24h).toFixed(2)}% 24小时
+        {up ? "▲" : "▼"} {Math.abs(price.change24h).toFixed(2)}{L("% 24小时", "% 24h")}
       </span>
       <span style={{color:"var(--fg-3)", fontSize:11}}>
-        · 成交量 ${price.volume24h.toLocaleString(undefined,{maximumFractionDigits:0})}
-        · 流动性 ${price.liquidityUsd.toLocaleString(undefined,{maximumFractionDigits:0})}
+        {L(` · 成交量 $${price.volume24h.toLocaleString(undefined,{maximumFractionDigits:0})}`, ` · Vol $${price.volume24h.toLocaleString(undefined,{maximumFractionDigits:0})}`)}
+        {L(` · 流动性 $${price.liquidityUsd.toLocaleString(undefined,{maximumFractionDigits:0})}`, ` · Liquidity $${price.liquidityUsd.toLocaleString(undefined,{maximumFractionDigits:0})}`)}
       </span>
       <span style={{color:"var(--fg-4)", fontSize:10}}>{price.dexId} →</span>
     </a>
@@ -262,8 +261,8 @@ const SupplyGauge = ({ burned }) => {
   const pct = (burned / total) * 100;
   // 大数字压缩成「亿 / 万」—— 否则流通量与销毁量两个大数会在仪表盘里撞在一起。
   const compact = (n) => {
-    if (n >= 1e8) return { value: n / 1e8, decimals: 3, suffix: " 亿" };
-    if (n >= 1e4) return { value: n / 1e4, decimals: 1, suffix: " 万" };
+    if (n >= 1e8) return { value: n / 1e8, decimals: 3, suffix: L(" 亿", " B") };
+    if (n >= 1e4) return { value: n / 1e4, decimals: 1, suffix: L(" 万", " M") };
     return { value: n, decimals: 0, suffix: "" };
   };
   const circ = compact(remaining);
@@ -294,24 +293,24 @@ const SupplyGauge = ({ burned }) => {
       <div className="supply-gauge-glow"/>
 
       <div className="supply-gauge-head">
-        <span className="eyebrow">实时 · BSC</span>
+        <span className="eyebrow">{L("实时 · BSC", "Live · BSC")}</span>
         <span className="supply-gauge-live-dot"/>
       </div>
 
       <div className="supply-gauge-row">
         <div className="supply-gauge-col">
-          <div className="supply-gauge-label">流通量</div>
+          <div className="supply-gauge-label">{L("流通量", "Circulating Supply")}</div>
           <div className="supply-gauge-big">
             <AnimatedNumber value={circ.value} duration={1400} decimals={circ.decimals} suffix={circ.suffix}/>
           </div>
           <div className="supply-gauge-unit">
             <span className="supply-gauge-unit-tag">FOOTBALL</span>
-            <span className="supply-gauge-unit-sub">总量 · 10 亿</span>
+            <span className="supply-gauge-unit-sub">{L("总量 · 10 亿", "Total Supply · 1 B")}</span>
           </div>
         </div>
         <div className="supply-gauge-divider"/>
         <div className="supply-gauge-col supply-gauge-col-burn">
-          <div className="supply-gauge-label">已永久销毁</div>
+          <div className="supply-gauge-label">{L("已永久销毁", "Permanently Burned")}</div>
           <div className="supply-gauge-burn">
             <span className="supply-gauge-burn-mark">▲</span>
             <AnimatedNumber value={brn.value} duration={1400} decimals={brn.decimals} suffix={brn.suffix}/>
@@ -320,7 +319,7 @@ const SupplyGauge = ({ burned }) => {
             <span className="supply-gauge-unit-tag is-fire">
               ▲ {rate24h === null ? "…" : (() => { const r = compact(rate24h); return r.value.toLocaleString(undefined,{maximumFractionDigits:r.decimals}) + r.suffix; })()}
             </span>
-            <span className="supply-gauge-unit-sub">FOOTBALL / 24小时链上</span>
+            <span className="supply-gauge-unit-sub">{L("FOOTBALL / 24小时链上", "FOOTBALL / 24h on-chain")}</span>
           </div>
         </div>
       </div>
@@ -337,9 +336,9 @@ const SupplyGauge = ({ burned }) => {
         <span className="f-mono supply-gauge-foot-end">0</span>
         <span className="supply-gauge-foot-pct">
           <span className="f-display numeric">{pct.toFixed(2)}</span>
-          <span className="f-mono">% 已销毁</span>
+          <span className="f-mono">{L("% 已销毁", "% burned")}</span>
         </span>
-        <span className="f-mono supply-gauge-foot-end is-right">10 亿</span>
+        <span className="f-mono supply-gauge-foot-end is-right">{L("10 亿", "1 B")}</span>
       </div>
     </div>
   );
@@ -350,10 +349,10 @@ const PhaseCard = ({ num, title, state, sub, pct, countdown }) => (
     <div className="phase-card-top">
       <span className="f-display-it" style={{fontSize:64, lineHeight:0.9, color:"var(--fg-4)"}}>{num}</span>
       <div className="phase-card-meta">
-        <div className="eyebrow">阶段 {num}</div>
+        <div className="eyebrow">{L(`阶段 ${num}`, `Phase ${num}`)}</div>
         <div className="phase-card-title f-display">{title}</div>
         <div className={"pill " + (state==="OPEN" ? "accent" : state==="PARTIAL" ? "bull" : "")}>
-          <span className="pill-dot"/>{state==="OPEN" ? "开放中" : state==="PARTIAL" ? "部分上线" : state}
+          <span className="pill-dot"/>{state==="OPEN" ? L("开放中", "Open") : state==="PARTIAL" ? L("部分上线", "Partial") : state}
         </div>
       </div>
     </div>
@@ -366,7 +365,7 @@ const PhaseCard = ({ num, title, state, sub, pct, countdown }) => (
     </div>
     {countdown && (
       <div className="phase-card-countdown">
-        <span className="eyebrow">{!countdown.available ? "读取窗口中…" : countdown.closed ? "已关闭" : "剩余时间"}</span>
+        <span className="eyebrow">{!countdown.available ? L("读取窗口中…", "Loading window…") : countdown.closed ? L("已关闭", "Closed") : L("剩余时间", "Time remaining")}</span>
         <div className="f-mono numeric" style={{fontSize:22, color: countdown.closed ? "var(--fire)" : "var(--fg)"}}>
           {!countdown.available ? "—" :
            countdown.closed ? "00:00:00:00" :
@@ -388,13 +387,13 @@ const Ticker = ({ burned }) => {
       try {
         const burns = await window.CHAIN.getRecentBurns(16);
         if (cancel) return;
-        const lines = burns.map(b => `销毁 · ${b.value.toFixed(2)} FOOTBALL`);
+        const lines = burns.map(b => L(`销毁 · ${b.value.toFixed(2)} FOOTBALL`, `Burn · ${b.value.toFixed(2)} FOOTBALL`));
         // Round out with real per-country supply tags
         const live = window.COUNTRIES
           .filter(c => countryState(c).curveOpen)
           .slice(0, 8)
-          .map(c => `${c.id} · 曲线上线 @ ${countryState(c).price.toFixed(2)} FOOTBALL`);
-        const combined = lines.length || live.length ? [...lines, ...live] : ["暂无链上事件 · 开包进行中"];
+          .map(c => L(`${c.id} · 曲线上线 @ ${countryState(c).price.toFixed(2)} FOOTBALL`, `${c.id} · Curve Live @ ${countryState(c).price.toFixed(2)} FOOTBALL`));
+        const combined = lines.length || live.length ? [...lines, ...live] : [L("暂无链上事件 · 开包进行中", "No on-chain events yet · Packs selling")];
         setEvents(combined);
       } catch (e) { /* keep current */ }
     }
@@ -413,13 +412,13 @@ const Ticker = ({ burned }) => {
   }, []);
 
   const colorize = (text) => {
-    if (text.startsWith("销毁")) return <span style={{color:"var(--fire)"}}>{text}</span>;
+    if (text.startsWith("销毁") || text.startsWith("Burn")) return <span style={{color:"var(--fire)"}}>{text}</span>;
     const m = text.match(/^([A-Z]{3})(.*)$/);
     if (m) return <><span style={{color:"var(--pitch-green)"}}>{m[1]}</span>{m[2]}</>;
     return text;
   };
 
-  const display = events.length ? events : ["读取链上事件中…"];
+  const display = events.length ? events : [L("读取链上事件中…", "Loading on-chain events…")];
   return (
     <div className="ticker">
       <div className="ticker-inner">
@@ -438,16 +437,16 @@ const TaxSplitCard = () => (
   <div className="code-block">
     <div className="code-block-bar">
       <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>PitchTreasury · distribute()</span>
-      <span className="f-mono" style={{color:"var(--bull)", fontSize:11}}>● BSC 已部署</span>
+      <span className="f-mono" style={{color:"var(--bull)", fontSize:11}}>{L("● BSC 已部署", "● Deployed on BSC")}</span>
     </div>
     <div style={{padding:"26px 22px", display:"flex", flexDirection:"column", gap:14}}>
       <div style={{textAlign:"center", paddingBottom:8}}>
-        <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>每笔交易 4% 税 → 换成 BNB</div>
-        <div className="f-display" style={{fontSize:34, lineHeight:1.1, color:"var(--accent)", marginTop:4}}>流入金库合约</div>
+        <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>{L("每笔交易 4% 税 → 换成 BNB", "4% tax per trade → swapped to BNB")}</div>
+        <div className="f-display" style={{fontSize:34, lineHeight:1.1, color:"var(--accent)", marginTop:4}}>{L("流入金库合约", "Flows into Treasury")}</div>
       </div>
       {[
-        { pct: "50%", label: "冠军回购", sub: "回购 FOOTBALL · 内盘 / 外盘", color: "var(--bull)" },
-        { pct: "50%", label: "持包人分红", sub: "按买包数量加权 · BNB 可领取", color: "var(--accent)" },
+        { pct: "50%", label: L("冠军回购", "Champion Buyback"), sub: L("回购 FOOTBALL · 内盘 / 外盘", "Buy back FOOTBALL · internal / DEX"), color: "var(--bull)" },
+        { pct: "50%", label: L("持包人分红", "Pack Holder Dividends"), sub: L("按买包数量加权 · BNB 可领取", "Weighted by packs bought · BNB claimable"), color: "var(--accent)" },
       ].map(r => (
         <div key={r.label} style={{display:"flex", alignItems:"center", gap:14, padding:"12px 14px", border:"1px solid var(--line)", borderRadius:6}}>
           <div className="f-display numeric" style={{fontSize:30, lineHeight:1, width:68, color:r.color}}>{r.pct}</div>
@@ -465,27 +464,27 @@ const Footer = ({ setRoute }) => (
   <footer className="match-footer">
     <div className="match-footer-inner">
       <div className="match-footer-credit">
-        <div style={{color:"var(--fg-2)"}}>FOOTBALL 协议</div>
-        <div>2026 世界杯，全部上链。</div>
-        <div>无团队。无增发。无代理。无退出。这颗球永不停转。</div>
+        <div style={{color:"var(--fg-2)"}}>{L("FOOTBALL 协议", "FOOTBALL Protocol")}</div>
+        <div>{L("2026 世界杯，全部上链。", "The 2026 World Cup, fully on-chain.")}</div>
+        <div>{L("无团队。无增发。无代理。无退出。这颗球永不停转。", "No team. No mint. No proxy. No exit. The ball never stops.")}</div>
         <div style={{marginTop:8, color:"var(--fg-4)"}} className="f-mono">
-          {window.FOOTBALL_CONFIG?.football || "FOOTBALL 代币待发射"} · BSC
+          {window.FOOTBALL_CONFIG?.football || L("FOOTBALL 代币待发射", "FOOTBALL token pending launch")} · BSC
         </div>
       </div>
       <div className="col gap-2">
-        <span className="eyebrow">协议</span>
-        <a className="footer-link" onClick={()=>setRoute({name:"mechanics"})}>机制</a>
-        <a className="footer-link" onClick={()=>setRoute({name:"burn"})}>销毁看板</a>
+        <span className="eyebrow">{L("协议", "Protocol")}</span>
+        <a className="footer-link" onClick={()=>setRoute({name:"mechanics"})}>{L("机制", "Mechanics")}</a>
+        <a className="footer-link" onClick={()=>setRoute({name:"burn"})}>{L("销毁看板", "Burn Dashboard")}</a>
         <a className="footer-link" href={`https://bscscan.com/token/${window.FOOTBALL_CONFIG?.football}`} target="_blank" rel="noreferrer noopener">BscScan</a>
       </div>
       <div className="col gap-2">
-        <span className="eyebrow">社区</span>
-        <a className="footer-link" href="https://x.com/DELPHIbsc" target="_blank" rel="noreferrer noopener">X 上关注 @DELPHIbsc</a>
+        <span className="eyebrow">{L("社区", "Community")}</span>
+        <a className="footer-link" href="https://x.com/DELPHIbsc" target="_blank" rel="noreferrer noopener">{L("X 上关注 @DELPHIbsc", "Follow @DELPHIbsc on X")}</a>
         <a className="footer-link" href="https://footballflap.online" target="_blank" rel="noreferrer noopener">footballflap.online</a>
       </div>
       <div className="col gap-2">
-        <span className="eyebrow">网络</span>
-        <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>BSC · 主网 · 56</span>
+        <span className="eyebrow">{L("网络", "Network")}</span>
+        <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>{L("BSC · 主网 · 56", "BSC · Mainnet · 56")}</span>
         <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>PancakeSwap</span>
         <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>Chainlink VRF v2.5</span>
         <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>OpenZeppelin v5</span>

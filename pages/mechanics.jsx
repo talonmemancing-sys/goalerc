@@ -5,16 +5,15 @@ const Mechanics = ({ setRoute }) => {
 
       <section className="mech-hero">
         <div className="mech-hero-top">
-          <div className="eyebrow">机制 · v1.0 · 最后更新 2026 年 5 月 22 日</div>
-          <div className="eyebrow">阅读时长 · 8 分钟</div>
+          <div className="eyebrow">{L("机制 · v1.0 · 最后更新 2026 年 5 月 22 日", "Mechanics · v1.0 · Last updated May 22, 2026")}</div>
+          <div className="eyebrow">{L("阅读时长 · 8 分钟", "Reading time · 8 minutes")}</div>
         </div>
         <h1 className="mech-h1 f-display">
-          一个对谁会夺冠<span style={{color:"var(--accent)"}}>毫无立场</span>的协议。
+          {L("一个对谁会夺冠", "A protocol that takes ")}<span style={{color:"var(--accent)"}}>{L("毫无立场", "no position")}</span>{L("的协议。", " on who lifts the trophy.")}
         </h1>
         <p className="mech-lede">
-          FOOTBALL 是建在 BSC 上的闭环锦标赛市场。FOOTBALL 代币进，国家与球员代币出。
-          192 条联合曲线没有治理、没有管理员、没有升级路径 —— 它们不挑选赢家。
-          代币 4% 的交易税单独流入金库，自动回购 FOOTBALL，并把分红发还给买过包的人。
+          {L("FOOTBALL 是建在 BSC 上的闭环锦标赛市场。FOOTBALL 代币进，国家与球员代币出。192 条联合曲线没有治理、没有管理员、没有升级路径 —— 它们不挑选赢家。代币 4% 的交易税单独流入金库，自动回购 FOOTBALL，并把分红发还给买过包的人。",
+             "FOOTBALL is a closed-loop tournament market built on BSC. FOOTBALL tokens go in, Country and Player Tokens come out. The 192 bonding curves have no governance, no admin, and no upgrade path — they do not pick winners. The token's 4% trading tax flows separately into the Treasury, automatically buys back FOOTBALL, and returns Dividends to everyone who has opened packs.")}
         </p>
 
         <div className="mech-toc">
@@ -27,146 +26,133 @@ const Mechanics = ({ setRoute }) => {
         </div>
       </section>
 
-      <MechSection id="token" num="01" title="代币" subtitle="FOOTBALL · BEP-20 · flap.sh 发射">
+      <MechSection id="token" num="01" title={L("代币", "The Token")} subtitle={L("FOOTBALL · BEP-20 · flap.sh 发射", "FOOTBALL · BEP-20 · launched on flap.sh")}>
         <div className="mech-cols">
           <div>
             <p>
-              <span className="f-mono" style={{color:"var(--accent)"}}>FOOTBALL</span> 是协议唯一接受的资产，
-              通过 <span className="f-mono">flap.sh</span> 启动板发射 —— 总量固定 10 亿枚，没有增发函数、
-              没有团队预留、没有解锁计划。供应量在发射时一次性铸造完毕。
+              <span className="f-mono" style={{color:"var(--accent)"}}>FOOTBALL</span>{L(" 是协议唯一接受的资产，通过 ", " is the only asset the protocol accepts, launched via the ")}<span className="f-mono">flap.sh</span>{L(" 启动板发射 —— 总量固定 10 亿枚，没有增发函数、没有团队预留、没有解锁计划。供应量在发射时一次性铸造完毕。",
+              " launchpad — a fixed Total Supply of 1 billion tokens, with no mint function, no team allocation, and no unlock schedule. The entire supply is minted once at launch.")}
             </p>
             <p>
-              FOOTBALL 是一个 4/4 税代币：在 flap 内盘联合曲线、以及毕业后的 PancakeSwap 上，
-              每笔买入与卖出各收 4% 税，自动换成 BNB 打进金库合约（见 <code className="inline-code">04 · 金库与分红</code>）。
-              钱包之间的普通转账、以及转入本协议合约（买包、曲线交易）<span className="f-display-it" style={{color:"var(--fg)"}}>不收税</span>。
+              {L("FOOTBALL 是一个 4/4 税代币：在 flap 内盘联合曲线、以及毕业后的 PancakeSwap 上，每笔买入与卖出各收 4% 税，自动换成 BNB 打进金库合约（见 ",
+                "FOOTBALL is a 4/4 tax token: on the flap internal bonding curve, and on PancakeSwap after graduation, every buy and sell is charged a 4% tax, automatically swapped into BNB and sent to the Treasury contract (see ")}<code className="inline-code">{L("04 · 金库与分红", "04 · Treasury & Dividends")}</code>{L("）。钱包之间的普通转账、以及转入本协议合约（买包、曲线交易）", "). Ordinary wallet-to-wallet transfers, and transfers into the protocol's own contracts (opening packs, curve trades), are ")}<span className="f-display-it" style={{color:"var(--fg)"}}>{L("不收税", "tax-free")}</span>.
             </p>
             <p>
-              作用于供应量的唯一力量是销毁。FOOTBALL 一旦被转入销毁地址便无法重建 —— 这条曲线单调、单向。
+              {L("作用于供应量的唯一力量是销毁。FOOTBALL 一旦被转入销毁地址便无法重建 —— 这条曲线单调、单向。",
+                "The only force acting on supply is the Burn. Once FOOTBALL is sent to the burn address it can never be reconstituted — this curve is monotonic and one-directional.")}
             </p>
           </div>
           <div className="mech-spec">
-            <SpecRow label="总供应量"  value="1,000,000,000 FOOTBALL" mono />
-            <SpecRow label="发射方式"  value="flap.sh 启动板" mono />
-            <SpecRow label="小数位"    value="18" mono />
-            <SpecRow label="标准"      value="BEP-20" mono />
-            <SpecRow label="交易税"    value="买 4% / 卖 4% → BNB → 金库" mono accent="accent" />
-            <SpecRow label="普通转账"  value="免税（转账 / 买包 / 曲线交易）" mono />
-            <SpecRow label="增发函数"  value="无" mono accent="fire" />
-            <SpecRow label="团队预留"  value="0" mono accent="accent" />
-            <SpecRow label="销毁地址"  value="0x…dEaD（转入即销毁）" mono accent="fire" />
-            <SpecRow label="网络"      value="BSC 主网 · chainId 56" mono />
+            <SpecRow label={L("总供应量", "Total Supply")}  value="1,000,000,000 FOOTBALL" mono />
+            <SpecRow label={L("发射方式", "Launch")}  value={L("flap.sh 启动板", "flap.sh launchpad")} mono />
+            <SpecRow label={L("小数位", "Decimals")}    value="18" mono />
+            <SpecRow label={L("标准", "Standard")}      value="BEP-20" mono />
+            <SpecRow label={L("交易税", "Trading Tax")}    value={L("买 4% / 卖 4% → BNB → 金库", "Buy 4% / Sell 4% → BNB → Treasury")} mono accent="accent" />
+            <SpecRow label={L("普通转账", "Plain Transfers")}  value={L("免税（转账 / 买包 / 曲线交易）", "Tax-free (transfers / pack opens / curve trades)")} mono />
+            <SpecRow label={L("增发函数", "Mint Function")}  value={L("无", "None")} mono accent="fire" />
+            <SpecRow label={L("团队预留", "Team Allocation")}  value="0" mono accent="accent" />
+            <SpecRow label={L("销毁地址", "Burn Address")}  value={L("0x…dEaD（转入即销毁）", "0x…dEaD (transfer = burn)")} mono accent="fire" />
+            <SpecRow label={L("网络", "Network")}      value={L("BSC 主网 · chainId 56", "BSC Mainnet · chainId 56")} mono />
           </div>
         </div>
       </MechSection>
 
-      <MechSection id="phases" num="02" title="两个阶段，互不重叠" subtitle="开包窗口 → 曲线交易">
+      <MechSection id="phases" num="02" title={L("两个阶段，互不重叠", "Two Phases, Never Overlapping")} subtitle={L("开包窗口 → 曲线交易", "Pack Window → Curve Trading")}>
         <p className="mech-prose">
-          协议对每个国家以两个严格顺序的阶段运行。开包窗口用 FOOTBALL 分发初始供应，
-          每国最多 18,000 个国家包、每包铸造 1 枚国家代币。只要开包仍在进行，曲线就无法交易。
-          阶段边界由 <code className="inline-code">activateCountry()</code> 在链上强制执行 ——
-          满 18,000 包、或开窗满 7 天后，任何人都可调用它把该国翻入第二阶段。
+          {L("协议对每个国家以两个严格顺序的阶段运行。开包窗口用 FOOTBALL 分发初始供应，每国最多 18,000 个国家包、每包铸造 1 枚国家代币。只要开包仍在进行，曲线就无法交易。阶段边界由 ",
+            "The protocol runs each country through two strictly sequential Phases. The Pack Window distributes the initial supply for FOOTBALL: up to 18,000 Country Packs per country, each pack minting 1 Country Token. As long as Open Packs is still running, the curve cannot trade. The Phase boundary is enforced on-chain by ")}<code className="inline-code">activateCountry()</code>{L(" —— 满 18,000 包、或开窗满 7 天后，任何人都可调用它把该国翻入第二阶段。",
+            " — once 18,000 packs are sold, or 7 days after the window opens, anyone can call it to flip that country into the second Phase.")}
         </p>
         <PhaseDiagram />
       </MechSection>
 
-      <MechSection id="curve" num="03" title="联合曲线" subtitle="虚拟储备 XYK · 192 条独立合约">
+      <MechSection id="curve" num="03" title={L("联合曲线", "Bonding Curves")} subtitle={L("虚拟储备 XYK · 192 条独立合约", "Virtual-Reserve XYK · 192 independent contracts")}>
         <div className="mech-cols">
           <div>
             <p>
-              192 条曲线是 192 个<span className="f-display-it" style={{color:"var(--fg)"}}>独立部署</span>的合约
-              —— 48 条国家曲线 + 144 条球员曲线（48 国 × 队长/巨星/新星）。
-              每条都是带硬性渐近线的虚拟储备 XYK，价格函数为
-              <code className="inline-code">P = (虚拟储备 + 真实储备) / (渐近线 − 流通量)</code>。
+              {L("192 条曲线是 192 个", "The 192 curves are 192 ")}<span className="f-display-it" style={{color:"var(--fg)"}}>{L("独立部署", "independently deployed")}</span>{L("的合约 —— 48 条国家曲线 + 144 条球员曲线（48 国 × 队长/巨星/新星）。每条都是带硬性渐近线的虚拟储备 XYK，价格函数为 ",
+              " contracts — 48 Country curves + 144 Player curves (48 countries × Captain / Best / Rookie). Each is a Virtual-Reserve XYK with a hard Asymptote, with the price function ")}<code className="inline-code">{L("P = (虚拟储备 + 真实储备) / (渐近线 − 流通量)", "P = (Virtual Reserve + Real Reserve) / (Asymptote − Circulating Supply)")}</code>.
             </p>
             <p>
-              渐近线 <code className="inline-code">A</code> 是代币数量上限：国家代币 20,000，
-              球员代币队长 / 巨星 / 新星分别为 1,500 / 500 / 2,500。
-              虚拟储备 = <code className="inline-code">A × k</code>，把开盘价精确固定在开包等价。
-              此后价格随流通量单调上升，当流通量 → A 时趋于无穷 —— 渐近线在数学上不可达。
+              {L("渐近线 ", "The Asymptote ")}<code className="inline-code">A</code>{L(" 是代币数量上限：国家代币 20,000，球员代币队长 / 巨星 / 新星分别为 1,500 / 500 / 2,500。虚拟储备 = ",
+              " is the cap on token count: 20,000 for Country Tokens, and 1,500 / 500 / 2,500 for Captain / Best / Rookie Player Tokens respectively. Virtual Reserve = ")}<code className="inline-code">A × k</code>{L("，把开盘价精确固定在开包等价。此后价格随流通量单调上升，当流通量 → A 时趋于无穷 —— 渐近线在数学上不可达。",
+              ", which pins the opening price exactly at pack-open parity. From there the price rises monotonically with Circulating Supply, tending to infinity as Circulating Supply → A — the Asymptote is mathematically unreachable.")}
             </p>
             <p>
-              每一笔曲线买入与卖出都收 <code className="inline-code">5%</code> 手续费，
-              这笔 FOOTBALL 直接转入销毁地址。买入 95% 的净额进入曲线储备并铸造代币；
-              卖出则销毁曲线代币、按储备返还 FOOTBALL。
+              {L("每一笔曲线买入与卖出都收 ", "Every curve buy and sell is charged a ")}<code className="inline-code">5%</code>{L(" 手续费，这笔 FOOTBALL 直接转入销毁地址。买入 95% 的净额进入曲线储备并铸造代币；卖出则销毁曲线代币、按储备返还 FOOTBALL。",
+              " fee, and that FOOTBALL goes straight to the burn address. On a buy, the 95% net amount enters the curve Reserve and mints tokens; on a sell, curve tokens are burned and FOOTBALL is returned out of the Reserve.")}
             </p>
           </div>
           <CurveDiagram />
         </div>
       </MechSection>
 
-      <MechSection id="treasury" num="04" title="金库与分红" subtitle="4% 交易税 → 回购 + 分红" highlight>
+      <MechSection id="treasury" num="04" title={L("金库与分红", "Treasury & Dividends")} subtitle={L("4% 交易税 → 回购 + 分红", "4% trading tax → Buyback + Dividends")} highlight>
         <div className="mech-cols">
           <div>
             <p>
-              FOOTBALL 代币 4% 的交易税自动换成 BNB，打进
-              <code className="inline-code">PitchTreasury</code> 金库合约（金库已部署在 BSC 主网）。
-              任何人都可调用 <code className="inline-code">distribute()</code>，把每一笔进账拆成两份：
+              {L("FOOTBALL 代币 4% 的交易税自动换成 BNB，打进", "The FOOTBALL token's 4% trading tax is automatically swapped into BNB and sent to the ")}<code className="inline-code">PitchTreasury</code>{L(" 金库合约（金库已部署在 BSC 主网）。任何人都可调用 ", " Treasury contract (the Treasury is already deployed on BSC Mainnet). Anyone can call ")}<code className="inline-code">distribute()</code>{L("，把每一笔进账拆成两份：", " to split each incoming amount into two parts:")}
             </p>
             <ul className="mech-list">
               <li>
-                <span className="f-mono" style={{color:"var(--bull)"}}>50% · 冠军储备</span> ——
-                用于回购 FOOTBALL：内盘（flap Portal）、外盘（PancakeSwap）或手动兜底通道。
-                买回的 FOOTBALL 留在金库。
+                <span className="f-mono" style={{color:"var(--bull)"}}>{L("50% · 冠军储备", "50% · Champion Reserve")}</span>{L(" —— 用于回购 FOOTBALL：内盘（flap Portal）、外盘（PancakeSwap）或手动兜底通道。买回的 FOOTBALL 留在金库。",
+                " — used to buy back FOOTBALL: on the internal market (flap Portal), the external market (PancakeSwap), or a manual fallback channel. The bought-back FOOTBALL stays in the Treasury.")}
               </li>
               <li>
-                <span className="f-mono" style={{color:"var(--accent)"}}>50% · 持包人分红</span> ——
-                按每个地址买过的国家包数量加权（MasterChef 会计），BNB 随时可在金库
-                <code className="inline-code">claim()</code> 领取。
+                <span className="f-mono" style={{color:"var(--accent)"}}>{L("50% · 持包人分红", "50% · Pack-Holder Dividends")}</span>{L(" —— 按每个地址买过的国家包数量加权（MasterChef 会计），BNB 随时可在金库",
+                " — weighted by the number of Country Packs each address has bought (MasterChef accounting); the BNB can be claimed from the Treasury at any time via ")}<code className="inline-code">claim()</code>{L(" 领取。", ".")}
               </li>
             </ul>
             <p>
-              分红那一份里会先扣一小撮（默认 1%、上限 5%）给球员包的 Chainlink VRF 充值 ——
-              consumer 的 BNB 余额达标后自动停扣。还没有人买包时，这部分分红并入冠军储备，不浪费。
+              {L("分红那一份里会先扣一小撮（默认 1%、上限 5%）给球员包的 Chainlink VRF 充值 —— consumer 的 BNB 余额达标后自动停扣。还没有人买包时，这部分分红并入冠军储备，不浪费。",
+                "A small slice is skimmed off the Dividends share first (1% by default, capped at 5%) to top up the Chainlink VRF for Player Packs — the skim stops automatically once the consumer's BNB balance is sufficient. When no one has bought packs yet, this slice is rolled into the Champion Reserve so nothing is wasted.")}
             </p>
             <p>
-              金库的紧急取款受 <code className="inline-code">24 小时冷却</code>约束：
-              dev 发起后须等满 24 小时才能执行 —— 给所有人留出反应时间。
+              {L("金库的紧急取款受 ", "The Treasury's Emergency Withdraw is subject to a ")}<code className="inline-code">{L("24 小时冷却", "24-hour cooldown")}</code>{L("约束：dev 发起后须等满 24 小时才能执行 —— 给所有人留出反应时间。",
+              ": after the dev initiates it, a full 24 hours must pass before it can execute — leaving everyone time to react.")}
             </p>
           </div>
           <TaxFlowDiagram />
         </div>
 
         <div className="hook-spec">
-          <SpecRow label="金库合约" value="PitchTreasury · BSC 已部署" mono accent="accent" />
-          <SpecRow label="税收入" value="FOOTBALL 4% 交易税 → BNB" mono />
-          <SpecRow label="冠军储备" value="50% → 回购 FOOTBALL（内盘 / 外盘）" mono />
-          <SpecRow label="分红" value="50% → 买包人，按包数加权" mono accent="accent" />
-          <SpecRow label="VRF 滴灌" value="分红中扣 1%（上限 5%）充值 VRF" mono />
-          <SpecRow label="分红领取" value="claim() · BNB 随时可领" mono accent="accent" />
+          <SpecRow label={L("金库合约", "Treasury Contract")} value={L("PitchTreasury · BSC 已部署", "PitchTreasury · deployed on BSC")} mono accent="accent" />
+          <SpecRow label={L("税收入", "Tax Revenue")} value={L("FOOTBALL 4% 交易税 → BNB", "FOOTBALL 4% trading tax → BNB")} mono />
+          <SpecRow label={L("冠军储备", "Champion Reserve")} value={L("50% → 回购 FOOTBALL（内盘 / 外盘）", "50% → Buyback FOOTBALL (internal / external market)")} mono />
+          <SpecRow label={L("分红", "Dividends")} value={L("50% → 买包人，按包数加权", "50% → pack buyers, weighted by pack count")} mono accent="accent" />
+          <SpecRow label={L("VRF 滴灌", "VRF Drip")} value={L("分红中扣 1%（上限 5%）充值 VRF", "1% skimmed from Dividends (capped 5%) to fund VRF")} mono />
+          <SpecRow label={L("分红领取", "Dividend Claim")} value={L("claim() · BNB 随时可领", "claim() · BNB claimable anytime")} mono accent="accent" />
         </div>
       </MechSection>
 
-      <MechSection id="burn" num="05" title="销毁飞轮" subtitle="每笔交易都减少总供应量">
+      <MechSection id="burn" num="05" title={L("销毁飞轮", "The Burn Flywheel")} subtitle={L("每笔交易都减少总供应量", "Every trade shrinks Total Supply")}>
         <p className="mech-prose">
-          销毁是系统中唯一的通缩力量。它有两个来源：买国家包时立即销毁包价的 5%；
-          以及 192 条曲线上的每一笔买入 / 卖出，都把流入 FOOTBALL 的 5% 转入销毁地址。
-          随着时间推移，流通供应量 <span className="f-display-it" style={{color:"var(--fg)"}}>单调递减</span>。
+          {L("销毁是系统中唯一的通缩力量。它有两个来源：买国家包时立即销毁包价的 5%；以及 192 条曲线上的每一笔买入 / 卖出，都把流入 FOOTBALL 的 5% 转入销毁地址。随着时间推移，流通供应量 ",
+            "The Burn is the only deflationary force in the system. It has two sources: buying a Country Pack immediately burns 5% of the pack price; and every buy and sell across the 192 curves sends 5% of the inbound FOOTBALL to the burn address. Over time, Circulating Supply ")}<span className="f-display-it" style={{color:"var(--fg)"}}>{L("单调递减", "decreases monotonically")}</span>.
         </p>
         <FlywheelDiagram />
       </MechSection>
 
-      <MechSection id="vrf" num="06" title="球员包随机性" subtitle="Chainlink VRF v2.5 · 直接付费">
+      <MechSection id="vrf" num="06" title={L("球员包随机性", "Player Pack Randomness")} subtitle={L("Chainlink VRF v2.5 · 直接付费", "Chainlink VRF v2.5 · direct funding")}>
         <p className="mech-prose">
-          球员包从每国 150 队长、50 巨星、250 新星的受限池中抽取 —— 共 450 包。
-          角色通过单个 VRF 随机字在链上选定，配额在领取时原子扣减。每包铸造 10 枚球员代币。
-          VRF 采用 <code className="inline-code">v2.5 直接付费</code>模式：合约用自身 BNB 余额付费，
-          无需订阅、无需管理 LINK —— 这笔 BNB 由金库分红滴灌持续补充。
-          代币不在 VRF 回调里铸造，而在用户调用 <code className="inline-code">claim()</code> 时铸造，
-          这既防止回调重入，也让卡住的请求可在 24 小时后安全取回国家代币。
+          {L("球员包从每国 150 队长、50 巨星、250 新星的受限池中抽取 —— 共 450 包。角色通过单个 VRF 随机字在链上选定，配额在领取时原子扣减。每包铸造 10 枚球员代币。VRF 采用 ",
+            "Player Packs draw from a capped pool of 150 Captains, 50 Bests, and 250 Rookies per country — 450 packs in total. Roles are selected on-chain from a single VRF random word, and quotas are decremented atomically at claim time. Each pack mints 10 Player Tokens. The VRF uses ")}<code className="inline-code">{L("v2.5 直接付费", "v2.5 direct funding")}</code>{L("模式：合约用自身 BNB 余额付费，无需订阅、无需管理 LINK —— 这笔 BNB 由金库分红滴灌持续补充。代币不在 VRF 回调里铸造，而在用户调用 ",
+            " mode: the contract pays from its own BNB balance, with no subscription and no LINK to manage — that BNB is continuously replenished by the Treasury's Dividend drip. Tokens are not minted in the VRF callback, but when the user calls ")}<code className="inline-code">claim()</code>{L("时铸造，这既防止回调重入，也让卡住的请求可在 24 小时后安全取回国家代币。",
+            ", which both prevents callback reentrancy and lets a stuck request safely reclaim its Country Token after 24 hours.")}
         </p>
         <VRFDiagram />
       </MechSection>
 
       <section className="mech-footer-cta">
         <div>
-          <div className="eyebrow">机制说明完</div>
+          <div className="eyebrow">{L("机制说明完", "End of mechanics")}</div>
           <h2 className="f-display" style={{fontSize:56, lineHeight:1, margin:"12px 0 24px", letterSpacing:"-0.02em"}}>
-            准备好开一包了吗？
+            {L("准备好开一包了吗？", "Ready to open a pack?")}
           </h2>
         </div>
         <div style={{display:"flex", gap:12}}>
-          <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>开一包</button>
-          <button className="btn" onClick={()=>setRoute({name:"markets"})}>浏览市场</button>
+          <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>{L("开一包", "Open a Pack")}</button>
+          <button className="btn" onClick={()=>setRoute({name:"markets"})}>{L("浏览市场", "Browse Markets")}</button>
         </div>
       </section>
 
@@ -176,12 +162,12 @@ const Mechanics = ({ setRoute }) => {
 };
 
 const SECTIONS = [
-  { id: "token",    label: "代币（FOOTBALL）" },
-  { id: "phases",   label: "两个阶段" },
-  { id: "curve",    label: "联合曲线" },
-  { id: "treasury", label: "金库与分红" },
-  { id: "burn",     label: "销毁飞轮" },
-  { id: "vrf",      label: "球员 VRF" },
+  { id: "token",    label: L("代币（FOOTBALL）", "The Token (FOOTBALL)") },
+  { id: "phases",   label: L("两个阶段", "Two Phases") },
+  { id: "curve",    label: L("联合曲线", "Bonding Curves") },
+  { id: "treasury", label: L("金库与分红", "Treasury & Dividends") },
+  { id: "burn",     label: L("销毁飞轮", "Burn Flywheel") },
+  { id: "vrf",      label: L("球员 VRF", "Player VRF") },
 ];
 
 const MechSection = ({ id, num, title, subtitle, children, highlight }) => (
@@ -211,16 +197,16 @@ const PhaseDiagram = () => (
     <div className="phase-diagram-track">
       <div className="phase-diagram-segment phase-1">
         <div className="phase-diagram-segment-head">
-          <span className="eyebrow">阶段 I</span>
-          <span className="pill accent"><span className="pill-dot"/>进行中</span>
+          <span className="eyebrow">{L("阶段 I", "Phase I")}</span>
+          <span className="pill accent"><span className="pill-dot"/>{L("进行中", "Live")}</span>
         </div>
-        <div className="phase-diagram-segment-title f-display">开包窗口</div>
+        <div className="phase-diagram-segment-title f-display">{L("开包窗口", "Pack Window")}</div>
         <ul className="phase-diagram-bullets">
-          <li>每国最多 18,000 个国家包 · 48 国共 864,000 包</li>
-          <li>每个国家包用 FOOTBALL 购买，铸造 1 枚国家代币</li>
-          <li>包价 5% 立即销毁，95% 注入该国曲线储备</li>
-          <li>封盘后每国 450 个球员包，用国家代币支付</li>
-          <li>窗口逐国关闭：满 18,000 包 或 开窗满 7 天</li>
+          <li>{L("每国最多 18,000 个国家包 · 48 国共 864,000 包", "Up to 18,000 Country Packs per country · 864,000 packs across 48 countries")}</li>
+          <li>{L("每个国家包用 FOOTBALL 购买，铸造 1 枚国家代币", "Each Country Pack is bought with FOOTBALL and mints 1 Country Token")}</li>
+          <li>{L("包价 5% 立即销毁，95% 注入该国曲线储备", "5% of the pack price is burned instantly, 95% seeds that country's curve Reserve")}</li>
+          <li>{L("封盘后每国 450 个球员包，用国家代币支付", "After the window closes, 450 Player Packs per country, paid in Country Tokens")}</li>
+          <li>{L("窗口逐国关闭：满 18,000 包 或 开窗满 7 天", "The window closes per country: at 18,000 packs, or 7 days after opening")}</li>
         </ul>
       </div>
 
@@ -233,16 +219,16 @@ const PhaseDiagram = () => (
 
       <div className="phase-diagram-segment phase-2">
         <div className="phase-diagram-segment-head">
-          <span className="eyebrow">阶段 II</span>
-          <span className="pill bull"><span className="pill-dot"/>逐国</span>
+          <span className="eyebrow">{L("阶段 II", "Phase II")}</span>
+          <span className="pill bull"><span className="pill-dot"/>{L("逐国", "Per country")}</span>
         </div>
-        <div className="phase-diagram-segment-title f-display">曲线交易</div>
+        <div className="phase-diagram-segment-title f-display">{L("曲线交易", "Curve Trading")}</div>
         <ul className="phase-diagram-bullets">
-          <li>192 条联合曲线逐国激活，开放买卖</li>
-          <li>P = (虚拟储备 + 真实储备) / (渐近线 − 流通量)</li>
-          <li>开包窗口注入的 FOOTBALL 成为曲线初始储备</li>
-          <li>每笔买入 / 卖出销毁 5% 流入的 FOOTBALL</li>
-          <li>无到期。曲线永久运行，直到流通量 → 渐近线</li>
+          <li>{L("192 条联合曲线逐国激活，开放买卖", "The 192 bonding curves activate country by country, opening for buying and selling")}</li>
+          <li>{L("P = (虚拟储备 + 真实储备) / (渐近线 − 流通量)", "P = (Virtual Reserve + Real Reserve) / (Asymptote − Circulating Supply)")}</li>
+          <li>{L("开包窗口注入的 FOOTBALL 成为曲线初始储备", "FOOTBALL injected during the Pack Window becomes the curve's initial Reserve")}</li>
+          <li>{L("每笔买入 / 卖出销毁 5% 流入的 FOOTBALL", "Every buy and sell burns 5% of the inbound FOOTBALL")}</li>
+          <li>{L("无到期。曲线永久运行，直到流通量 → 渐近线", "No expiry. The curves run forever, until Circulating Supply → Asymptote")}</li>
         </ul>
       </div>
     </div>
@@ -270,13 +256,13 @@ const CurveDiagram = () => {
       <line x1={PAD} y1={H-PAD} x2={W-PAD} y2={H-PAD} stroke="var(--line-2)"/>
       <line x1={PAD} y1={PAD} x2={PAD} y2={H-PAD} stroke="var(--line-2)"/>
       <line x1={xs(100)} y1={PAD} x2={xs(100)} y2={H-PAD} stroke="var(--fire)" strokeDasharray="3 3" opacity="0.6"/>
-      <text x={xs(100)-4} y={PAD+12} textAnchor="end" className="curve-axis-fire">A = 20,000 · 渐近线</text>
+      <text x={xs(100)-4} y={PAD+12} textAnchor="end" className="curve-axis-fire">{L("A = 20,000 · 渐近线", "A = 20,000 · Asymptote")}</text>
       <path d={path} fill="none" stroke="var(--accent)" strokeWidth="2"/>
       <path d={path} fill="none" stroke="var(--accent)" strokeWidth="6" opacity="0.18"/>
-      <text x={PAD} y={H-12} className="curve-axis">流通量 →</text>
-      <text x={PAD} y={PAD-12} className="curve-axis">价格</text>
-      <text x={xs(18)} y={ys((VIRT + 18*6.555)/(A-18))-8} className="curve-label">开包窗口封盘</text>
-      <text x={xs(85)} y={ys((VIRT + 85*6.555)/(A-85))-10} className="curve-label">抛物线区</text>
+      <text x={PAD} y={H-12} className="curve-axis">{L("流通量 →", "Circulating Supply →")}</text>
+      <text x={PAD} y={PAD-12} className="curve-axis">{L("价格", "Price")}</text>
+      <text x={xs(18)} y={ys((VIRT + 18*6.555)/(A-18))-8} className="curve-label">{L("开包窗口封盘", "Pack Window closes")}</text>
+      <text x={xs(85)} y={ys((VIRT + 85*6.555)/(A-85))-10} className="curve-label">{L("抛物线区", "Parabolic zone")}</text>
     </svg>
   );
 };
@@ -284,25 +270,25 @@ const CurveDiagram = () => {
 const TaxFlowDiagram = () => (
   <div className="hook-diagram">
     <div className="hook-node hook-node-user">
-      <div className="eyebrow">交易者</div>
-      <div className="hook-node-label f-mono">买 / 卖 FOOTBALL</div>
+      <div className="eyebrow">{L("交易者", "Trader")}</div>
+      <div className="hook-node-label f-mono">{L("买 / 卖 FOOTBALL", "Buy / Sell FOOTBALL")}</div>
     </div>
     <div className="hook-arrow"><span>1</span></div>
     <div className="hook-node hook-node-pm">
-      <div className="eyebrow">FOOTBALL 代币</div>
-      <div className="hook-node-label f-mono">收 4% 税 → 换成 BNB</div>
+      <div className="eyebrow">{L("FOOTBALL 代币", "FOOTBALL Token")}</div>
+      <div className="hook-node-label f-mono">{L("收 4% 税 → 换成 BNB", "4% tax charged → swapped into BNB")}</div>
     </div>
     <div className="hook-arrow"><span>2</span></div>
     <div className="hook-node hook-node-hook">
-      <div className="eyebrow">PitchTreasury 金库</div>
+      <div className="eyebrow">{L("PitchTreasury 金库", "PitchTreasury Treasury")}</div>
       <div className="hook-node-label f-display" style={{fontSize:18}}>distribute()</div>
-      <div className="hook-node-sub f-mono">回购 + 分红</div>
+      <div className="hook-node-sub f-mono">{L("回购 + 分红", "Buyback + Dividends")}</div>
       <div className="hook-burn-glow" />
     </div>
     <div className="hook-arrow hook-arrow-down"><span>3</span></div>
     <div className="hook-node hook-node-burn">
-      <div className="eyebrow" style={{color:"var(--accent)"}}>50% 冠军回购 · 50% 持包人分红</div>
-      <div className="hook-node-label f-mono">分红按买包数量加权发放</div>
+      <div className="eyebrow" style={{color:"var(--accent)"}}>{L("50% 冠军回购 · 50% 持包人分红", "50% Champion Buyback · 50% Pack-Holder Dividends")}</div>
+      <div className="hook-node-label f-mono">{L("分红按买包数量加权发放", "Dividends paid out weighted by pack count")}</div>
     </div>
   </div>
 );
@@ -310,11 +296,11 @@ const TaxFlowDiagram = () => (
 const FlywheelDiagram = () => (
   <div className="flywheel">
     {[
-      { label: "交易",      sub: "买包 / 曲线买卖",      color: "var(--accent)" },
-      { label: "收 5%",     sub: "包价或曲线流入的 5%",   color: "var(--fg)" },
-      { label: "销毁",      sub: "FOOTBALL 转入销毁地址", color: "var(--fire)" },
-      { label: "稀缺度 ↑",  sub: "流通 FOOTBALL 下降",    color: "var(--bull)" },
-      { label: "需求 ↑",    sub: "曲线价格上涨",          color: "var(--accent)" },
+      { label: L("交易", "Trade"),       sub: L("买包 / 曲线买卖", "Pack opens / curve trades"),       color: "var(--accent)" },
+      { label: L("收 5%", "5% Charged"), sub: L("包价或曲线流入的 5%", "5% of pack price or curve inflow"),   color: "var(--fg)" },
+      { label: L("销毁", "Burn"),        sub: L("FOOTBALL 转入销毁地址", "FOOTBALL sent to burn address"), color: "var(--fire)" },
+      { label: L("稀缺度 ↑", "Scarcity ↑"),  sub: L("流通 FOOTBALL 下降", "Circulating FOOTBALL falls"),    color: "var(--bull)" },
+      { label: L("需求 ↑", "Demand ↑"),    sub: L("曲线价格上涨", "Curve price rises"),          color: "var(--accent)" },
     ].map((s, i, arr) => (
       <React.Fragment key={i}>
         <div className="flywheel-step">
@@ -331,7 +317,7 @@ const FlywheelDiagram = () => (
 
 const VRFDiagram = () => (
   <div className="vrf-diagram">
-    {["openPlayerPacks()", "请求 VRF v2.5", "fulfillRandomWords", "claim() 抽取角色", "铸造 10 枚/包"].map((step, i) => (
+    {["openPlayerPacks()", L("请求 VRF v2.5", "Request VRF v2.5"), "fulfillRandomWords", L("claim() 抽取角色", "claim() draws role"), L("铸造 10 枚/包", "Mint 10 per pack")].map((step, i) => (
       <React.Fragment key={i}>
         <div className="vrf-step">
           <div className="vrf-step-num f-mono">{String(i+1).padStart(2,"0")}</div>

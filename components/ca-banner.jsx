@@ -16,19 +16,19 @@ const CABanner = () => {
   return (
     <div className="ca-banner">
       <div className="ca-banner-inner">
-        <span className="ca-banner-label eyebrow">$FOOTBALL 合约</span>
+        <span className="ca-banner-label eyebrow">{L("$FOOTBALL 合约", "$FOOTBALL Contract")}</span>
         <span className="ca-banner-divider" />
         <span className="ca-banner-addr f-mono" title={CA}>
           <span className="ca-banner-addr-full">{CA}</span>
           <span className="ca-banner-addr-short">{short}</span>
         </span>
-        <button className="ca-banner-btn" onClick={handleCopy} aria-label="复制合约地址">
+        <button className="ca-banner-btn" onClick={handleCopy} aria-label={L("复制合约地址", "Copy contract address")}>
           {copied ? (
             <>
               <svg width="12" height="12" viewBox="0 0 12 12">
                 <path d="M2 6.5 L5 9.5 L10 3.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
               </svg>
-              <span>已复制</span>
+              <span>{L("已复制", "Copied")}</span>
             </>
           ) : (
             <>
@@ -36,7 +36,7 @@ const CABanner = () => {
                 <rect x="2" y="2" width="6" height="6" stroke="currentColor" strokeWidth="1.2" fill="none" />
                 <path d="M4 2 V0.5 H10 V7 H8.5" stroke="currentColor" strokeWidth="1.2" fill="none" />
               </svg>
-              <span>复制</span>
+              <span>{L("复制", "Copy")}</span>
             </>
           )}
         </button>

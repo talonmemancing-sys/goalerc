@@ -1,13 +1,13 @@
 // FOOTBALL — top navigation with REAL EIP-1193 wallet connect (no simulator).
 const Header = ({ route, setRoute, burned }) => {
   const items = [
-    { id: "home",      label: "首页" },
-    { id: "mechanics", label: "机制" },
-    { id: "pack",      label: "开包" },
-    { id: "markets",   label: "市场" },
-    { id: "players",   label: "球员" },
-    { id: "portfolio", label: "持仓" },
-    { id: "burn",      label: "燃烧" },
+    { id: "home",      label: L("首页", "Home") },
+    { id: "mechanics", label: L("机制", "Mechanics") },
+    { id: "pack",      label: L("开包", "Open Packs") },
+    { id: "markets",   label: L("市场", "Markets") },
+    { id: "players",   label: L("球员", "Players") },
+    { id: "portfolio", label: L("持仓", "Portfolio") },
+    { id: "burn",      label: L("燃烧", "Burn") },
   ];
 
   // Subscribe to live wallet state.
@@ -81,11 +81,22 @@ const Header = ({ route, setRoute, burned }) => {
           </nav>
 
           <div className="match-header-right">
+            <button
+              className="lang-toggle f-mono"
+              onClick={() => window.toggleLang()}
+              title="切换语言 / Switch language"
+              style={{
+                background:"transparent", border:"1px solid var(--line-2)", color:"var(--fg-2)",
+                borderRadius:6, padding:"5px 9px", fontSize:11, cursor:"pointer", letterSpacing:"0.04em",
+              }}
+            >
+              {window.LANG === "en" ? "中文" : "EN"}
+            </button>
             <SocialLinks />
             <PoolLiveBadge />
 
             <div className="match-supply">
-              <span className="eyebrow">流通量</span>
+              <span className="eyebrow">{L("流通量", "Circulating")}</span>
               <span className="f-mono numeric">{(((window.FOOTBALL_CONFIG&&window.FOOTBALL_CONFIG.totalSupply)||1_000_000_000) - burned).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
               <span className="match-supply-burn">−{burned.toLocaleString()}</span>
             </div>
@@ -97,7 +108,7 @@ const Header = ({ route, setRoute, burned }) => {
                   <rect x="1.5" y="3.5" width="11" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.4"/>
                   <circle cx="9.5" cy="7.5" r="0.9" fill="currentColor"/>
                 </svg>
-                连接钱包
+                {L("连接钱包", "Connect Wallet")}
               </button>
             ) : (
               <div className="wallet-menu" ref={menuRef}>
@@ -106,9 +117,9 @@ const Header = ({ route, setRoute, burned }) => {
                     className="rk-account-pill"
                     onClick={() => window.WALLET.switchToMainnet()}
                     style={{background:"rgba(255, 100, 60, 0.12)", borderColor:"rgba(255, 100, 60, 0.4)"}}
-                    title="网络错误 — 点击切换到 BSC"
+                    title={L("网络错误 — 点击切换到 BSC", "Wrong network — click to switch to BSC")}
                   >
-                    <span style={{color:"var(--fire)"}}>⚠ 网络错误</span>
+                    <span style={{color:"var(--fire)"}}>{L("⚠ 网络错误", "⚠ Wrong Network")}</span>
                   </button>
                 )}
                 <button
@@ -182,11 +193,11 @@ const PoolLiveBadge = () => {
     <a className="match-social-link"
        href={cakeHref}
        target="_blank" rel="noreferrer noopener"
-       title="在 PancakeSwap 用 BNB 买 FOOTBALL"
+       title={L("在 PancakeSwap 用 BNB 买 FOOTBALL", "Buy FOOTBALL with BNB on PancakeSwap")}
        style={{display:"inline-flex", alignItems:"center", gap:6, padding:"4px 10px",
                border:"1px solid var(--accent)", borderRadius:14, color:"var(--accent)"}}>
       <span style={{width:6, height:6, borderRadius:3, background:"var(--accent)", boxShadow:"0 0 6px var(--accent)"}}/>
-      <span className="f-mono" style={{fontSize:11}}>买 FOOTBALL</span>
+      <span className="f-mono" style={{fontSize:11}}>{L("买 FOOTBALL", "Buy FOOTBALL")}</span>
     </a>
   );
 };
@@ -209,9 +220,9 @@ const ConnectModal = ({ wallet, onClose, onConnect }) => {
       <div className="rk-modal" onClick={e => e.stopPropagation()}>
         <aside className="rk-left">
           <div className="rk-left-head">
-            <h3 className="rk-left-title">连接钱包</h3>
+            <h3 className="rk-left-title">{L("连接钱包", "Connect Wallet")}</h3>
           </div>
-          <div className="rk-left-section-label">常用钱包</div>
+          <div className="rk-left-section-label">{L("常用钱包", "Popular Wallets")}</div>
           <div className="rk-wallet-list">
             {branded.map((b) => {
               const installed = window.WALLET?.isInstalled(b.id);
@@ -231,12 +242,12 @@ const ConnectModal = ({ wallet, onClose, onConnect }) => {
                     <img src={`assets/wallets/${b.id}.png`} alt="" className="wallet-icon-img"/>
                   </span>
                   <span className="rk-wallet-row-name">{b.name}</span>
-                  {installed && <span className="rk-wallet-row-badge">已安装</span>}
-                  {!installed && <span className="rk-wallet-row-badge" style={{opacity:0.5}}>安装</span>}
+                  {installed && <span className="rk-wallet-row-badge">{L("已安装", "Installed")}</span>}
+                  {!installed && <span className="rk-wallet-row-badge" style={{opacity:0.5}}>{L("安装", "Install")}</span>}
                 </button>
               );
             })}
-            {extraAnnounced.length > 0 && <div className="rk-left-section-label" style={{marginTop:14}}>检测到</div>}
+            {extraAnnounced.length > 0 && <div className="rk-left-section-label" style={{marginTop:14}}>{L("检测到", "Detected")}</div>}
             {extraAnnounced.map((p) => (
               <button
                 key={p.info.uuid}
@@ -282,11 +293,11 @@ const ConnectingState = ({ providerName }) => (
     <div className="rk-icon-large is-pulse">
       <div className="rk-icon-large-ring"/>
     </div>
-    <h3 className="rk-right-title">正在打开 {providerName}</h3>
-    <p className="rk-right-sub">在钱包里确认连接…</p>
+    <h3 className="rk-right-title">{L("正在打开 ", "Opening ")}{providerName}</h3>
+    <p className="rk-right-sub">{L("在钱包里确认连接…", "Confirm the connection in your wallet…")}</p>
     <div className="rk-status-row">
       <span className="rk-status-dot is-pulse"/>
-      <span className="f-mono" style={{fontSize:12, color:"var(--fg-3)"}}>等待批准</span>
+      <span className="f-mono" style={{fontSize:12, color:"var(--fg-3)"}}>{L("等待批准", "Waiting for approval")}</span>
     </div>
   </div>
 );
@@ -300,7 +311,7 @@ const ErrorState = ({ error }) => (
         <circle cx="12" cy="16" r="0.8" fill="currentColor"/>
       </svg>
     </div>
-    <h3 className="rk-right-title">连接失败</h3>
+    <h3 className="rk-right-title">{L("连接失败", "Connection failed")}</h3>
     <p className="rk-right-sub">{error}</p>
   </div>
 );
@@ -312,13 +323,15 @@ const ProviderDetail = ({ brand, onConnect }) => (
     </div>
     <h3 className="rk-right-title">{brand.name}</h3>
     <p className="rk-right-sub">
-      {brand.id === "metamask"    && "最流行的加密钱包，浏览器插件 + 手机 App。"}
-      {brand.id === "okx"         && "多链钱包 + 交易所，一站式。"}
-      {brand.id === "binance"     && "币安自托管钱包 —— 安全、多链。"}
-      {brand.id === "tokenpocket" && "全球 3000 万+ 用户信赖，移动端优先。"}
+      {brand.id === "metamask"    && L("最流行的加密钱包，浏览器插件 + 手机 App。", "The most popular crypto wallet — browser extension + mobile app.")}
+      {brand.id === "okx"         && L("多链钱包 + 交易所，一站式。", "Multi-chain wallet + exchange, all in one.")}
+      {brand.id === "binance"     && L("币安自托管钱包 —— 安全、多链。", "Binance self-custody wallet — secure, multi-chain.")}
+      {brand.id === "tokenpocket" && L("全球 3000 万+ 用户信赖，移动端优先。", "Trusted by 30M+ users worldwide, mobile-first.")}
     </p>
     <button className="rk-connect-detail" onClick={() => onConnect(brand.id)}>
-      {window.WALLET?.isInstalled(brand.id) ? `用 ${brand.name} 连接` : `安装 ${brand.name}`}
+      {window.WALLET?.isInstalled(brand.id)
+        ? L(`用 ${brand.name} 连接`, `Connect with ${brand.name}`)
+        : L(`安装 ${brand.name}`, `Install ${brand.name}`)}
     </button>
   </div>
 );
@@ -339,14 +352,14 @@ const WhatIsAWallet = () => (
         </svg>
       </div>
     </div>
-    <h3 className="rk-right-title">钱包是什么？</h3>
+    <h3 className="rk-right-title">{L("钱包是什么？", "What is a wallet?")}</h3>
     <div className="rk-edu-block">
-      <div className="rk-edu-block-title">你数字资产的家</div>
-      <div className="rk-edu-block-text">钱包让你存储、转账、交易 FOOTBALL、BNB 这类代币。</div>
+      <div className="rk-edu-block-title">{L("你数字资产的家", "A home for your digital assets")}</div>
+      <div className="rk-edu-block-text">{L("钱包让你存储、转账、交易 FOOTBALL、BNB 这类代币。", "A wallet lets you store, send and trade tokens like FOOTBALL and BNB.")}</div>
     </div>
     <div className="rk-edu-block">
-      <div className="rk-edu-block-title">全新的登录方式</div>
-      <div className="rk-edu-block-text">不用密码 —— 用钱包登录 FOOTBALL 协议。</div>
+      <div className="rk-edu-block-title">{L("全新的登录方式", "A new way to sign in")}</div>
+      <div className="rk-edu-block-text">{L("不用密码 —— 用钱包登录 FOOTBALL 协议。", "No passwords — sign in to the FOOTBALL protocol with your wallet.")}</div>
     </div>
   </div>
 );
@@ -367,15 +380,15 @@ const WalletDropdown = ({ wallet, shortAddr, onCopy, onDisconnect, onPortfolio }
     </div>
     <button className="wallet-dropdown-copy" onClick={onCopy} style={{display:"flex", alignItems:"center", gap:6, padding:"8px 12px", width:"100%", border:"none", background:"transparent", color:"var(--fg-2)", cursor:"pointer", fontSize:13}}>
       <svg width="13" height="13" viewBox="0 0 12 12"><rect x="2" y="2" width="6" height="6" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M4 2 V0.5 H10 V7 H8.5" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>
-      复制地址
+      {L("复制地址", "Copy address")}
     </button>
     <a href={`https://bscscan.com/address/${wallet.address}`} target="_blank" rel="noreferrer noopener" style={{display:"flex", alignItems:"center", gap:6, padding:"8px 12px", color:"var(--fg-2)", textDecoration:"none", fontSize:13}}>
       <svg width="13" height="13" viewBox="0 0 12 12"><path d="M5 8 L8 5 M5 5 H8 V8" stroke="currentColor" strokeWidth="1.2" fill="none"/><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>
-      在 BscScan 查看
+      {L("在 BscScan 查看", "View on BscScan")}
     </a>
     <button className="wallet-dropdown-disconnect" onClick={onDisconnect}>
       <svg width="14" height="14" viewBox="0 0 14 14"><path d="M5 2 H2 V12 H5 M8 4 L11 7 L8 10 M11 7 H5" stroke="currentColor" strokeWidth="1.3" fill="none"/></svg>
-      断开连接
+      {L("断开连接", "Disconnect")}
     </button>
   </div>
 );
