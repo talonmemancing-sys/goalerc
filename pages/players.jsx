@@ -199,6 +199,7 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
   const scarcity = ps.max ? (supply / ps.max) * 100 : 0;
 
   const [mode, setMode] = usePlState("buy");
+  const [tf, setTf] = usePlState("15M"); // K 线周期
   const [amount, setAmount] = usePlState(50);
   const [slippageBps, setSlippageBps] = usePlState(100);
   const [txState, setTxState] = usePlState("idle");
@@ -338,8 +339,8 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
         <div className="md-chart-wrap">
           <div className="md-chart-head">
             <div className="md-chart-tabs">
-              {["1H","1D","7D","30D","ALL"].map(t => (
-                <button key={t} className={"md-chart-tab " + (t==="1D" ? "is-active" : "")}>{t}</button>
+              {["1M","15M","1H","4H","24H"].map(t => (
+                <button key={t} className={"md-chart-tab " + (t===tf ? "is-active" : "")} onClick={()=>setTf(t)}>{t}</button>
               ))}
             </div>
             <div className="md-chart-meta">
@@ -350,10 +351,9 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
           <CurveKLine
             curveAddr={ps.curveAddr}
             currentPrice={price}
-            currentSupply={supply}
-            max={r.max}
             curveOpen={ps.curveOpen}
             symbol={`${country.id}.${role}`}
+            timeframe={tf}
           />
 
           <TransferLogFeed
