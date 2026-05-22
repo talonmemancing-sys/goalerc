@@ -227,107 +227,65 @@ const CurvePreview = ({ price, supply, max, curveOpen }) => {
 };
 window.CurvePreview = CurvePreview;
 
-// K 线（蜡烛图）—— 把曲线的 Bought/Sold 成交按所选周期分桶成 OHLC 蜡烛。
-// 支持周期切换（1M/15M/1H/4H/24H）+ 悬停看 OHLC。
-const KLINE_TF = { "1M": 60, "15M": 900, "1H": 3600, "4H": 14400, "24H": 86400 };
-
-const CurveKLine = ({ curveAddr, currentPrice = 0, curveOpen, symbol = "", timeframe = "15M" }) => {
-  const [events, setEvents] = React.useState(null);
-  const [error, setError] = React.useState(null);
-  const [hover, setHover] = React.useState(null);
+// 联合曲线图（抛物线）—— 价格随供应量上升,接近渐近线时陡升。鼠标悬停查看任意点。
+const CurveKLine = ({ currentPrice = 0, currentSupply = 0, max, curveOpen, symbol = "" }) => {
+  const [hover, setHover] = React.useState(null); // 鼠标处的 supply
   const svgRef = React.useRef(null);
 
-  React.useEffect(() => {
-    let cancel = false;
-    async function load() {
-      if (!curveAddr || !window.CHAIN?._provider) return;
-      try {
-        const tr = await window.CHAIN.getCurveTradeHistory(curveAddr, 50_000, 500);
-        if (!cancel) { setEvents(tr || []); setError(null); }
-      } catch (e) {
-        if (!cancel) setError(e?.message || L("加载交易历史失败", "Failed to load trade history"));
-      }
-    }
-    const waitAndLoad = () => {
-      if (window.CHAIN?._provider) {
-        load();
-        const id = setInterval(load, 30_000);
-        return () => clearInterval(id);
-      }
-      const t = setTimeout(waitAndLoad, 500);
-      return () => clearTimeout(t);
-    };
-    const cleanup = waitAndLoad();
-    return () => { cancel = true; if (cleanup) cleanup(); };
-  }, [curveAddr]);
-
-  const W = 800, H = 340, PADL = 10, PADR = 66, PADT = 16, PADB = 26;
+  const W = 800, H = 340, PADL = 12, PADR = 66, PADT = 18, PADB = 28;
   const plotW = W - PADL - PADR, plotH = H - PADT - PADB;
-  const candleSec = KLINE_TF[timeframe] || 900;
-  const N = 48;
+  const A = max || 20000;
 
-  // 成交事件 → 按周期分桶成 OHLC 蜡烛；空桶用上一根收盘价补齐。
-  const { candles, lo, hi } = React.useMemo(() => {
-    const evs = (events || []).filter((e) => e && e.price > 0 && e.timestamp);
-    const now = Math.floor(Date.now() / 1000);
-    const endBi = Math.floor(now / candleSec);
-    const startBi = endBi - N + 1;
-    const buckets = new Map();
-    let preClose = null;
-    for (const e of evs) {
-      const bi = Math.floor(e.timestamp / candleSec);
-      if (bi < startBi) { preClose = e.price; continue; }
-      const b = buckets.get(bi);
-      if (!b) buckets.set(bi, { o: e.price, h: e.price, l: e.price, c: e.price });
-      else { if (e.price > b.h) b.h = e.price; if (e.price < b.l) b.l = e.price; b.c = e.price; }
-    }
-    const arr = [];
-    let last = preClose;
-    for (let bi = startBi; bi <= endBi; bi++) {
-      const b = buckets.get(bi);
-      if (b) { arr.push({ bi, o: b.o, h: b.h, l: b.l, c: b.c, real: true }); last = b.c; }
-      else { const p = last != null ? last : (currentPrice || 0); arr.push({ bi, o: p, h: p, l: p, c: p, real: false }); }
-    }
-    let mn = Infinity, mx = -Infinity;
-    for (const c of arr) { if (c.l < mn) mn = c.l; if (c.h > mx) mx = c.h; }
-    if (currentPrice > 0) { mn = Math.min(mn, currentPrice); mx = Math.max(mx, currentPrice); }
-    if (!isFinite(mn) || !isFinite(mx) || mn >= mx) {
-      const base = currentPrice || mx || 1;
-      mn = base * 0.9; mx = base * 1.1;
-    }
-    const pad = (mx - mn) * 0.12 || 1;
-    return { candles: arr, lo: Math.max(0, mn - pad), hi: mx + pad };
-  }, [events, candleSec, currentPrice]);
+  // P = K/(A-S)^2,K 由当前点钉住 —— 平滑曲线,过当前点,接近渐近线陡升。
+  const K = (curveOpen && currentSupply < A && currentPrice > 0)
+    ? currentPrice * (A - currentSupply) ** 2 : 0;
+  const priceAt = (s) => {
+    const ss = Math.min(Math.max(s, 0), A * 0.995);
+    return K ? K / ((A - ss) ** 2) : 0;
+  };
 
-  const xOf = (i) => PADL + (candles.length > 1 ? (i / (candles.length - 1)) * plotW : plotW / 2);
-  const yOf = (p) => PADT + (1 - (p - lo) / (hi - lo || 1)) * plotH;
-  const cw = candles.length ? Math.max(2, (plotW / candles.length) * 0.6) : 8;
-  const tradeCount = (events || []).filter((e) => e && e.price > 0).length;
+  const SAMPLES = 96;
+  const pts = [];
+  for (let i = 0; i <= SAMPLES; i++) {
+    const s = (i / SAMPLES) * A * 0.99;
+    pts.push([s, priceAt(s)]);
+  }
+  const maxP = Math.max(currentPrice * 1.3, priceAt(A * 0.99), 1);
+
+  const xOf = (s) => PADL + (s / A) * plotW;
+  const yOf = (p) => PADT + (1 - Math.min(p, maxP) / maxP) * plotH;
+
+  const line = pts.map(([s, p], i) => `${i ? "L" : "M"}${xOf(s).toFixed(1)},${yOf(p).toFixed(1)}`).join(" ");
+  const area = line + ` L${xOf(pts[pts.length - 1][0]).toFixed(1)},${H - PADB} L${PADL},${H - PADB} Z`;
+
+  const onMove = (e) => {
+    const svg = svgRef.current;
+    if (!svg || !curveOpen || !K) return;
+    const r = svg.getBoundingClientRect();
+    const vx = ((e.clientX - r.left) / r.width) * W;
+    let s = ((vx - PADL) / (plotW || 1)) * A;
+    setHover(Math.min(Math.max(s, 0), A * 0.99));
+  };
 
   const fmtP = (p) => p >= 1000
     ? p.toLocaleString(undefined, { maximumFractionDigits: 0 })
     : p.toLocaleString(undefined, { maximumFractionDigits: 3 });
-  const fmtTime = (bi) => {
-    const d = new Date(bi * candleSec * 1000);
-    const z = (n) => String(n).padStart(2, "0");
-    if (candleSec < 3600) return `${z(d.getHours())}:${z(d.getMinutes())}`;
-    if (candleSec < 86400) return `${d.getMonth() + 1}/${d.getDate()} ${z(d.getHours())}:00`;
-    return `${d.getMonth() + 1}/${d.getDate()}`;
-  };
+  const fmtS = (s) => Math.round(s).toLocaleString();
 
-  const onMove = (e) => {
-    const svg = svgRef.current;
-    if (!svg || !candles.length) return;
-    const r = svg.getBoundingClientRect();
-    const vx = ((e.clientX - r.left) / r.width) * W;
-    const idx = Math.round(((vx - PADL) / (plotW || 1)) * (candles.length - 1));
-    setHover(Math.max(0, Math.min(candles.length - 1, idx)));
-  };
+  const hp = hover != null ? priceAt(hover) : null;
 
   return (
     <div style={{ position: "relative" }}>
       <svg ref={svgRef} className="md-chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
-           onMouseMove={onMove} onMouseLeave={() => setHover(null)} style={{ cursor: "crosshair" }}>
+           onMouseMove={onMove} onMouseLeave={() => setHover(null)}
+           style={{ cursor: curveOpen ? "crosshair" : "default" }}>
+        <defs>
+          <linearGradient id="curveAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.34"/>
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+
         {/* 横向网格 + 右侧价格刻度 */}
         {[0, 0.25, 0.5, 0.75, 1].map((t) => {
           const y = PADT + t * plotH;
@@ -335,90 +293,61 @@ const CurveKLine = ({ curveAddr, currentPrice = 0, curveOpen, symbol = "", timef
             <g key={t}>
               <line x1={PADL} y1={y} x2={W - PADR} y2={y} stroke="var(--line)" strokeDasharray="2 4"/>
               <text x={W - PADR + 5} y={y + 3} fontSize="10" fill="var(--fg-3)" fontFamily="var(--f-mono)">
-                {fmtP(hi - t * (hi - lo))}
+                {fmtP(maxP * (1 - t))}
               </text>
             </g>
           );
         })}
 
-        {!curveOpen ? (
-          <text x={W / 2} y={H / 2} textAnchor="middle" fontSize="13" fill="var(--fg-3)" fontFamily="var(--f-mono)">
-            {L("曲线交易尚未激活", "Curve trading not active yet")}
-          </text>
-        ) : (
+        {curveOpen && K > 0 ? (
           <>
-            {/* 蜡烛 */}
-            {candles.map((c, i) => {
-              const x = xOf(i);
-              const up = c.c >= c.o;
-              const col = up ? "var(--bull)" : "var(--bear)";
-              const yH = yOf(c.h), yL = yOf(c.l), yO = yOf(c.o), yC = yOf(c.c);
-              const bt = Math.min(yO, yC), bh = Math.max(1.2, Math.abs(yO - yC));
-              return (
-                <g key={i} opacity={c.real ? 1 : 0.25}>
-                  <line x1={x} y1={yH} x2={x} y2={yL} stroke={col} strokeWidth="1.1"/>
-                  <rect x={x - cw / 2} y={bt} width={cw} height={bh} fill={col}/>
-                </g>
-              );
-            })}
+            {/* 曲线 + 面积填充 */}
+            <path d={area} fill="url(#curveAreaGrad)"/>
+            <path d={line} fill="none" stroke="var(--accent)" strokeWidth="2"/>
 
-            {/* 现价线 */}
-            {currentPrice > 0 && (
-              <g>
-                <line x1={PADL} y1={yOf(currentPrice)} x2={W - PADR} y2={yOf(currentPrice)}
-                      stroke="var(--accent)" strokeDasharray="3 3" opacity="0.7"/>
-                <rect x={W - PADR} y={yOf(currentPrice) - 8} width={PADR} height="16" fill="var(--accent)"/>
-                <text x={W - PADR + 5} y={yOf(currentPrice) + 3} fontSize="10" fill="var(--bg)" fontFamily="var(--f-mono)">
-                  {fmtP(currentPrice)}
-                </text>
-              </g>
-            )}
+            {/* 渐近线 */}
+            <line x1={xOf(A)} y1={PADT} x2={xOf(A)} y2={H - PADB} stroke="var(--fire)" strokeDasharray="3 3" opacity="0.55"/>
+            <text x={xOf(A) - 5} y={PADT + 11} textAnchor="end" fontSize="9" fill="var(--fire)" fontFamily="var(--f-mono)">
+              {L("渐近线", "Asymptote")}
+            </text>
 
-            {/* 悬停十字线 + OHLC 浮窗 */}
-            {hover != null && candles[hover] && (() => {
-              const c = candles[hover];
-              const x = xOf(hover);
-              const tx = x > W * 0.6 ? x - 158 : x + 10;
+            {/* 当前点 */}
+            <line x1={xOf(currentSupply)} y1={PADT} x2={xOf(currentSupply)} y2={H - PADB}
+                  stroke="var(--fg)" strokeDasharray="2 3" opacity="0.3"/>
+            <circle cx={xOf(currentSupply)} cy={yOf(currentPrice)} r="5" fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"/>
+            <text x={xOf(currentSupply) + 9} y={yOf(currentPrice) + 3} fontSize="11" fill="var(--accent)" fontFamily="var(--f-mono)">
+              {fmtP(currentPrice)}
+            </text>
+
+            {/* 悬停十字 + 浮窗 */}
+            {hover != null && hp != null && (() => {
+              const hx = xOf(hover), hy = yOf(hp);
+              const tx = hx > W * 0.6 ? hx - 150 : hx + 10;
               return (
                 <g>
-                  <line x1={x} y1={PADT} x2={x} y2={H - PADB} stroke="var(--fg-2)" strokeDasharray="2 3" opacity="0.55"/>
+                  <line x1={hx} y1={PADT} x2={hx} y2={H - PADB} stroke="var(--fg-2)" strokeDasharray="2 3" opacity="0.6"/>
+                  <circle cx={hx} cy={hy} r="3.5" fill="var(--fg)" stroke="var(--bg)" strokeWidth="1.5"/>
                   <g transform={`translate(${tx}, ${PADT + 4})`} fontFamily="var(--f-mono)">
-                    <rect width="148" height="92" rx="4" fill="var(--bg-1)" stroke="var(--line)"/>
-                    <text x="9" y="18" fontSize="9.5" fill="var(--fg-3)">{fmtTime(c.bi)}</text>
-                    <text x="9" y="37" fontSize="10" fill="var(--fg-2)">{L("开 ", "O ")}{fmtP(c.o)}</text>
-                    <text x="9" y="53" fontSize="10" fill="var(--bull)">{L("高 ", "H ")}{fmtP(c.h)}</text>
-                    <text x="9" y="69" fontSize="10" fill="var(--bear)">{L("低 ", "L ")}{fmtP(c.l)}</text>
-                    <text x="9" y="85" fontSize="10" fill="var(--fg)">{L("收 ", "C ")}{fmtP(c.c)}</text>
+                    <rect width="140" height="46" rx="4" fill="var(--bg-1)" stroke="var(--line)"/>
+                    <text x="9" y="19" fontSize="10" fill="var(--fg-2)">{L("供应量 ", "Supply ")}{fmtS(hover)}</text>
+                    <text x="9" y="35" fontSize="10" fill="var(--accent)">{L("价格 ", "Price ")}{fmtP(hp)}</text>
                   </g>
                 </g>
               );
             })()}
           </>
+        ) : (
+          <text x={W / 2} y={H / 2} textAnchor="middle" fontSize="13" fill="var(--fg-3)" fontFamily="var(--f-mono)">
+            {L("曲线交易尚未激活", "Curve trading not active yet")}
+          </text>
         )}
 
-        {/* 底部时间轴 */}
-        {curveOpen && candles.length > 1 && [0, 0.34, 0.67, 1].map((t) => {
-          const i = Math.round(t * (candles.length - 1));
-          return (
-            <text key={t} x={xOf(i)} y={H - 8}
-                  textAnchor={t === 0 ? "start" : t === 1 ? "end" : "middle"}
-                  fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">
-              {fmtTime(candles[i].bi)}
-            </text>
-          );
-        })}
+        {/* X 轴 */}
+        <text x={PADL} y={H - 9} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">{L("供应量 →", "Supply →")}</text>
+        <text x={W - PADR} y={H - 9} textAnchor="end" fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">
+          {fmtS(currentSupply)} / {fmtS(A)}
+        </text>
       </svg>
-
-      {/* 状态栏 */}
-      <div className="f-mono" style={{ fontSize: 10, color: "var(--fg-4)", padding: "6px 12px", display: "flex", justifyContent: "space-between" }}>
-        <span>
-          {events === null ? L("加载 K 线中…", "Loading chart…")
-            : error ? L("数据加载失败", "Failed to load data")
-            : tradeCount === 0 ? L("暂无成交 —— 曲线刚开启", "No trades yet — curve just opened")
-            : L(`${tradeCount} 笔成交`, `${tradeCount} trades`)}
-        </span>
-        <span>{symbol ? symbol + " · " : ""}{timeframe}</span>
-      </div>
     </div>
   );
 };

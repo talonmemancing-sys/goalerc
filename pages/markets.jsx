@@ -180,7 +180,6 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
   const s = countryState(c);
 
   const [mode, setMode] = React.useState("buy");
-  const [tf, setTf] = React.useState("15M"); // K 线周期
   const [amount, setAmount] = React.useState(100);
   const [slippageBps, setSlippageBps] = React.useState(100); // 1%
   const [txState, setTxState] = React.useState("idle"); // idle | approving | sending | mining | success | error
@@ -305,17 +304,12 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
       <section className="md-grid">
         <div className="md-chart-wrap">
           <div className="md-chart-head">
-            <div className="md-chart-tabs">
-              {["1M","15M","1H","4H","24H"].map(t => (
-                <button key={t} className={"md-chart-tab " + (t===tf ? "is-active" : "")} onClick={()=>setTf(t)}>{t}</button>
-              ))}
-            </div>
             <div className="md-chart-meta">
               <span className="eyebrow">{L("虚拟储备 XYK", "Virtual Reserve XYK")}</span>
               <span className="f-mono" style={{fontSize:11, color:"var(--accent)"}}>{L("渐近线", "Asymptote")} {A.toLocaleString()}</span>
             </div>
           </div>
-          <CurveChart c={c} s={s} timeframe={tf}/>
+          <CurveChart c={c} s={s}/>
           <div className="md-events">
             <div className="md-events-head">
               <span className="eyebrow">{L("近期转账", "Recent Transfers")}</span>
@@ -456,14 +450,14 @@ const MDStat = ({ label, value, suffix = "", sub, fire }) => (
   </div>
 );
 
-const CurveChart = ({ c, s, timeframe }) => {
+const CurveChart = ({ c, s }) => {
   return (
     <CurveKLine
-      curveAddr={s.curveAddr}
       currentPrice={s.price}
+      currentSupply={s.supply}
+      max={20000}
       curveOpen={s.curveOpen}
       symbol={c.id}
-      timeframe={timeframe}
     />
   );
 };

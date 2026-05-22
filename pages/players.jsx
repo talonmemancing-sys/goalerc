@@ -199,7 +199,6 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
   const scarcity = ps.max ? (supply / ps.max) * 100 : 0;
 
   const [mode, setMode] = usePlState("buy");
-  const [tf, setTf] = usePlState("15M"); // K 线周期
   const [amount, setAmount] = usePlState(50);
   const [slippageBps, setSlippageBps] = usePlState(100);
   const [txState, setTxState] = usePlState("idle");
@@ -338,22 +337,17 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
       <section className="md-grid">
         <div className="md-chart-wrap">
           <div className="md-chart-head">
-            <div className="md-chart-tabs">
-              {["1M","15M","1H","4H","24H"].map(t => (
-                <button key={t} className={"md-chart-tab " + (t===tf ? "is-active" : "")} onClick={()=>setTf(t)}>{t}</button>
-              ))}
-            </div>
             <div className="md-chart-meta">
               <span className="eyebrow">{L("虚拟储备","Virtual Reserve")}</span>
               <span className="f-mono" style={{fontSize:11, color: r.color}}>{r.max.toLocaleString()}</span>
             </div>
           </div>
           <CurveKLine
-            curveAddr={ps.curveAddr}
             currentPrice={price}
+            currentSupply={supply}
+            max={r.max}
             curveOpen={ps.curveOpen}
             symbol={`${country.id}.${role}`}
-            timeframe={tf}
           />
 
           <TransferLogFeed
