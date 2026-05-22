@@ -165,12 +165,11 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
             </h2>
             <p style={{color:"var(--fg-2)", fontSize:17, lineHeight:1.6, maxWidth:560}}>
               FOOTBALL 是 flap.sh 发射的 4/4 税代币 —— 每一笔在内盘或 PancakeSwap 上的买卖，
-              4% 自动换成 BNB 打进金库合约。金库把每笔进账拆成三份：
+              4% 自动换成 BNB 打进金库合约。金库把每笔进账拆成两份：
             </p>
             <div className="home-v4-stats">
-              <div><div className="stat-label f-mono">50% · 开发</div><div className="f-mono" style={{color:"var(--fg)"}}>项目运营</div></div>
-              <div><div className="stat-label f-mono">25% · 冠军储备</div><div className="f-mono" style={{color:"var(--fg)"}}>回购 FOOTBALL</div></div>
-              <div><div className="stat-label f-mono">25% · 分红</div><div className="f-mono" style={{color:"var(--fg)"}}>发给买包的人</div></div>
+              <div><div className="stat-label f-mono">50% · 冠军回购</div><div className="f-mono" style={{color:"var(--fg)"}}>回购 FOOTBALL</div></div>
+              <div><div className="stat-label f-mono">50% · 持包人分红</div><div className="f-mono" style={{color:"var(--fg)"}}>发给买包的人</div></div>
             </div>
             <p style={{color:"var(--fg-3)", fontSize:13, lineHeight:1.6, maxWidth:560, marginTop:16}}>
               分红按你买过的国家包数量加权（MasterChef 会计），BNB 随时可在金库领取。
@@ -448,9 +447,8 @@ const TaxSplitCard = () => (
         <div className="f-display" style={{fontSize:34, lineHeight:1.1, color:"var(--accent)", marginTop:4}}>流入金库合约</div>
       </div>
       {[
-        { pct: "50%", label: "开发", sub: "直接转入 dev 钱包", color: "var(--fg)" },
-        { pct: "25%", label: "冠军储备", sub: "回购 FOOTBALL · 内盘 / 外盘", color: "var(--bull)" },
-        { pct: "25%", label: "持包人分红", sub: "按买包数量加权 · BNB 可领取", color: "var(--accent)" },
+        { pct: "50%", label: "冠军回购", sub: "回购 FOOTBALL · 内盘 / 外盘", color: "var(--bull)" },
+        { pct: "50%", label: "持包人分红", sub: "按买包数量加权 · BNB 可领取", color: "var(--accent)" },
       ].map(r => (
         <div key={r.label} style={{display:"flex", alignItems:"center", gap:14, padding:"12px 14px", border:"1px solid var(--line)", borderRadius:6}}>
           <div className="f-display numeric" style={{fontSize:30, lineHeight:1, width:68, color:r.color}}>{r.pct}</div>

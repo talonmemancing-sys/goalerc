@@ -94,33 +94,29 @@ const Mechanics = ({ setRoute }) => {
         </div>
       </MechSection>
 
-      <MechSection id="treasury" num="04" title="金库与分红" subtitle="4% 交易税 → 50 / 25 / 25" highlight>
+      <MechSection id="treasury" num="04" title="金库与分红" subtitle="4% 交易税 → 回购 + 分红" highlight>
         <div className="mech-cols">
           <div>
             <p>
               FOOTBALL 代币 4% 的交易税自动换成 BNB，打进
               <code className="inline-code">PitchTreasury</code> 金库合约（金库已部署在 BSC 主网）。
-              任何人都可调用 <code className="inline-code">distribute()</code>，把每一笔进账拆成三份：
+              任何人都可调用 <code className="inline-code">distribute()</code>，把每一笔进账拆成两份：
             </p>
             <ul className="mech-list">
               <li>
-                <span className="f-mono" style={{color:"var(--fg)"}}>50% · 开发</span> ——
-                直接转入 dev 钱包，用于项目运营。
-              </li>
-              <li>
-                <span className="f-mono" style={{color:"var(--bull)"}}>25% · 冠军储备</span> ——
+                <span className="f-mono" style={{color:"var(--bull)"}}>50% · 冠军储备</span> ——
                 用于回购 FOOTBALL：内盘（flap Portal）、外盘（PancakeSwap）或手动兜底通道。
                 买回的 FOOTBALL 留在金库。
               </li>
               <li>
-                <span className="f-mono" style={{color:"var(--accent)"}}>25% · 持包人分红</span> ——
+                <span className="f-mono" style={{color:"var(--accent)"}}>50% · 持包人分红</span> ——
                 按每个地址买过的国家包数量加权（MasterChef 会计），BNB 随时可在金库
                 <code className="inline-code">claim()</code> 领取。
               </li>
             </ul>
             <p>
               分红那一份里会先扣一小撮（默认 1%、上限 5%）给球员包的 Chainlink VRF 充值 ——
-              consumer 的 BNB 余额达标后自动停扣。还没有人买包时，这 25% 分红并入冠军储备，不浪费。
+              consumer 的 BNB 余额达标后自动停扣。还没有人买包时，这部分分红并入冠军储备，不浪费。
             </p>
             <p>
               金库的紧急取款受 <code className="inline-code">24 小时冷却</code>约束：
@@ -133,11 +129,10 @@ const Mechanics = ({ setRoute }) => {
         <div className="hook-spec">
           <SpecRow label="金库合约" value="PitchTreasury · BSC 已部署" mono accent="accent" />
           <SpecRow label="税收入" value="FOOTBALL 4% 交易税 → BNB" mono />
-          <SpecRow label="开发" value="50% → dev 钱包" mono />
-          <SpecRow label="冠军储备" value="25% → 回购 FOOTBALL（内盘 / 外盘）" mono />
-          <SpecRow label="分红" value="25% → 买包人，按包数加权" mono accent="accent" />
+          <SpecRow label="冠军储备" value="50% → 回购 FOOTBALL（内盘 / 外盘）" mono />
+          <SpecRow label="分红" value="50% → 买包人，按包数加权" mono accent="accent" />
           <SpecRow label="VRF 滴灌" value="分红中扣 1%（上限 5%）充值 VRF" mono />
-          <SpecRow label="紧急取款" value="dev 发起 → 24 小时冷却 → 执行" mono accent="fire" />
+          <SpecRow label="分红领取" value="claim() · BNB 随时可领" mono accent="accent" />
         </div>
       </MechSection>
 
@@ -301,12 +296,12 @@ const TaxFlowDiagram = () => (
     <div className="hook-node hook-node-hook">
       <div className="eyebrow">PitchTreasury 金库</div>
       <div className="hook-node-label f-display" style={{fontSize:18}}>distribute()</div>
-      <div className="hook-node-sub f-mono">拆成 50 / 25 / 25</div>
+      <div className="hook-node-sub f-mono">回购 + 分红</div>
       <div className="hook-burn-glow" />
     </div>
     <div className="hook-arrow hook-arrow-down"><span>3</span></div>
     <div className="hook-node hook-node-burn">
-      <div className="eyebrow" style={{color:"var(--accent)"}}>50% 开发 · 25% 回购 · 25% 分红</div>
+      <div className="eyebrow" style={{color:"var(--accent)"}}>50% 冠军回购 · 50% 持包人分红</div>
       <div className="hook-node-label f-mono">分红按买包数量加权发放</div>
     </div>
   </div>
