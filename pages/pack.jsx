@@ -75,7 +75,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               className={"filter-chip " + (filter===f ? "is-active" : "")}
               onClick={()=>setFilter(f)}
             >
-              {f === "ALL" ? "全部" : f === "OPEN" ? "开包中" : f === "SEALED" ? "已封盘" : "已上线"}
+              {f === "ALL" ? "全部" : f === "OPEN" ? "开包中" : f === "SEALED" ? "已封盘" : "已上线 · 开球员包"}
               <span className="filter-chip-count">
                 {f === "ALL" ? 48 :
                  f === "OPEN" ? COUNTRIES.filter(c => !countryState(c).sealed && !countryState(c).curveOpen).length :
@@ -104,7 +104,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
         {list.map(c => {
           const s = countryState(c);
           return (
-            <button key={c.id} className="pack-table-row" onClick={() => setRoute({name: s.curveOpen ? "market" : "packCountry", country: c.id})}>
+            <button key={c.id} className="pack-table-row" onClick={() => setRoute({name: s.curveOpen ? "packPlayer" : "packCountry", country: c.id})}>
               <span style={{width:60}}><Flag country={c} w={48} h={32}/></span>
               <span style={{flex:"1 0 200px"}}>
                 <div className="f-display" style={{fontSize:22, lineHeight:1}}>{c.name}</div>
@@ -127,7 +127,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
               </span>
               <span style={{flex:"0 0 110px", textAlign:"right"}}>
                 <span className="pack-table-arrow">
-                  {s.curveOpen ? "交易 →" : "开包 →"}
+                  {s.curveOpen ? "开球员包 →" : "开包 →"}
                 </span>
               </span>
             </button>
