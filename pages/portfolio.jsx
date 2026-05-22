@@ -116,6 +116,8 @@ const Portfolio = ({ setRoute, burned }) => {
         </div>
       </section>
 
+      <LegacySwapPanel wallet={wallet} chain={chain}/>
+
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">01</span>
@@ -362,6 +364,74 @@ const DividendPanel = ({ wallet, chain }) => {
 
       {msg && <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:12}}>{msg}</div>}
     </div>
+  );
+};
+
+/* ===== 旧球员代币 1:1 兑换面板 ===== */
+const LegacySwapPanel = ({ wallet, chain }) => {
+  const [legacy, setLegacy] = React.useState(null);
+  const [busy, setBusy] = React.useState(null);
+  const [stage, setStage] = React.useState("idle");
+  const [msg, setMsg] = React.useState(null);
+
+  const load = React.useCallback(async () => {
+    if (!window.TX?.getLegacyPlayerBalances || !wallet.address) return;
+    const r = await window.TX.getLegacyPlayerBalances(wallet.address);
+    if (r) setLegacy(r);
+  }, [wallet.address]);
+
+  React.useEffect(() => { load(); }, [load, chain.lastUpdate]);
+
+  if (!legacy || legacy.length === 0) return null; // 没有旧代币 → 不显示
+
+  const handleSwap = async (item) => {
+    setMsg(null); setBusy(item.old);
+    try {
+      await window.TX.swapLegacyPlayer(item.old, item.balance, (s) => setStage(s));
+      window.WALLET?.refreshBalances?.();
+      window.CHAIN?.refresh?.();
+      await load();
+    } catch (e) {
+      setMsg(e?.shortMessage || e?.reason || e?.message || L("兑换失败", "Swap failed"));
+    }
+    setBusy(null); setStage("idle");
+  };
+
+  return (
+    <section className="pf-section">
+      <div style={{border:"1px solid var(--accent)", background:"var(--accent-soft)", borderRadius:8, padding:24}}>
+        <div className="eyebrow" style={{color:"var(--accent)"}}>{L("球员代币 1:1 兑换", "Player Token 1:1 Swap")}</div>
+        <h2 className="f-display" style={{fontSize:26, lineHeight:1.15, margin:"8px 0"}}>
+          {L("把旧球员代币换成可交易的新代币", "Swap legacy player tokens for tradeable ones")}
+        </h2>
+        <p className="f-mono" style={{fontSize:12, color:"var(--fg-2)", lineHeight:1.6, maxWidth:640, marginBottom:8}}>
+          {L("你持有的这些球员代币来自修复前的合约 —— 它们的曲线已卡死、无法交易。点「兑换」1:1 换成新代币(旧的销毁),换完即可在修复版曲线上正常买卖。",
+             "These player tokens are from the pre-fix contracts — their curves are frozen and untradeable. Swap them 1:1 for new tokens (old ones are burned); the new tokens trade normally on the fixed curves.")}
+        </p>
+        {legacy.map((item) => {
+          const swapping = busy === item.old;
+          const amt = Number(ethers.formatEther(item.balance));
+          return (
+            <div key={item.old} style={{display:"flex", alignItems:"center", gap:14, padding:"12px 0", borderTop:"1px solid var(--line)"}}>
+              <div style={{flex:1}}>
+                <div className="f-display" style={{fontSize:16}}>{L(item.name, item.nameEn)}</div>
+                <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
+                  {amt.toLocaleString(undefined,{maximumFractionDigits:4})} {L("枚旧代币", "legacy tokens")}
+                </div>
+              </div>
+              <button className="btn btn-primary" onClick={() => handleSwap(item)} disabled={swapping}>
+                {swapping
+                  ? (stage === "approving" ? L("授权中…", "Approving…")
+                     : stage === "mining" ? L("兑换中…", "Swapping…")
+                     : L("请在钱包确认…", "Confirm in wallet…"))
+                  : L("1:1 兑换", "Swap 1:1")}
+              </button>
+            </div>
+          );
+        })}
+        {msg && <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:12}}>{msg}</div>}
+      </div>
+    </section>
   );
 };
 

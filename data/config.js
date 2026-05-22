@@ -25,10 +25,18 @@ window.FOOTBALL_CONFIG = {
   treasury:          "0xf4b795db84e1fce31396e8ab31f323498b1b997a", // PitchTreasury（4% 税金库）
   football:          "0x019de8e5ad884c016113e24b985cb524fab07777", // FOOTBALL 代币（flap 发射）
   countryFactory:    "0xd596480eCdbFDE554022B0d87c6952C33121777D",
-  playerFactory:     "0x9558cd68fe6645275abb38a191adbecb6ee1a174",
+  playerFactory:     "0xBc6BB3226947962391328E556B44b9a66B9b49Ac", // 修复版:渐近线留余量
   countryPackOpener: "0x70f826A599f16fEf8aACeBC107502519D3Eae756",
-  playerPackOpener:  "0x670efd98255b426d6b520e98287448996b11e01e",
+  playerPackOpener:  "0x7333F2DF7B225a10e5b95BA6b5D8d9dbFe0902cd", // 修复版
   registry:          "0x26Fd13370eAc39d939E5ac2458b8836D292b34C7",
+
+  // 球员代币 1:1 兑换 —— 旧(卡死)代币换成新(可交易)代币
+  playerMigrator: "0x5e6CCA452993204960b91c1BD3620aF8Fd33ba65",
+  legacyPlayers: [
+    { id: "ARG-CPT", name: "阿根廷 队长", nameEn: "Argentina Captain", old: "0x62308bAe9F306d13123D0BB432667f559c4CC42F" },
+    { id: "ARG-BST", name: "阿根廷 巨星", nameEn: "Argentina Best",    old: "0x11d50C38485F7851D8AA190a85B2778BcEe02E5B" },
+    { id: "ARG-RKE", name: "阿根廷 新星", nameEn: "Argentina Rookie",  old: "0x1845EE2Ed2efCAAad8Bd44c3d7a353F5374509d7" },
+  ],
 
   // ⏳ FOOTBALL 毕业后回填 —— PancakeSwap 上的 FOOTBALL/WBNB 交易对，用于读价格：
   footballWbnbPair: "",

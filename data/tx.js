@@ -414,11 +414,44 @@
     return tx.hash;
   }
 
+  // ── 球员代币 1:1 兑换（旧卡死代币 → 新可交易代币）────────────────────
+  const MIGRATOR_ABI = ["function swap(address oldToken, uint256 amount)"];
+
+  /// 读取连接钱包持有的旧（卡死）球员代币余额。返回 balance>0 的项。
+  async function getLegacyPlayerBalances(address) {
+    if (!window.CHAIN?._provider || !address || !cfg.legacyPlayers) return [];
+    const out = [];
+    for (const lp of cfg.legacyPlayers) {
+      try {
+        const t = new ethers.Contract(lp.old, ERC20_ABI, window.CHAIN._provider);
+        const bal = await t.balanceOf(address);
+        if (bal > 0n) out.push({ id: lp.id, name: lp.name, nameEn: lp.nameEn, old: lp.old, balance: bal });
+      } catch {}
+    }
+    return out;
+  }
+
+  /// 把旧球员代币 1:1 兑换成新的：授权 Migrator → swap（旧的销毁、新的铸出）。
+  async function swapLegacyPlayer(oldToken, amountWei, onStep) {
+    const { signer, address } = await getSignerCtx();
+    if (onStep) onStep("approving");
+    await ensureAllowance(oldToken, cfg.playerMigrator, amountWei, signer, address);
+    if (onStep) onStep("sending");
+    const mig = new ethers.Contract(cfg.playerMigrator, MIGRATOR_ABI, signer);
+    const tx = await mig.swap(oldToken, amountWei);
+    if (onStep) onStep("mining", tx.hash);
+    await tx.wait();
+    if (onStep) onStep("done", tx.hash);
+    return tx.hash;
+  }
+
   window.TX = {
     buyCountryPack,
     getTreasuryStats,
     claimDividend,
     distributeTreasury,
+    getLegacyPlayerBalances,
+    swapLegacyPlayer,
     openPlayerPack,
     waitForVrfFulfillment,
     claimPlayerPack,
