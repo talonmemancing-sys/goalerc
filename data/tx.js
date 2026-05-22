@@ -50,6 +50,17 @@
     "event Sold(address indexed user, uint256 tokenIn, uint256 pitchOut, uint256 feeBurned)",
   ];
 
+  const TREASURY_ABI = [
+    "function claimable(address) view returns (uint256)",
+    "function packsBought(address) view returns (uint256)",
+    "function totalPacks() view returns (uint256)",
+    "function dividendPoolBnb() view returns (uint256)",
+    "function championReserveBnb() view returns (uint256)",
+    "function undistributed() view returns (uint256)",
+    "function claim()",
+    "function distribute()",
+  ];
+
   async function getSignerCtx() {
     if (!window.WALLET?.state?.connected) throw new Error("Wallet not connected");
     if (!window.WALLET.state.onMainnet) {
@@ -311,8 +322,60 @@
     } catch { return null; }
   }
 
+  // ── TREASURY: 金库分红 ──────────────────────────────────────────────
+  // 读取金库统计 + 某地址的可领分红（claimable 为 BNB wei）。
+  async function getTreasuryStats(address) {
+    if (!window.CHAIN?._provider || !cfg.treasury) return null;
+    try {
+      const t = new ethers.Contract(cfg.treasury, TREASURY_ABI, window.CHAIN._provider);
+      const [claimable, packsBought, totalPacks, divPool, champ, undist] = await Promise.all([
+        address ? t.claimable(address) : Promise.resolve(0n),
+        address ? t.packsBought(address) : Promise.resolve(0n),
+        t.totalPacks(),
+        t.dividendPoolBnb(),
+        t.championReserveBnb(),
+        t.undistributed(),
+      ]);
+      return {
+        claimable: Number(ethers.formatEther(claimable)),
+        packsBought: Number(packsBought),
+        totalPacks: Number(totalPacks),
+        dividendPoolBnb: Number(ethers.formatEther(divPool)),
+        championReserveBnb: Number(ethers.formatEther(champ)),
+        undistributed: Number(ethers.formatEther(undist)),
+      };
+    } catch { return null; }
+  }
+
+  // 领取分红 —— 把 pendingDividend 的 BNB 转给调用者。
+  async function claimDividend(onStep) {
+    const { signer } = await getSignerCtx();
+    if (onStep) onStep("sending");
+    const t = new ethers.Contract(cfg.treasury, TREASURY_ABI, signer);
+    const tx = await t.claim();
+    if (onStep) onStep("mining", tx.hash);
+    await tx.wait();
+    if (onStep) onStep("done", tx.hash);
+    return tx.hash;
+  }
+
+  // 结算金库 —— 把待分配的税收 BNB 拆进分红池/冠军储备。任何人可调用。
+  async function distributeTreasury(onStep) {
+    const { signer } = await getSignerCtx();
+    if (onStep) onStep("sending");
+    const t = new ethers.Contract(cfg.treasury, TREASURY_ABI, signer);
+    const tx = await t.distribute();
+    if (onStep) onStep("mining", tx.hash);
+    await tx.wait();
+    if (onStep) onStep("done", tx.hash);
+    return tx.hash;
+  }
+
   window.TX = {
     buyCountryPack,
+    getTreasuryStats,
+    claimDividend,
+    distributeTreasury,
     openPlayerPack,
     waitForVrfFulfillment,
     claimPlayerPack,

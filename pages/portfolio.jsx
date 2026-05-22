@@ -136,6 +136,15 @@ const Portfolio = ({ setRoute, burned }) => {
       <section className="pf-section">
         <div className="section-eyebrow">
           <span className="bracket-num">02</span>
+          <span className="eyebrow">金库分红 · 买包人专属</span>
+          <div className="hairline"/>
+        </div>
+        <DividendPanel wallet={wallet} chain={chain}/>
+      </section>
+
+      <section className="pf-section">
+        <div className="section-eyebrow">
+          <span className="bracket-num">03</span>
           <span className="eyebrow">国家持仓 · {(positions||[]).length}</span>
           <div className="hairline"/>
         </div>
@@ -176,7 +185,7 @@ const Portfolio = ({ setRoute, burned }) => {
 
       <section className="pf-section">
         <div className="section-eyebrow">
-          <span className="bracket-num">03</span>
+          <span className="bracket-num">04</span>
           <span className="eyebrow">球员持仓 · {(playerPositions||[]).length}</span>
           <div className="hairline"/>
         </div>
@@ -234,5 +243,124 @@ const PFHeroStat = ({ label, value, unit, big, color }) => (
     </div>
   </div>
 );
+
+/* ===== 金库分红面板 ===== */
+const DivStat = ({ label, value, unit, int }) => (
+  <div style={{flex:"1 1 130px"}}>
+    <div className="eyebrow">{label}</div>
+    <div className="f-display numeric" style={{fontSize:24, lineHeight:1, marginTop:4}}>
+      {value === undefined || value === null ? "…" :
+        int ? value.toLocaleString() : value.toLocaleString(undefined,{maximumFractionDigits:4})}
+    </div>
+    <div className="f-mono" style={{fontSize:10, color:"var(--fg-3)"}}>{unit}</div>
+  </div>
+);
+
+const DividendPanel = ({ wallet, chain }) => {
+  const [stats, setStats] = React.useState(null);
+  const [claiming, setClaiming] = React.useState("idle");
+  const [distributing, setDistributing] = React.useState("idle");
+  const [msg, setMsg] = React.useState(null);
+
+  const load = React.useCallback(async () => {
+    if (!window.TX?.getTreasuryStats) return;
+    const s = await window.TX.getTreasuryStats(wallet.address);
+    if (s) setStats(s);
+  }, [wallet.address]);
+
+  React.useEffect(() => {
+    load();
+    const id = setInterval(load, 30_000);
+    return () => clearInterval(id);
+  }, [load, chain.lastUpdate]);
+
+  const handleClaim = async () => {
+    setMsg(null);
+    try {
+      await window.TX.claimDividend((step) => {
+        if (step === "sending") setClaiming("sending");
+        else if (step === "mining") setClaiming("mining");
+        else if (step === "done") setClaiming("done");
+      });
+      await load();
+      window.WALLET?.refreshBalances?.();
+      setTimeout(() => setClaiming("idle"), 4000);
+    } catch (e) {
+      setClaiming("error");
+      setMsg(e?.shortMessage || e?.reason || e?.message || "领取失败");
+    }
+  };
+
+  const handleDistribute = async () => {
+    setMsg(null);
+    try {
+      await window.TX.distributeTreasury((step) => {
+        if (step === "sending") setDistributing("sending");
+        else if (step === "mining") setDistributing("mining");
+        else if (step === "done") setDistributing("done");
+      });
+      await load();
+      setTimeout(() => setDistributing("idle"), 4000);
+    } catch (e) {
+      setDistributing("error");
+      setMsg(e?.shortMessage || e?.reason || e?.message || "结算失败");
+    }
+  };
+
+  const packs = stats?.packsBought ?? 0;
+  const totalPacks = stats?.totalPacks ?? 0;
+  const share = totalPacks > 0 ? (packs / totalPacks * 100) : 0;
+  const claimable = stats?.claimable ?? 0;
+  const claimBusy = claiming === "sending" || claiming === "mining";
+  const distBusy = distributing === "sending" || distributing === "mining";
+
+  return (
+    <div style={{border:"1px solid var(--line)", background:"var(--bg-1)", padding:"28px 24px"}}>
+      <div style={{display:"flex", flexWrap:"wrap", gap:24, justifyContent:"space-between", alignItems:"flex-end"}}>
+        <div>
+          <div className="eyebrow">你的可领分红</div>
+          <div className="f-display numeric" style={{fontSize:56, lineHeight:1, color:"var(--accent)"}}>
+            {stats === null ? "…" : claimable.toLocaleString(undefined,{maximumFractionDigits:6})}
+          </div>
+          <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", marginTop:4}}>BNB</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>
+            你买了 <span style={{color:"var(--fg)"}}>{packs.toLocaleString()}</span> 包 · 占全网 <span style={{color:"var(--fg)"}}>{share.toFixed(2)}%</span>
+          </div>
+          <button className="btn btn-primary" style={{marginTop:10}} onClick={handleClaim}
+                  disabled={claimBusy || claimable <= 0}>
+            {claiming === "sending" ? "请在钱包确认…" :
+             claiming === "mining" ? "领取中…" :
+             claiming === "done" ? "✓ 已领取" :
+             claimable > 0 ? `领取 ${claimable.toFixed(4)} BNB` : "暂无可领分红"}
+          </button>
+        </div>
+      </div>
+
+      <div style={{display:"flex", flexWrap:"wrap", gap:16, marginTop:24, paddingTop:20, borderTop:"1px solid var(--line)"}}>
+        <DivStat label="分红池" value={stats?.dividendPoolBnb} unit="BNB"/>
+        <DivStat label="冠军回购储备" value={stats?.championReserveBnb} unit="BNB"/>
+        <DivStat label="待结算税收" value={stats?.undistributed} unit="BNB"/>
+        <DivStat label="全网累计买包" value={totalPacks} unit="包" int/>
+      </div>
+
+      <div style={{display:"flex", alignItems:"center", gap:12, marginTop:18, flexWrap:"wrap"}}>
+        <button className="btn" onClick={handleDistribute}
+                disabled={distBusy || (stats?.undistributed || 0) <= 0}>
+          {distributing === "sending" ? "请在钱包确认…" :
+           distributing === "mining" ? "结算中…" :
+           distributing === "done" ? "✓ 已结算" :
+           "结算金库"}
+        </button>
+        <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)", maxWidth:440, lineHeight:1.5}}>
+          税收入需先「结算」才会拆进分红池 —— 任何人都能调用，把待结算 BNB 按买包数量分给全体买包人。
+        </span>
+      </div>
+
+      {msg && <div className="f-mono" style={{color:"var(--fire)", fontSize:11, marginTop:12}}>{msg}</div>}
+    </div>
+  );
+};
 
 window.Portfolio = Portfolio;
