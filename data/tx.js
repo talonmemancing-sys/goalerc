@@ -29,6 +29,7 @@
     "function pendingOf(uint256 requestId) view returns (address user, uint8 country, uint16 packs, bool fulfilled, bool claimed)",
     "function packsLeftByRole(uint8 country) view returns (uint16 captain, uint16 best, uint16 rookie)",
     "function quota(uint8 country) view returns (uint16 captainLeft, uint16 bestLeft, uint16 rookieLeft, bool sealedRoles)",
+    "function committed(uint8 country) view returns (uint16)",
     "event PackPurchased(address indexed user, uint8 indexed country, uint16 packs, uint256 indexed requestId)",
     "event RandomFulfilled(uint256 indexed requestId)",
     "event PackRevealed(address indexed user, uint8 indexed country, uint8 role, uint16 packs, uint256 tokensMinted)",
@@ -345,13 +346,21 @@
     if (country === undefined) return null;
     try {
       const opener = new ethers.Contract(cfg.playerPackOpener, PLAYER_PACK_OPENER_ABI, window.CHAIN._provider);
-      const q = await opener.quota(country);
+      // quota = 各角色「未领取」额度；committed = 已开包数（开包的真正闸门）。
+      // 还能开 = 450 - committed —— 不能用 quota 之和（那含已开未领的包）。
+      const [q, committed] = await Promise.all([
+        opener.quota(country),
+        opener.committed(country),
+      ]);
+      const PACKS = 450;
       return {
         captainLeft: Number(q.captainLeft),
         bestLeft: Number(q.bestLeft),
         rookieLeft: Number(q.rookieLeft),
         sealedRoles: Boolean(q.sealedRoles),
         total: Number(q.captainLeft) + Number(q.bestLeft) + Number(q.rookieLeft),
+        committed: Number(committed),
+        openable: Math.max(0, PACKS - Number(committed)),
       };
     } catch { return null; }
   }

@@ -403,6 +403,21 @@ const PackPlayer = ({ setRoute, countryId }) => {
     pools[role] = Math.max(0, max - minted);
   }
 
+  // 还能开多少球员包 —— 看链上 committed（已开包数），openable = 450 - committed。
+  // 不能用 pools 之和：那是「未领取」额度，含已开未领的包，会误导用户以为还能开。
+  const [openable, setOpenable] = React.useState(null);
+  React.useEffect(() => {
+    let cancel = false;
+    async function load() {
+      if (!window.TX?.getPlayerPackQuota) return;
+      const q = await window.TX.getPlayerPackQuota(c.id);
+      if (!cancel && q) setOpenable(q.openable);
+    }
+    load();
+    const id = setInterval(load, 20_000);
+    return () => { cancel = true; clearInterval(id); };
+  }, [c.id]);
+
   const [stage, setStage] = React.useState("idle");
   const [result, setResult] = React.useState(null);
   const [requestId, setRequestId] = React.useState(null);
@@ -546,7 +561,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
           <div className="pp-head-v2-meta">
             <h1 className="f-display pp-head-v2-title">{c.name} 球员</h1>
             <div className="f-mono pp-head-v2-sub">
-              3 个球员市场 · 阶段 1 · 剩余 {pools.CPT + pools.BST + pools.RKE}/450 包
+              3 个球员市场 · 还能开 {openable == null ? "…" : openable}/450 包
             </div>
           </div>
           <div className="pp-balance">
@@ -622,7 +637,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
           <div>
             <div className="eyebrow">开 {c.name} 球员包</div>
             <div className="pp-open-desc">
-              每开一包消耗 1 枚 {c.id} 代币，通过 Chainlink VRF 随机抽取角色，每包铸造 10 枚球员代币。链上剩余 {pools.CPT + pools.BST + pools.RKE}/450 包。
+              每开一包消耗 1 枚 {c.id} 代币，通过 Chainlink VRF 随机抽取角色，每包铸造 10 枚球员代币。链上还能开 {openable == null ? "…" : openable}/450 包。
             </div>
           </div>
           <div className="pp-open-bal">
@@ -645,8 +660,9 @@ const PackPlayer = ({ setRoute, countryId }) => {
           {(() => {
             const ws = window.WALLET?.state || {};
             const phase2 = chain.countries?.[c.id]?.curveOpen;
-            const remaining = pools.CPT + pools.BST + pools.RKE;
-            const disabled = stage !== "idle" || !ws.connected || !phase2 || remaining < packCount;
+            const loading = openable == null;
+            const remaining = openable || 0;
+            const disabled = stage !== "idle" || !ws.connected || !phase2 || loading || remaining < packCount;
             let label = `开 ${packCount} 包`;
             if (stage === "committing") label = "请在钱包中确认…";
             else if (stage === "requesting") label = `等待 VRF · ${vrfSeconds}秒`;
@@ -654,6 +670,8 @@ const PackPlayer = ({ setRoute, countryId }) => {
             else if (stage === "revealed") label = "再开一次";
             else if (!ws.connected) label = "连接钱包";
             else if (!phase2) label = "国家曲线尚未激活";
+            else if (loading) label = "读取链上额度…";
+            else if (remaining <= 0) label = "球员包已售罄";
             else if (remaining < packCount) label = `仅剩 ${remaining} 包`;
             return (
               <button className="pp-open-cta" onClick={stage === "revealed" ? () => { setStage("idle"); setReveals([]); setResult(null); setRequestId(null); } : handleOpen} disabled={disabled && stage !== "revealed"}>
