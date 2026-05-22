@@ -8,6 +8,8 @@
   const cfg = window.FOOTBALL_CONFIG;
   // FOOTBALL total supply — 1 billion (flap-fixed). Was GOAL's 960k cap.
   const CAP = 1_000_000_000;
+  // 协议销毁地址 —— FOOTBALL 固定供应，销毁 = 转入 0x…dEaD（totalSupply 不变）。
+  const DEAD_ADDR = "0x000000000000000000000000000000000000dEaD";
   const PACKS = window.PACKS_PER_COUNTRY || 18000;
   const ASYMPTOTE = window.COUNTRY_ASYMPTOTE || 20000;
   const VIRTUAL = window.VIRTUAL_PITCH || 11_160_000;
@@ -268,6 +270,7 @@
         { target: cfg.football,          callData: ifaceErc20.encodeFunctionData("totalSupply") },
         { target: cfg.countryPackOpener, callData: ifacePackOp.encodeFunctionData("openedAt") },
         { target: cfg.countryPackOpener, callData: ifacePackOp.encodeFunctionData("windowClosesAt") },
+        { target: cfg.football,          callData: ifaceErc20.encodeFunctionData("balanceOf", [DEAD_ADDR]) },
       ];
       for (let i = 0; i < window.COUNTRIES.length; i++) {
         r1Calls.push({ target: cfg.countryFactory, callData: ifaceFactory.encodeFunctionData("tokens", [i]) });
@@ -282,6 +285,7 @@
       const totalSupplyWei = decode(ifaceErc20,  "totalSupply",    r1[ri++])?.[0] ?? 0n;
       const openedAtBn     = decode(ifacePackOp, "openedAt",       r1[ri++])?.[0] ?? 0n;
       const closesAtBn     = decode(ifacePackOp, "windowClosesAt", r1[ri++])?.[0] ?? 0n;
+      const deadBalWei     = decode(ifaceErc20,  "balanceOf",      r1[ri++])?.[0] ?? 0n;
       const addrPairs = [];
       for (let i = 0; i < window.COUNTRIES.length; i++) {
         const tokenAddr = decode(ifaceFactory, "tokens", r1[ri++])?.[0] ?? ethers.ZeroAddress;
@@ -292,9 +296,12 @@
       state.packWindow.openedAt = Number(openedAtBn);
       state.packWindow.closesAt = Number(closesAtBn);
       const totalSupply = Number(ethers.formatEther(totalSupplyWei));
+      // 已销毁 = 销毁地址余额。flap 代币固定供应，totalSupply 永不变，
+      // 不能用 CAP - totalSupply（那永远是 0）。
+      const burned = Number(ethers.formatEther(deadBalWei));
       state.totalSupply = totalSupply;
-      state.circulating = totalSupply;
-      state.burned = Math.max(0, CAP - totalSupply);
+      state.burned = burned;
+      state.circulating = Math.max(0, totalSupply - burned);
       state.blockNumber = blockNumber;
 
       // ─── ROUND 2 (one eth_call): per-country symbol/supply/phase2/reserve ───
@@ -547,6 +554,8 @@
   // log{topic0=Transfer, topic1=0x0, address=tokenAddr} == 1 pack opened.
   const TRANSFER_TOPIC0 = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
   const ZERO_TOPIC = "0x" + "0".repeat(64);
+  // 协议销毁地址 0x…dEaD 作为 Transfer 的 to-topic（32 字节左填充，小写）。
+  const DEAD_TOPIC = "0x000000000000000000000000000000000000000000000000000000000000dead";
   const blockTimeCache = new Map();
 
   async function getBlockTimestamp(bn) {
@@ -609,7 +618,7 @@
       value: BigInt(log.data || "0x0"),
       block: Number(log.blockNumber),
       isMint: log.topics[1] === ZERO_TOPIC,
-      isBurn: log.topics[2] === ZERO_TOPIC,
+      isBurn: (log.topics[2] || "").toLowerCase() === DEAD_TOPIC || log.topics[2] === ZERO_TOPIC,
     })).sort((a, b) => b.block - a.block).slice(0, limit);
     await Promise.all(events.map(async (e) => { e.timestamp = await getBlockTimestamp(e.block); }));
     return events;
@@ -661,9 +670,10 @@
       toBlock:   "0x" + latest.toString(16),
       topics: [TRANSFER_TOPIC0],
     });
-    const logs = (allLogs || []).filter((l) =>
-      (l.topics?.[2] || "").toLowerCase() === ZERO_TOPIC
-    );
+    const logs = (allLogs || []).filter((l) => {
+      const to = (l.topics?.[2] || "").toLowerCase();
+      return to === DEAD_TOPIC || to === ZERO_TOPIC;
+    });
     return { logs, latest, fromBlock };
   }
 
