@@ -3,33 +3,8 @@ const CABanner = () => {
   const CA = (window.FOOTBALL_CONFIG && window.FOOTBALL_CONFIG.football) || "";
   const [copied, setCopied] = React.useState(false);
 
-  // CA 还没创建 —— 显示「即将发射」状态
-  if (!CA) {
-    return (
-      <div className="ca-banner">
-        <div className="ca-banner-inner">
-          <span className="ca-banner-label eyebrow">$FOOTBALL 合约</span>
-          <span className="ca-banner-divider" />
-          <span className="ca-banner-addr f-mono">代币即将在 flap.sh 发射 —— 关注 X 获取 CA</span>
-          <a
-            className="ca-banner-btn"
-            href="https://x.com/DELPHIbsc"
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24">
-              <path
-                d="M18.244 2H21.5l-7.43 8.49L23 22h-6.74l-5.27-6.89L4.96 22H1.7l7.96-9.1L1.5 2h6.91l4.77 6.31L18.244 2z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>@DELPHIbsc</span>
-          </a>
-        </div>
-      </div>
-    );
-  }
+  // CA 还没创建 —— 不显示横幅（代币发射后填 config.football 即自动出现）
+  if (!CA) return null;
 
   const short = `${CA.slice(0, 8)}…${CA.slice(-6)}`;
   const handleCopy = (e) => {

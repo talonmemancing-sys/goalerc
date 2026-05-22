@@ -27,8 +27,9 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
             <span style={{color:"var(--accent)", fontWeight:300}}>同一个倒计时。</span>
           </h1>
           <p style={{maxWidth:560, color:"var(--fg-2)", fontSize:17, lineHeight:1.55}}>
-            开包窗口分发国家代币和球员代币的初始供应。每个国家有 1,000 个国家包，每包 10 FOOTBALL，
-            外加 450 个用国家代币支付的球员包。窗口封盘后，该国的曲线即上线交易。
+            开包窗口分发国家代币与球员代币的初始供应。每个国家最多 18,000 个国家包，
+            每包用 FOOTBALL 购买、铸造 1 枚国家代币；窗口封盘后，该国曲线即上线交易。
+            随后可用国家代币开 450 个球员包。
           </p>
         </div>
         <div className="pack-hero-r">
@@ -97,7 +98,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
           <span style={{flex:"0 0 100px"}}>分区</span>
           <span style={{flex:"0 0 160px"}}>状态</span>
           <span style={{flex:"1 0 220px"}}>开包进度</span>
-          <span style={{flex:"0 0 110px"}}>价格</span>
+          <span style={{flex:"0 0 110px"}}>价格 · FOOTBALL</span>
           <span style={{flex:"0 0 110px", textAlign:"right"}}></span>
         </div>
         {list.map(c => {
@@ -122,7 +123,7 @@ const Pack = ({ setRoute, packsSold, totalPacks, countdown }) => {
                 </div>
               </span>
               <span style={{flex:"0 0 110px"}} className="f-mono">
-                {s.curveOpen ? `${s.price.toFixed(2)}` : "6.90"} <span style={{color:"var(--fg-3)"}}>G</span>
+                {s.curveOpen ? s.price.toFixed(2) : PACK_PRICE.toLocaleString()} <span style={{color:"var(--fg-3)"}}>FB</span>
               </span>
               <span style={{flex:"0 0 110px", textAlign:"right"}}>
                 <span className="pack-table-arrow">
@@ -160,16 +161,16 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
   const [txHash, setTxHash] = React.useState(null);
   const [errMsg, setErrMsg] = React.useState(null);
 
-  const tokensPerPack = 1;
-  const pricePerPack = PACK_PRICE; // 6.9 GOAL
-  const total = +(packCount * pricePerPack).toFixed(3);
+  const tokensPerPack = 1; // 合约 CountryPackOpener.TOKENS_PER_PACK = 1 枚国家代币 / 包
+  const pricePerPack = PACK_PRICE; // FOOTBALL 计价，按部署日 k（参考 3,850）
+  const total = +(packCount * pricePerPack).toFixed(2);
   const tokensReceived = packCount * tokensPerPack;
-  const burnAmount = +(packCount * PACK_BURN).toFixed(3);
+  const burnAmount = +(packCount * PACK_BURN).toFixed(2);
 
   // Only treat balance as "definitely insufficient" if we've actually fetched
   // one. Before that, assume the user has enough — let the on-chain tx be the
-  // source of truth. (Prevents the "Need X more GOAL" lock when the RPC read
-  // failed but the user actually has GOAL.)
+  // source of truth. (Prevents the "Need X more FOOTBALL" lock when the RPC read
+  // failed but the user actually has FOOTBALL.)
   const balanceKnown = (wallet.balanceFetchedAt || 0) > 0;
   const insufficientGoal = balanceKnown && wallet.goalBalance < total;
   const cantBuy = s.sealed || s.curveOpen;
@@ -243,12 +244,13 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
 
             <div className="pc-card-body">
               <div className="pc-spec">
-                <SpecRow label="价格" value="6.9 FOOTBALL" mono accent="accent"/>
-                <SpecRow label="销毁 (5%)" value="0.345 FOOTBALL → burn()" mono accent="fire"/>
-                <SpecRow label="进入曲线储备" value="6.555 FOOTBALL" mono/>
-                <SpecRow label="开包窗口上限" value="18,000 包" mono/>
-                <SpecRow label="曲线渐近线" value="20,000" mono/>
-                <SpecRow label="swap 手续费" value="5% → FOOTBALL.burn()" mono accent="fire"/>
+                <SpecRow label="包价" value={`${PACK_PRICE.toLocaleString()} FOOTBALL`} mono accent="accent"/>
+                <SpecRow label="销毁 (5%)" value={`${PACK_BURN.toLocaleString()} FOOTBALL · 永久销毁`} mono accent="fire"/>
+                <SpecRow label="注入曲线储备 (95%)" value={`${PACK_TO_CURVE.toLocaleString()} FOOTBALL`} mono/>
+                <SpecRow label="每包铸造" value="1 枚国家代币" mono/>
+                <SpecRow label="开包窗口上限" value="18,000 包 / 国" mono/>
+                <SpecRow label="曲线渐近线" value="20,000 枚" mono/>
+                <SpecRow label="曲线买/卖手续费" value="5% → 永久销毁" mono accent="fire"/>
               </div>
 
               <div className="pc-buy">
@@ -283,7 +285,7 @@ const PackCountry = ({ setRoute, countryId, burned, setBurned }) => {
                 <div className="pc-burn-note">
                   <span className="f-mono" style={{color:"var(--fire)"}}>▲</span>
                   <span className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>
-                    每笔曲线 swap 预留 5% 协议费。<span style={{color:"var(--fire)"}}>{(total*0.05).toFixed(2)} FOOTBALL</span> 将在首次曲线交互时销毁。
+                    本次购买立即销毁 <span style={{color:"var(--fire)"}}>{burnAmount.toLocaleString()} FOOTBALL</span>（包价的 5%），其余 95% 注入 {c.id} 曲线储备。
                   </span>
                 </div>
 
@@ -620,7 +622,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
           <div>
             <div className="eyebrow">开 {c.name} 球员包</div>
             <div className="pp-open-desc">
-              每开一包销毁 1 枚 {c.id} 代币，并通过 Chainlink VRF 铸造一个角色。链上剩余 {pools.CPT + pools.BST + pools.RKE}/450 包。
+              每开一包消耗 1 枚 {c.id} 代币，通过 Chainlink VRF 随机抽取角色，每包铸造 10 枚球员代币。链上剩余 {pools.CPT + pools.BST + pools.RKE}/450 包。
             </div>
           </div>
           <div className="pp-open-bal">
@@ -662,7 +664,7 @@ const PackPlayer = ({ setRoute, countryId }) => {
           })()}
         </div>
         <div className="pp-open-flow f-mono">
-          两笔交易流程：开包（销毁 {c.id}，请求 VRF v2.5）→ 约 30–90 秒等待 → 领取（揭晓球员）。国家代币在开包时被永久销毁。
+          两笔交易流程：开包（提交 1 枚 {c.id}/包，请求 VRF v2.5）→ 约 30–90 秒等待 → 领取（揭晓球员、铸造球员代币）。若 VRF 超 24 小时未回调，可取回国家代币。
           {stage === "requesting" && canRecover && (
             <button onClick={handleRecover} style={{marginLeft:12, color:"var(--fire)", background:"transparent", border:"none", textDecoration:"underline", cursor:"pointer"}}>
               取消并退款（已超 24 小时）

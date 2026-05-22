@@ -155,7 +155,7 @@ const PlayerCard = ({ p, onClick }) => {
         <div className="player-card-stat">
           <span className="eyebrow">价格</span>
           <span className="f-display numeric player-card-stat-v">{p.price.toFixed(2)}</span>
-          <span className="f-mono player-card-stat-u">G</span>
+          <span className="f-mono player-card-stat-u">FB</span>
         </div>
         <div className="player-card-stat is-right">
           <span className="eyebrow">24小时</span>
@@ -413,7 +413,7 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
             </div>
 
             <div className="md-rate">
-              <div className="md-rate-row"><span className="eyebrow">汇率</span><span className="f-mono">1 {country.id}.{role} = {price.toFixed(3)} G</span></div>
+              <div className="md-rate-row"><span className="eyebrow">汇率</span><span className="f-mono">1 {country.id}.{role} = {price.toFixed(3)} FOOTBALL</span></div>
               <div className="md-rate-row">
                 <span className="eyebrow">滑点</span>
                 <span style={{display:"flex", gap:4}}>
@@ -431,7 +431,7 @@ const PlayerMarketDetail = ({ setRoute, id, burned, setBurned }) => {
               <div className="md-rate-row"><span className="eyebrow">曲线手续费</span><span className="f-mono" style={{color:"var(--fire)"}}>5% → 销毁</span></div>
               <div className="md-rate-row" style={{paddingTop:10, borderTop:"1px solid var(--line)"}}>
                 <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>净销毁</span>
-                <span className="f-mono numeric" style={{fontSize:13, color:"var(--fire)"}}>−{feeBurn} {mode==="buy" ? "G" : country.id+"."+role}</span>
+                <span className="f-mono numeric" style={{fontSize:13, color:"var(--fire)"}}>−{feeBurn} {mode==="buy" ? "FOOTBALL" : country.id+"."+role}</span>
               </div>
             </div>
 
@@ -507,7 +507,7 @@ const CurveChartPlayer = ({ price, supply, max, seed }) => {
       <path d={areaPath} fill="url(#playerAreaGrad)"/>
       <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth="1.5"/>
       <circle cx={xs(days-1)} cy={ys(points[days-1])} r="5" fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"/>
-      <text x={xs(days-1)-10} y={ys(points[days-1])+4} textAnchor="end" fontSize="11" fill="var(--accent)" fontFamily="var(--f-mono)">{price.toFixed(3)} G</text>
+      <text x={xs(days-1)-10} y={ys(points[days-1])+4} textAnchor="end" fontSize="11" fill="var(--accent)" fontFamily="var(--f-mono)">{price.toFixed(3)} FOOTBALL</text>
       <text x={PAD} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)">供应量</text>
       <text x={W/2} y={H-12} fontSize="9" fill="var(--fg-3)" fontFamily="var(--f-mono)" textAnchor="middle">[{supply.toLocaleString()} / {max.toLocaleString()}]</text>
     </svg>

@@ -1,4 +1,4 @@
-// GOAL — Tweaks panel
+// FOOTBALL — Tweaks panel
 // Exposes the polish dials the user can flip live.
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -40,7 +40,7 @@ function MatchTweaks() {
   }, [t]);
 
   return (
-    <TweaksPanel title="GOAL · Tweaks">
+    <TweaksPanel title="FOOTBALL · Tweaks">
       <TweakSection label="Brand color"/>
       <TweakColor label="Accent" value={t.accent}
         options={["#6868FF","#7B8CFF","#34D2A1","#F5A623","#E84393","#FFFFFF"]}
@@ -69,7 +69,7 @@ function MatchTweaks() {
       <TweakSection label="Surface"/>
       <TweakToggle label="Grain overlay" value={t.grain} onChange={v => setTweak("grain", v)}/>
       <TweakToggle label="Ticker tape"  value={t.tickerOn} onChange={v => setTweak("tickerOn", v)}/>
-      <TweakToggle label="V4 hook callout" value={t.showV4Hook} onChange={v => setTweak("showV4Hook", v)}/>
+      <TweakToggle label="Treasury callout" value={t.showV4Hook} onChange={v => setTweak("showV4Hook", v)}/>
 
       <TweakSection label="Layout"/>
       <TweakRadio label="Country grid" value={String(t.countryGridCols)}

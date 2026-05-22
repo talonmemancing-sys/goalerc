@@ -56,7 +56,7 @@ const Burn = ({ setRoute, burned }) => {
     setRetryNonce((n) => n + 1);
   };
   const setCustomRpc = () => {
-    const cur = (() => { try { return localStorage.getItem("goal_rpc") || ""; } catch { return ""; } })();
+    const cur = (() => { try { return localStorage.getItem("football_rpc") || ""; } catch { return ""; } })();
     const url = window.prompt(
       "粘贴你的 BSC RPC 地址（Alchemy / Infura / QuickNode 等）。\n" +
       "公共 RPC 有时会限速或阻止本站点的 CORS。\n" +
@@ -64,13 +64,13 @@ const Burn = ({ setRoute, burned }) => {
     );
     if (url === null) return;
     try {
-      if (url.trim()) localStorage.setItem("goal_rpc", url.trim());
-      else localStorage.removeItem("goal_rpc");
+      if (url.trim()) localStorage.setItem("football_rpc", url.trim());
+      else localStorage.removeItem("football_rpc");
     } catch {}
     location.reload();
   };
 
-  const pct = (burned / 960000) * 100;
+  const pct = (burned / (window.TOTAL_SUPPLY || 1e9)) * 100;
 
   // Real per-curve leaderboard built from analytics.leaderboard, filtered to
   // country+player curves and matched to COUNTRIES for jersey/flag display.
@@ -130,12 +130,12 @@ const Burn = ({ setRoute, burned }) => {
           <div className="burn-hero-divider-v2"/>
           <div className="burn-hero-stat">
             <span className="burn-hero-stat-label">流通量</span>
-            <span className="burn-hero-stat-v">{(960000 - burned).toLocaleString(undefined,{maximumFractionDigits: burned < 1000 ? 3 : 0})}</span>
+            <span className="burn-hero-stat-v">{((window.TOTAL_SUPPLY || 1e9) - burned).toLocaleString(undefined,{maximumFractionDigits: burned < 1000 ? 3 : 0})}</span>
           </div>
           <div className="burn-hero-divider-v2"/>
           <div className="burn-hero-stat">
             <span className="burn-hero-stat-label">供应上限</span>
-            <span className="burn-hero-stat-v is-muted">960,000</span>
+            <span className="burn-hero-stat-v is-muted">10 亿</span>
           </div>
         </div>
       </section>
@@ -164,7 +164,7 @@ const Burn = ({ setRoute, burned }) => {
                     muted/>
           <BurnRate label="已销毁占上限比例"
                     value={pct.toFixed(3) + "%"}
-                    unit="共 960,000"
+                    unit="共 10 亿"
                     delta="不可变上限"
                     muted/>
         </div>
@@ -181,7 +181,7 @@ const Burn = ({ setRoute, burned }) => {
             历史供应量图表等待事件索引器接入。
           </div>
           <div className="f-mono" style={{fontSize:11, color:"var(--fg-4)"}}>
-            当前流通 · {(960000 - burned).toLocaleString()} FOOTBALL · 永久销毁 · {burned.toLocaleString()}
+            当前流通 · {((window.TOTAL_SUPPLY || 1e9) - burned).toLocaleString()} FOOTBALL · 永久销毁 · {burned.toLocaleString()}
           </div>
         </div>
       </section>
@@ -327,9 +327,10 @@ const SupplyOverTime = ({ burned }) => {
     const t = i / (days - 1);
     seriesBurn.push(burned * Math.pow(t, 1.3));
   }
-  const seriesSupply = seriesBurn.map(b => 960000 - b);
+  const TOTAL = window.TOTAL_SUPPLY || 1e9;
+  const seriesSupply = seriesBurn.map(b => TOTAL - b);
   const supplyMin = Math.min(...seriesSupply);
-  const supplyMax = 960000;
+  const supplyMax = TOTAL;
   const xs = i => PAD + (i / (days-1)) * (W - 2*PAD);
   const ys = v => PAD + ((supplyMax - v) / (supplyMax - supplyMin * 0.99)) * (H - 2*PAD);
 
@@ -357,8 +358,8 @@ const SupplyOverTime = ({ burned }) => {
             </text>
           </g>
         ))}
-        <line x1={PAD} y1={ys(960000)} x2={W-PAD} y2={ys(960000)} stroke="var(--fg-4)" strokeDasharray="3 3" opacity="0.6"/>
-        <text x={W-PAD} y={ys(960000)-6} textAnchor="end" fontSize="10" fill="var(--fg-3)" fontFamily="var(--f-mono)">上限 · 960,000</text>
+        <line x1={PAD} y1={ys(supplyMax)} x2={W-PAD} y2={ys(supplyMax)} stroke="var(--fg-4)" strokeDasharray="3 3" opacity="0.6"/>
+        <text x={W-PAD} y={ys(supplyMax)-6} textAnchor="end" fontSize="10" fill="var(--fg-3)" fontFamily="var(--f-mono)">总量 · 10 亿</text>
         <path d={areaPath} fill="url(#burnAreaGradV2)"/>
         <path d={linePath} fill="none" stroke="url(#burnLineGrad)" strokeWidth="2"/>
         <circle cx={xs(days-1)} cy={ys(seriesSupply[days-1])} r="6" fill="#2EE164" stroke="var(--bg)" strokeWidth="2"/>

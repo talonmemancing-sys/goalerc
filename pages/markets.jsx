@@ -26,15 +26,15 @@ const Markets = ({ setRoute, burned }) => {
             <span style={{color:"var(--accent)", fontWeight:300}}>共 192 条。</span>
           </h1>
           <p style={{maxWidth:600, color:"var(--fg-2)", fontSize:17, lineHeight:1.55}}>
-            每条曲线都是以 FOOTBALL 计价的二次联合曲线。流动性由开包窗口收入注入。
-            每笔 swap 都经过 PancakeSwap hook 并销毁 5%。
+            每条曲线都是以 FOOTBALL 计价的虚拟储备联合曲线。流动性由开包窗口收入注入。
+            每笔买入与卖出收取 5% 手续费并永久销毁。
           </p>
         </div>
         <div className="markets-hero-stats">
           <MarketStat label="累计销毁（曲线）" value={"—"} suffix="" big/>
           <MarketStat label="合计供应量"  value={COUNTRIES.filter(c=>countryState(c).curveOpen).reduce((s,c)=>s+countryState(c).supply, 0)}/>
           <MarketStat label="24小时成交量" value={"—"}/>
-          <MarketStat label="平均价格"  value={liveCount > 0 ? Number((COUNTRIES.filter(c=>countryState(c).curveOpen).reduce((s,c)=>s+countryState(c).price,0) / liveCount).toFixed(2)) : "—"} suffix={liveCount > 0 ? " G" : ""}/>
+          <MarketStat label="平均价格"  value={liveCount > 0 ? Number((COUNTRIES.filter(c=>countryState(c).curveOpen).reduce((s,c)=>s+countryState(c).price,0) / liveCount).toFixed(2)) : "—"} suffix={liveCount > 0 ? " FOOTBALL" : ""}/>
         </div>
       </section>
 
@@ -116,7 +116,7 @@ const CurveRow = ({ c, i, onClick }) => {
       </span>
       <span style={{flex:"0 0 120px"}}>
         {s.curveOpen ? (
-          <span className="f-mono numeric" style={{fontSize:15, color:"var(--fg)"}}>{s.price.toFixed(2)} <span style={{color:"var(--fg-3)"}}>G</span></span>
+          <span className="f-mono numeric" style={{fontSize:15, color:"var(--fg)"}}>{s.price.toFixed(2)} <span style={{color:"var(--fg-3)"}}>FB</span></span>
         ) : <span className="f-mono" style={{color:"var(--fg-3)", fontSize:13}}>—</span>}
       </span>
       <span style={{flex:"0 0 100px"}}>
@@ -270,7 +270,7 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
                 {c.name}
               </h1>
               <div style={{display:"flex", gap:12, alignItems:"center"}}>
-                <span className="f-mono numeric" style={{fontSize:24, color:"var(--fg)"}}>{s.price.toFixed(3)} G</span>
+                <span className="f-mono numeric" style={{fontSize:24, color:"var(--fg)"}}>{s.price.toFixed(3)} FOOTBALL</span>
                 <span className="f-mono numeric" style={{fontSize:13, color: s.price > 5 ? "var(--bull)" : "var(--bear)"}}>
                   {s.price > 5 ? "▲" : "▼"} 2.81% · 24小时
                 </span>
@@ -310,8 +310,8 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
               ))}
             </div>
             <div className="md-chart-meta">
-              <span className="eyebrow">曲线</span>
-              <span className="f-mono" style={{fontSize:11, color:"var(--accent)"}}>K = {K.toFixed(0)}</span>
+              <span className="eyebrow">虚拟储备 XYK</span>
+              <span className="f-mono" style={{fontSize:11, color:"var(--accent)"}}>渐近线 {A.toLocaleString()}</span>
             </div>
           </div>
           <CurveChart c={c} s={s}/>
@@ -379,7 +379,7 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
             <div className="md-rate">
               <div className="md-rate-row">
                 <span className="eyebrow">汇率</span>
-                <span className="f-mono">1 {c.id} = {s.price.toFixed(3)} G</span>
+                <span className="f-mono">1 {c.id} = {s.price.toFixed(3)} FOOTBALL</span>
               </div>
               <div className="md-rate-row">
                 <span className="eyebrow">滑点</span>
@@ -402,7 +402,7 @@ const MarketDetail = ({ setRoute, countryId, burned, setBurned }) => {
               </div>
               <div className="md-rate-row" style={{paddingTop:10, borderTop:"1px solid var(--line)"}}>
                 <span className="f-mono" style={{fontSize:12, color:"var(--fg-2)"}}>本笔净销毁</span>
-                <span className="f-mono numeric" style={{fontSize:13, color:"var(--fire)"}}>−{feeBurn} {mode==="buy" ? "G" : c.id}</span>
+                <span className="f-mono numeric" style={{fontSize:13, color:"var(--fire)"}}>−{feeBurn} {mode==="buy" ? "FOOTBALL" : c.id}</span>
               </div>
             </div>
 

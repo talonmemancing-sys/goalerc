@@ -165,7 +165,7 @@ const SocialLinks = () => (
 );
 window.SocialLinks = SocialLinks;
 
-/* Pool-live indicator — appears automatically when V4 GOAL/ETH pool initializes. */
+/* Pool-live indicator — appears automatically once the PancakeSwap FOOTBALL/BNB pool is live. */
 const PoolLiveBadge = () => {
   const [pool, setPool] = React.useState(() => window.CHAIN?.state?.pool || { active: false });
   React.useEffect(() => {

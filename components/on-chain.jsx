@@ -131,7 +131,7 @@ const TransferLogFeed = ({ tokenAddr, symbol = "代币", mintsOnly = false, head
               </div>
             </div>
             <div className="recent-row-r">
-              <div className="f-mono" style={{fontSize:13, color:"var(--fg)"}}>−{(e.count * 6.9).toFixed(1)} G</div>
+              <div className="f-mono" style={{fontSize:13, color:"var(--fg)"}}>−{(e.count * (window.PACK_PRICE || 3850)).toLocaleString()} FOOTBALL</div>
               <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)"}}>{_ago(e.timestamp)}</div>
             </div>
           </a>

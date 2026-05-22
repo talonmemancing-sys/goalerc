@@ -1,6 +1,6 @@
-// GOAL — 48 country roster aligned to mainnet contract countryIndex (0-47).
-// Each country has 3 players: CPT (Captain), BST (Best), RKE (Rookie).
-// Stripe codes match Flag SVG patterns; colors are abstract palettes (not flag replicas).
+// FOOTBALL — 48 国家阵容，countryIndex 与链上合约一致（0-47）。
+// 每个国家 3 名球员：CPT（队长）、BST（巨星）、RKE（新星）。
+// stripe 代码对应 Flag SVG 图案；colors 为抽象配色（非国旗复刻）。
 
 window.COUNTRIES = [
   { id: "ARG", name: "阿根廷",     conf: "CONMEBOL",  colors: ["#75AADB","#FFFFFF","#FCBF49"], stripe: "h3" },
@@ -60,15 +60,16 @@ window.PLAYER_ROLES = {
   RKE: { id: "RKE", label: "新星", rarity: "Common", max: 2500, packs: 250, color: "var(--rare-rookie)"  },
 };
 
-// Pack window economics (mainnet)
-window.PACK_PRICE        = 6.9;
-window.PACK_BURN         = 0.345;
-window.PACK_TO_CURVE     = 6.555;
-window.PACKS_PER_COUNTRY = 18000;
-window.COUNTRY_ASYMPTOTE = 20000;
-window.VIRTUAL_PITCH     = 20000;
-window.FEE_BPS           = 500;
-window.TOTAL_SUPPLY      = 1000000000;
+// 开包窗口经济参数 —— 国家包价按部署日 BNB 价回填（= 合约 BscParams 的 k）。
+// 参考场景 BNB=$600、k≈558：国家包价 3,850 FOOTBALL。合约填好 config.packPriceFootball 后全站自动同步。
+window.PACK_PRICE        = (window.FOOTBALL_CONFIG && window.FOOTBALL_CONFIG.packPriceFootball) || 3850;
+window.PACK_BURN         = +(window.PACK_PRICE * 0.05).toFixed(2);   // 包价 5% 永久销毁
+window.PACK_TO_CURVE     = +(window.PACK_PRICE * 0.95).toFixed(2);   // 包价 95% 注入国家曲线储备
+window.PACKS_PER_COUNTRY = 18000;        // 每国国家包上限（1 包铸造 1 枚国家代币）
+window.COUNTRY_ASYMPTOTE = 20000;        // 国家曲线渐近线（代币数）
+window.VIRTUAL_PITCH     = Math.round(20000 * window.PACK_PRICE / 6.9); // 国家曲线虚拟储备 = 20,000 × k
+window.FEE_BPS           = 500;          // 曲线买/卖手续费 5%
+window.TOTAL_SUPPLY      = 1000000000;   // FOOTBALL 总量 10 亿（flap 固定，不可增发）
 
 // Real on-chain state, sourced from data/chain.js (CHAIN cache).
 // Before the first RPC response lands, returns a clean zero state — NOT demo.

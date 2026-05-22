@@ -10,8 +10,8 @@
   const CAP = 1_000_000_000;
   const PACKS = window.PACKS_PER_COUNTRY || 18000;
   const ASYMPTOTE = window.COUNTRY_ASYMPTOTE || 20000;
-  const VIRTUAL = window.VIRTUAL_PITCH || 20000;
-  const PACK_PRICE = window.PACK_PRICE || 6.9;
+  const VIRTUAL = window.VIRTUAL_PITCH || 11_160_000;
+  const PACK_PRICE = window.PACK_PRICE || 3850;
 
   // Public BSC mainnet RPCs. User can override via:
   //   localStorage.setItem("football_rpc", "https://your-key.example.com/...")

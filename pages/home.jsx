@@ -12,7 +12,7 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
         <div className="pitch-bg"/>
         <PitchLines/>
         <div className="home-hero-mark">
-          <div className="eyebrow">FOOTBALL 协议 · BSC · 6&nbsp;BNB FDV</div>
+          <div className="eyebrow">FOOTBALL 协议 · BSC · 48 国 144 球员</div>
           <div className="home-hero-tagline f-mono">
             {!countdown.available ? (
               <span style={{color:"var(--fg-3)"}}>读取开包窗口中…</span>
@@ -38,10 +38,10 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
             <p className="home-hero-lede">
               48 国家。144 球员。<span style={{color:"var(--pitch-green)"}}>同&nbsp;一颗球。</span>
               <br/>
-              总量 960,000，每笔交易持续通缩。
+              FOOTBALL 总量 10 亿，每笔曲线交易持续销毁。
             </p>
             <p className="home-hero-fine">
-              基于 PancakeSwap 的闭环曲线。无团队。无增发。无退出。
+              192 条链上联合曲线。无团队。无增发。无退出。
               <br/>
               在 BSC 上永久不可篡改。<span style={{color:"var(--accent)"}}>这颗球永不停转。</span>
             </p>
@@ -134,13 +134,13 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
                 <div className="country-card-foot">
                   {s.curveOpen ? (
                     <>
-                      <span><span className="v">{s.price.toFixed(2)}</span> G/枚</span>
+                      <span><span className="v">{s.price.toFixed(2)}</span> /枚</span>
                       <span><span className="v">{s.supply.toLocaleString()}</span> / 20k</span>
                     </>
                   ) : (
                     <>
                       <span><span className="v">{(s.packsSold/1000).toFixed(1)}k</span>/18k 包</span>
-                      <span>6.9 G/包</span>
+                      <span>1 枚/包</span>
                     </>
                   )}
                 </div>
@@ -150,37 +150,38 @@ const Home = ({ setRoute, burned, packsSold, totalPacks, countdown }) => {
         </div>
       </section>
 
-      {/* ============ V4 HOOKS CALLOUT ============ */}
+      {/* ============ TREASURY · 4% 税分配 ============ */}
       <section className="home-v4">
         <div className="section-eyebrow">
-          <span className="eyebrow">PancakeSwap</span>
+          <span className="eyebrow">金库 · 4% 交易税</span>
           <div className="hairline" />
         </div>
 
         <div className="home-v4-grid">
           <div>
-            <div className="eyebrow" style={{marginBottom:12}}>Hook · 0xC0DE</div>
+            <div className="eyebrow" style={{marginBottom:12}}>PitchTreasury · 链上自动分账</div>
             <h2 className="f-display" style={{fontSize:"clamp(36px,5vw,72px)", lineHeight:1.0, margin:"0 0 24px", letterSpacing:"-0.045em", fontWeight:600}}>
-              销毁就发生在交易内部。
+              买过包，就持续分红。
             </h2>
             <p style={{color:"var(--fg-2)", fontSize:17, lineHeight:1.6, maxWidth:560}}>
-              FOOTBALL 的 192 条联合曲线部署为单个 PancakeSwap hook 合约。
-              每笔 swap 都会经过 <code className="inline-code">beforeSwap</code>，5% 协议费在此被提取并直接送进
-              <code className="inline-code">FOOTBALL.burn()</code>。
-              无路由、无中转、无第二笔交易。通缩与交易原子完成。
+              FOOTBALL 是 flap.sh 发射的 4/4 税代币 —— 每一笔在内盘或 PancakeSwap 上的买卖，
+              4% 自动换成 BNB 打进金库合约。金库把每笔进账拆成三份：
             </p>
             <div className="home-v4-stats">
-              <div><div className="stat-label f-mono">HOOK 权限</div><div className="f-mono" style={{color:"var(--fg)"}}>beforeSwap · afterSwap</div></div>
-              <div><div className="stat-label f-mono">单笔 SWAP 开销</div><div className="f-mono" style={{color:"var(--fg)"}}>约 21,000 gas</div></div>
-              <div><div className="stat-label f-mono">手续费去向</div><div className="f-mono" style={{color:"var(--fg)"}}>100% → 销毁</div></div>
+              <div><div className="stat-label f-mono">50% · 开发</div><div className="f-mono" style={{color:"var(--fg)"}}>项目运营</div></div>
+              <div><div className="stat-label f-mono">25% · 冠军储备</div><div className="f-mono" style={{color:"var(--fg)"}}>回购 FOOTBALL</div></div>
+              <div><div className="stat-label f-mono">25% · 分红</div><div className="f-mono" style={{color:"var(--fg)"}}>发给买包的人</div></div>
             </div>
+            <p style={{color:"var(--fg-3)", fontSize:13, lineHeight:1.6, maxWidth:560, marginTop:16}}>
+              分红按你买过的国家包数量加权（MasterChef 会计），BNB 随时可在金库领取。
+            </p>
             <button className="btn" style={{marginTop:32}} onClick={()=>setRoute({name:"mechanics"})}>
-              阅读 hook 规格
+              阅读完整机制
               <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5 L10 5 M6 1 L10 5 L6 9" stroke="currentColor" strokeWidth="1.4" fill="none"/></svg>
             </button>
           </div>
 
-          <CodeBlock />
+          <TaxSplitCard />
         </div>
       </section>
 
@@ -202,7 +203,7 @@ const GoalPriceTicker = () => {
   const up = (price.change24h || 0) >= 0;
   return (
     <a className="home-hero-tagline f-mono"
-       href={price.pairUrl || `https://dexscreener.com/bsc/${window.GOAL_CONFIG.goal}`}
+       href={price.pairUrl || `https://dexscreener.com/bsc/${window.FOOTBALL_CONFIG.football}`}
        target="_blank" rel="noreferrer noopener"
        style={{display:"inline-flex", gap:14, alignItems:"center", textDecoration:"none", marginTop:6}}>
       <span style={{color:"var(--fg)"}}>${price.priceUsd.toLocaleString(undefined, {maximumFractionDigits: 6})}</span>
@@ -257,7 +258,7 @@ const FootballOrb = () => (
 );
 
 const SupplyGauge = ({ burned }) => {
-  const total = 960_000;
+  const total = window.TOTAL_SUPPLY || 1_000_000_000;
   const remaining = total - burned;
   const pct = (burned / total) * 100;
   // Adaptive decimals tuned to keep both columns from overflowing the gauge:
@@ -307,7 +308,7 @@ const SupplyGauge = ({ burned }) => {
           </div>
           <div className="supply-gauge-unit">
             <span className="supply-gauge-unit-tag">FOOTBALL</span>
-            <span className="supply-gauge-unit-sub">封顶 · 960,000</span>
+            <span className="supply-gauge-unit-sub">总量 · 10 亿</span>
           </div>
         </div>
         <div className="supply-gauge-divider"/>
@@ -340,7 +341,7 @@ const SupplyGauge = ({ burned }) => {
           <span className="f-display numeric">{pct.toFixed(2)}</span>
           <span className="f-mono">% 已销毁</span>
         </span>
-        <span className="f-mono supply-gauge-foot-end is-right">960k</span>
+        <span className="f-mono supply-gauge-foot-end is-right">10 亿</span>
       </div>
     </div>
   );
@@ -394,7 +395,7 @@ const Ticker = ({ burned }) => {
         const live = window.COUNTRIES
           .filter(c => countryState(c).curveOpen)
           .slice(0, 8)
-          .map(c => `${c.id} · 曲线上线 @ ${countryState(c).price.toFixed(2)} G`);
+          .map(c => `${c.id} · 曲线上线 @ ${countryState(c).price.toFixed(2)} FOOTBALL`);
         const combined = lines.length || live.length ? [...lines, ...live] : ["暂无链上事件 · 开包进行中"];
         setEvents(combined);
       } catch (e) { /* keep current */ }
@@ -435,29 +436,31 @@ const Ticker = ({ burned }) => {
   );
 };
 
-const CodeBlock = () => (
+const TaxSplitCard = () => (
   <div className="code-block">
     <div className="code-block-bar">
-      <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>FootballCurveHook.sol</span>
-      <span className="f-mono" style={{color:"var(--fg-4)", fontSize:11}}>solidity 0.8.24</span>
+      <span className="f-mono" style={{color:"var(--fg-3)", fontSize:11}}>PitchTreasury · distribute()</span>
+      <span className="f-mono" style={{color:"var(--bull)", fontSize:11}}>● BSC 已部署</span>
     </div>
-    <pre className="code-block-pre">
-{`function beforeSwap(
-  address, PoolKey calldata key,
-  IPoolManager.SwapParams calldata params,
-  bytes calldata
-) external override returns (bytes4, BeforeSwapDelta, uint24) {
-  uint256 amountIn = uint256(-params.amountSpecified);
-  uint256 fee      = amountIn * 500 / 10_000;     // 5%
-
-  FOOTBALL.burn(fee);                            // ← 原子通缩
-  emit Burned(key.toId(), fee);
-
-  return (BaseHook.beforeSwap.selector,
-          toBeforeSwapDelta(int128(int256(fee)), 0),
-          0);
-}`}
-    </pre>
+    <div style={{padding:"26px 22px", display:"flex", flexDirection:"column", gap:14}}>
+      <div style={{textAlign:"center", paddingBottom:8}}>
+        <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", letterSpacing:"0.06em"}}>每笔交易 4% 税 → 换成 BNB</div>
+        <div className="f-display" style={{fontSize:34, lineHeight:1.1, color:"var(--accent)", marginTop:4}}>流入金库合约</div>
+      </div>
+      {[
+        { pct: "50%", label: "开发", sub: "直接转入 dev 钱包", color: "var(--fg)" },
+        { pct: "25%", label: "冠军储备", sub: "回购 FOOTBALL · 内盘 / 外盘", color: "var(--bull)" },
+        { pct: "25%", label: "持包人分红", sub: "按买包数量加权 · BNB 可领取", color: "var(--accent)" },
+      ].map(r => (
+        <div key={r.label} style={{display:"flex", alignItems:"center", gap:14, padding:"12px 14px", border:"1px solid var(--line)", borderRadius:6}}>
+          <div className="f-display numeric" style={{fontSize:30, lineHeight:1, width:68, color:r.color}}>{r.pct}</div>
+          <div>
+            <div className="f-display" style={{fontSize:18, lineHeight:1.1}}>{r.label}</div>
+            <div className="f-mono" style={{fontSize:11, color:"var(--fg-3)", marginTop:2}}>{r.sub}</div>
+          </div>
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -469,19 +472,19 @@ const Footer = ({ setRoute }) => (
         <div>2026 世界杯，全部上链。</div>
         <div>无团队。无增发。无代理。无退出。这颗球永不停转。</div>
         <div style={{marginTop:8, color:"var(--fg-4)"}} className="f-mono">
-          {window.GOAL_CONFIG?.goal} · BSC
+          {window.FOOTBALL_CONFIG?.football || "FOOTBALL 代币待发射"} · BSC
         </div>
       </div>
       <div className="col gap-2">
         <span className="eyebrow">协议</span>
         <a className="footer-link" onClick={()=>setRoute({name:"mechanics"})}>机制</a>
         <a className="footer-link" onClick={()=>setRoute({name:"burn"})}>销毁看板</a>
-        <a className="footer-link" href={`https://bscscan.com/token/${window.GOAL_CONFIG?.goal}`} target="_blank" rel="noreferrer noopener">BscScan</a>
+        <a className="footer-link" href={`https://bscscan.com/token/${window.FOOTBALL_CONFIG?.football}`} target="_blank" rel="noreferrer noopener">BscScan</a>
       </div>
       <div className="col gap-2">
         <span className="eyebrow">社区</span>
         <a className="footer-link" href="https://x.com/DELPHIbsc" target="_blank" rel="noreferrer noopener">X 上关注 @DELPHIbsc</a>
-        <a className="footer-link" href="https://goalerc20.xyz" target="_blank" rel="noreferrer noopener">goalerc20.xyz</a>
+        <a className="footer-link" href="https://footballflap.online" target="_blank" rel="noreferrer noopener">footballflap.online</a>
       </div>
       <div className="col gap-2">
         <span className="eyebrow">网络</span>

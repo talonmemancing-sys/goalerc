@@ -111,7 +111,7 @@ const Portfolio = ({ setRoute, burned }) => {
           <PFHeroStat label="以 FOOTBALL 计价总值" value={totalValue.toFixed(2)} unit="FOOTBALL" big/>
           <PFHeroStat label="FOOTBALL 余额" value={goalBal.toLocaleString(undefined,{maximumFractionDigits:4})} unit="FOOTBALL"/>
           <PFHeroStat label="BNB 余额"  value={ethBal.toFixed(4)} unit="BNB"/>
-          <PFHeroStat label="累计已销毁 FOOTBALL" value={burned.toLocaleString()} unit="FOOTBALL · 上限 960k" color="var(--fire)"/>
+          <PFHeroStat label="累计已销毁 FOOTBALL" value={burned.toLocaleString()} unit="FOOTBALL" color="var(--fire)"/>
         </div>
       </section>
 
@@ -127,7 +127,7 @@ const Portfolio = ({ setRoute, burned }) => {
             <div className="f-display numeric" style={{fontSize:64, lineHeight:1}}>{goalBal.toLocaleString(undefined,{maximumFractionDigits:4})}</div>
           </div>
           <div className="pf-match-buttons">
-            <a className="btn" href={`https://bscscan.com/token/${window.GOAL_CONFIG.goal}?a=${wallet.address}`} target="_blank" rel="noreferrer noopener">BscScan</a>
+            <a className="btn" href={`https://bscscan.com/token/${window.FOOTBALL_CONFIG.football}?a=${wallet.address}`} target="_blank" rel="noreferrer noopener">BscScan</a>
             <button className="btn btn-primary" onClick={()=>setRoute({name:"pack"})}>开包 →</button>
           </div>
         </div>

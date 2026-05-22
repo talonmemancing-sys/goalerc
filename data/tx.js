@@ -96,7 +96,8 @@
     const { signer, address } = await getSignerCtx();
     const country = isoToContractIdx(iso);
     // Pack price (FOOTBALL-denominated) comes from config — set on graduation.
-    const pricePerPack = ethers.parseEther(String(cfg.packPriceFootball || "6.9"));
+    // Fallback = BscParams 参考值（BNB=$600 场景）；部署日务必回填 config.packPriceFootball。
+    const pricePerPack = ethers.parseEther(String(cfg.packPriceFootball || "3850"));
     const cost = pricePerPack * BigInt(nPacks);
 
     if (onStep) onStep("approving");
